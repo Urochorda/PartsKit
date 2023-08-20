@@ -89,12 +89,12 @@ namespace PartsKit
         {
             if (isActive)
             {
-                lastCameraItem.CinemachineCamera.Priority = ActivePriority;
+                lastCameraItem.SetPriorityValue(ActivePriority);
                 lastCameraItem.gameObject.SetActive(true);
             }
             else
             {
-                lastCameraItem.CinemachineCamera.Priority = UnActivePriority;
+                lastCameraItem.SetPriorityValue(UnActivePriority);
             }
         }
     }

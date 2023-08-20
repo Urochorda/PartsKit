@@ -8,8 +8,9 @@ namespace PartsKit
         [SerializeField] private string cameraName;
         [SerializeField] private bool defaultActive;
         private bool isRegister;
+        private int priority;
 
-        public ICinemachineCamera CinemachineCamera { get; private set; }
+        public CheckNullProperty<ICinemachineCamera> CinemachineCamera { get; private set; }
         public bool DefaultActive => defaultActive;
 
         public string CameraName
@@ -24,9 +25,10 @@ namespace PartsKit
         private void Start()
         {
             CameraName = cameraName;
-            CinemachineCamera = GetComponent<ICinemachineCamera>();
-            if (CinemachineCamera != null)
+            CinemachineCamera = new CheckNullProperty<ICinemachineCamera>(GetComponent<ICinemachineCamera>(), false);
+            if (CinemachineCamera.GetValue(out ICinemachineCamera cinemachineCamera))
             {
+                priority = cinemachineCamera.Priority;
                 CinemachineController.Instance.RegisterCamera(this);
                 isRegister = true;
             }
@@ -37,6 +39,28 @@ namespace PartsKit
             if (isRegister)
             {
                 CinemachineController.Instance.UnRegisterCamera(this);
+            }
+        }
+
+        private void Update()
+        {
+            //camera的Priority由cameraItem接管了
+            if (CinemachineCamera.GetValue(out ICinemachineCamera cinemachineCamera))
+            {
+                cinemachineCamera.Priority = priority;
+            }
+        }
+
+        /// <summary>
+        /// 管理器调用，切勿手动调用
+        /// </summary>
+        /// <param name="value"></param>
+        public void SetPriorityValue(int value)
+        {
+            priority = value;
+            if (CinemachineCamera.GetValue(out ICinemachineCamera cinemachineCamera))
+            {
+                cinemachineCamera.Priority = priority;
             }
         }
 

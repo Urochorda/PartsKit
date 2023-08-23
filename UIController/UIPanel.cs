@@ -9,19 +9,19 @@ namespace PartsKit
         /// <summary>
         /// 设置打开，由Controller调用，不要调用
         /// </summary>
-        public void SetOpen()
+        public static void SetOpen(UIPanel uiPanel)
         {
-            IsOpen = true;
-            OnOpen();
+            uiPanel.IsOpen = true;
+            uiPanel.OnOpen();
         }
 
         /// <summary>
         /// 设置关闭，由Controller调用，不要调用
         /// </summary>
-        public void SetClose()
+        public static void SetClose(UIPanel uiPanel)
         {
-            IsOpen = false;
-            OnClose();
+            uiPanel.IsOpen = false;
+            uiPanel.OnClose();
         }
 
         protected virtual void OnOpen()

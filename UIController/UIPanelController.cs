@@ -6,7 +6,8 @@ namespace PartsKit
 {
     public abstract class LoadPanelFun : MonoBehaviour
     {
-        public abstract UIPanel Load(string panelKey);
+        public abstract T Load<T>(string panelKey) where T : UIPanel;
+        public abstract void LoadAsync<T>(string panelKey, Action<T> onPanelLoad) where T : UIPanel;
     }
 
     public class UIPanelController : MonoBehaviour
@@ -19,6 +20,8 @@ namespace PartsKit
         }
 
         [field: SerializeField] public LoadPanelFun CustomLoadPanelFun { get; set; }
+        [SerializeField] [Tooltip("CustomLoadPanelFun为空时默认使用Resources的加载方式")]
+        private string resourcesPath = "UIPanel";
         [SerializeField] private List<UILevelData> panelLevels = new List<UILevelData>();
         [SerializeField] private Transform resetPanelParent;
 
@@ -27,10 +30,6 @@ namespace PartsKit
         /// <summary>
         /// 打开面板，输出打开的面板对象
         /// </summary>
-        /// <param name="panelKey">面板key</param>
-        /// <param name="levelKey">面板等级key</param>
-        /// <param name="panel">面板对象</param>
-        /// <returns></returns>
         public bool OpenPanel<T>(string panelKey, string levelKey, out T panel) where T : UIPanel
         {
             if (!GetPanelLevel(levelKey, out Transform levelObj))
@@ -43,61 +42,24 @@ namespace PartsKit
             panel = panelVal as T;
             if (panel == null)
             {
-                UIPanel panelPrefab = null;
-                if (CustomLoadPanelFun != null)
+                if (!CreateUIPanel(panelKey, levelObj, out panel))
                 {
-                    panelPrefab = CustomLoadPanelFun.Load(panelKey);
+                    return false;
                 }
 
-                if (panelPrefab == null)
-                {
-                    panelPrefab = Resources.Load<UIPanel>(panelKey);
-                }
-
-                if (panelPrefab != null)
-                {
-                    panel = Instantiate(panelPrefab, levelObj) as T;
-                }
+                SetUIPanelOpen(panelKey, panel, levelObj, true);
             }
-            else if (panel.IsOpen)
+            else
             {
-                ClosePanel(panelKey, false);
+                SetUIPanelOpen(panelKey, panel, levelObj, false);
             }
 
-            if (panel == null)
-            {
-                return false;
-            }
-
-            panel.transform.SetParent(levelObj);
-            panel.transform.SetAsLastSibling();
-            panelPool[panelKey] = panel;
-            panel.gameObject.SetActive(true);
-            panel.SetOpen();
-            new ActionRegister(() => DoClosePanel(panelKey, true))
-                .UnRegisterWhenGameObjectDestroyed(panel.gameObject);
             return true;
-        }
-
-        /// <summary>
-        /// 打开面板
-        /// </summary>
-        /// <param name="panelKey">面板key</param>
-        /// <param name="levelKey">面板等级key</param>
-        /// <returns></returns>
-        public bool OpenPanel(string panelKey, string levelKey)
-        {
-            return OpenPanel(panelKey, levelKey, out UIPanel _);
         }
 
         /// <summary>
         /// 打开面板，设置面板数据，输出面板对象
         /// </summary>
-        /// <param name="panelKey">面板key</param>
-        /// <param name="levelKey">面板等级key</param>
-        /// <param name="data">面板数据</param>
-        /// <param name="panel">面板对象</param>
-        /// <returns></returns>
         public bool OpenPanel<T, TD>(string panelKey, string levelKey, TD data, out T panel) where T : UIPanel<TD>
         {
             if (OpenPanel(panelKey, levelKey, out panel))
@@ -111,15 +73,38 @@ namespace PartsKit
         }
 
         /// <summary>
-        /// 打开面板，设置面板数据
+        /// 异步打开panel
         /// </summary>
-        /// <param name="panelKey">面板key</param>
-        /// <param name="levelKey">面板等级key</param>
-        /// <param name="data">面板数据</param>
-        /// <returns></returns>
-        public bool OpenPanel<T, TD>(string panelKey, string levelKey, TD data) where T : UIPanel<TD>
+        public void OpenPanelAsync<T>(string panelKey, string levelKey, Action<T> onPanelOpen) where T : UIPanel
         {
-            return OpenPanel<T, TD>(panelKey, levelKey, data, out _);
+            if (!GetPanelLevel(levelKey, out Transform levelObj))
+            {
+                return;
+            }
+
+            panelPool.TryGetValue(panelKey, out UIPanel panelVal);
+            if (panelVal is T openPanel)
+            {
+                SetUIPanelOpen(panelKey, openPanel, levelObj, false);
+                onPanelOpen?.Invoke(openPanel);
+            }
+            else
+            {
+                CreateUIPanelAsync<T>(panelKey, levelObj, (createPanel) =>
+                {
+                    SetUIPanelOpen(panelKey, createPanel, levelObj, true);
+                    onPanelOpen?.Invoke(createPanel);
+                });
+            }
+        }
+
+        /// <summary>
+        /// 异步打开panel，设置数据
+        /// </summary>
+        public void OpenPanelAsync<T, TD>(string panelKey, string levelKey, TD data, Action<T> onPanelOpen)
+            where T : UIPanel<TD>
+        {
+            OpenPanelAsync<T>(panelKey, levelKey, (panel) => { panel.SetData(data); });
         }
 
         /// <summary>
@@ -142,6 +127,24 @@ namespace PartsKit
             }
         }
 
+        /// <summary>
+        /// 获取打开的面板
+        /// </summary>
+        public bool GetOpenedPanel(string panelKey, out UIPanel panel)
+        {
+            return panelPool.TryGetValue(panelKey, out panel) && panel != null &&
+                   panel.gameObject.activeSelf;
+        }
+
+        /// <summary>
+        /// 获取panel的等级Transform
+        /// </summary>
+        public bool GetPanelLevel(string levelKey, out Transform levelObj)
+        {
+            levelObj = panelLevels.Find(item => item.LevelKey == levelKey).LevelObj; //结构体不用判空
+            return levelObj != null;
+        }
+        
         private void DoClosePanel(string panelKey, bool isOriginDestroy)
         {
             if (!panelPool.TryGetValue(panelKey, out UIPanel uiPanel))
@@ -151,7 +154,7 @@ namespace PartsKit
 
             if (!uiPanel.IsOpen)
             {
-                uiPanel.SetClose();
+                UIPanel.SetClose(uiPanel);
             }
 
             if (isOriginDestroy)
@@ -165,28 +168,65 @@ namespace PartsKit
             }
         }
 
-        /// <summary>
-        /// 获取打开的面板
-        /// </summary>
-        /// <param name="panelKey">面板key</param>
-        /// <param name="panel">面板对象</param>
-        /// <returns></returns>
-        public bool GetOpenedPanel(string panelKey, out UIPanel panel)
+        private bool CreateUIPanel<T>(string panelKey, Transform levelObj, out T uiPanel) where T : UIPanel
         {
-            return panelPool.TryGetValue(panelKey, out panel) && panel != null &&
-                   panel.gameObject.activeSelf;
+            T panelPrefab = CustomLoadPanelFun != null
+                ? CustomLoadPanelFun.Load<T>(panelKey)
+                : Resources.Load<T>(GetResourcesPath(panelKey));
+
+            uiPanel = panelPrefab != null ? InstantiateUIPanel(panelPrefab, levelObj) : null;
+            return uiPanel != null;
         }
 
-        /// <summary>
-        /// 获取panel的等级Transform
-        /// </summary>
-        /// <param name="levelKey"></param>
-        /// <param name="levelObj"></param>
-        /// <returns></returns>
-        public bool GetPanelLevel(string levelKey, out Transform levelObj)
+        private void CreateUIPanelAsync<T>(string panelKey, Transform levelObj, Action<T> onPanelLoad) where T : UIPanel
         {
-            levelObj = panelLevels.Find(item => item.LevelKey == levelKey).LevelObj; //结构体不用判空
-            return levelObj != null;
+            if (CustomLoadPanelFun != null)
+            {
+                CustomLoadPanelFun.LoadAsync<T>(panelKey, (panelPrefab) =>
+                {
+                    T uiPanel = InstantiateUIPanel(panelPrefab, levelObj);
+                    onPanelLoad?.Invoke(uiPanel);
+                });
+            }
+            else
+            {
+                ResourceRequest request = Resources.LoadAsync<T>(GetResourcesPath(panelKey));
+                request.completed += (operation) =>
+                {
+                    T uiPanel = InstantiateUIPanel(request.asset as T, levelObj);
+                    onPanelLoad?.Invoke(uiPanel);
+                };
+            }
+        }
+
+        private string GetResourcesPath(string panelKey)
+        {
+            return $"{resourcesPath}/{panelKey}";
+        }
+        
+        private T InstantiateUIPanel<T>(T prefab, Transform levelObj) where T : UIPanel
+        {
+            T uiPanel = Instantiate(prefab, levelObj);
+            return uiPanel;
+        }
+
+        private void SetUIPanelOpen(string panelKey, UIPanel panel, Transform levelObj, bool isRegisterDestroyed)
+        {
+            if (panel.IsOpen)
+            {
+                ClosePanel(panelKey, false);
+            }
+
+            panel.transform.SetParent(levelObj);
+            panel.transform.SetAsLastSibling();
+            panelPool[panelKey] = panel;
+            panel.gameObject.SetActive(true);
+            UIPanel.SetOpen(panel);
+            if (isRegisterDestroyed)
+            {
+                new ActionRegister(() => DoClosePanel(panelKey, true))
+                    .UnRegisterWhenGameObjectDestroyed(panel.gameObject);
+            }
         }
     }
 }

@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace PartsKit
 {
-    public abstract class LoadPanelFun : MonoBehaviour
+    public abstract class LoadUIPanelFun : MonoBehaviour
     {
         public abstract T Load<T>(string panelKey) where T : UIPanel;
         public abstract void LoadAsync<T>(string panelKey, Action<T> onPanelLoad) where T : UIPanel;
@@ -19,7 +19,7 @@ namespace PartsKit
             [field: SerializeField] public Transform LevelObj { get; set; }
         }
 
-        [field: SerializeField] public LoadPanelFun CustomLoadPanelFun { get; set; }
+        [field: SerializeField] public LoadUIPanelFun CustomLoadPanelFun { get; set; }
         [SerializeField] [Tooltip("CustomLoadPanelFun为空时默认使用Resources的加载方式")]
         private string resourcesPath = "UIPanel";
         [SerializeField] private List<UILevelData> panelLevels = new List<UILevelData>();

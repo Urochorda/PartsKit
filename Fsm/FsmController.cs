@@ -45,8 +45,8 @@ namespace PartsKit
             }
 
             mCurState?.Exit();
-            state.Entry();
             mCurState = state;
+            state.Entry();
             onStateChange?.Invoke(stateId);
         }
 

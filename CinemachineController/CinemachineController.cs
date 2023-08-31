@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using Cinemachine;
 
 namespace PartsKit
@@ -11,8 +12,8 @@ namespace PartsKit
 
         public static CinemachineController Instance => instance ??= new CinemachineController();
 
-        private readonly Dictionary<string, CinemachineCameraItem>
-            cinemachineCameras = new Dictionary<string, CinemachineCameraItem>();
+        private readonly HashSet<CinemachineCameraItem>
+            cinemachineCameras = new HashSet<CinemachineCameraItem>();
 
         /// <summary>
         /// 注册相机
@@ -20,7 +21,7 @@ namespace PartsKit
         /// <param name="camera"></param>
         public void RegisterCamera(CinemachineCameraItem camera)
         {
-            cinemachineCameras[camera.CameraName] = camera;
+            cinemachineCameras.Add(camera);
             SetCameraItemActiveState(camera.CameraName, camera.DefaultActive);
         }
 
@@ -30,7 +31,7 @@ namespace PartsKit
         /// <param name="camera"></param>
         public void UnRegisterCamera(CinemachineCameraItem camera)
         {
-            cinemachineCameras.Remove(camera.CameraName);
+            cinemachineCameras.Remove(camera);
         }
 
         /// <summary>
@@ -41,7 +42,8 @@ namespace PartsKit
         /// <returns></returns>
         public bool GetCameraItem(string name, out CinemachineCameraItem cameraItem)
         {
-            return cinemachineCameras.TryGetValue(name, out cameraItem);
+            cameraItem = cinemachineCameras.First(item => item.CameraName == name);
+            return cameraItem != null;
         }
 
         /// <summary>
@@ -53,13 +55,14 @@ namespace PartsKit
         public bool GetActiveCameraItem(out CinemachineCameraItem cameraItem, int brainIndex = 0)
         {
             CinemachineBrain brain = CinemachineCore.Instance.GetActiveBrain(brainIndex);
-            if (brain == null || brain.ActiveVirtualCamera == null)
+            if (brain == null || brain.ActiveVirtualCamera == null ||
+                !brain.ActiveVirtualCamera.VirtualCameraGameObject.TryGetComponent(out cameraItem))
             {
                 cameraItem = null;
                 return false;
             }
 
-            return cinemachineCameras.TryGetValue(brain.ActiveVirtualCamera.Name, out cameraItem);
+            return true;
         }
 
         /// <summary>
@@ -89,12 +92,12 @@ namespace PartsKit
         {
             if (isActive)
             {
-                lastCameraItem.SetPriorityValue(ActivePriority);
+                CinemachineCameraItem.SetPriorityValue(lastCameraItem, ActivePriority);
                 lastCameraItem.gameObject.SetActive(true);
             }
             else
             {
-                lastCameraItem.SetPriorityValue(UnActivePriority);
+                CinemachineCameraItem.SetPriorityValue(lastCameraItem, UnActivePriority);
             }
         }
     }

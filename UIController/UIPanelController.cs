@@ -20,8 +20,10 @@ namespace PartsKit
         }
 
         [field: SerializeField] public LoadUIPanelFun CustomLoadPanelFun { get; set; }
+
         [SerializeField] [Tooltip("CustomLoadPanelFun为空时默认使用Resources的加载方式")]
         private string resourcesPath = "UIPanel";
+
         [SerializeField] private List<UILevelData> panelLevels = new List<UILevelData>();
         [SerializeField] private Transform resetPanelParent;
 
@@ -55,6 +57,11 @@ namespace PartsKit
             }
 
             return true;
+        }
+
+        public bool OpenPanel(string panelKey, string levelKey)
+        {
+            return OpenPanel<UIPanel>(panelKey, levelKey, out _);
         }
 
         /// <summary>
@@ -96,6 +103,11 @@ namespace PartsKit
                     onPanelOpen?.Invoke(createPanel);
                 });
             }
+        }
+
+        public void OpenPanelAsync(string panelKey, string levelKey)
+        {
+            OpenPanelAsync<UIPanel>(panelKey, levelKey, null);
         }
 
         /// <summary>
@@ -144,7 +156,7 @@ namespace PartsKit
             levelObj = panelLevels.Find(item => item.LevelKey == levelKey).LevelObj; //结构体不用判空
             return levelObj != null;
         }
-        
+
         private void DoClosePanel(string panelKey, bool isOriginDestroy)
         {
             if (!panelPool.TryGetValue(panelKey, out UIPanel uiPanel))
@@ -152,7 +164,7 @@ namespace PartsKit
                 return;
             }
 
-            if (!uiPanel.IsOpen)
+            if (uiPanel.IsOpen)
             {
                 UIPanel.SetClose(uiPanel);
             }
@@ -203,7 +215,7 @@ namespace PartsKit
         {
             return $"{resourcesPath}/{panelKey}";
         }
-        
+
         private T InstantiateUIPanel<T>(T prefab, Transform levelObj) where T : UIPanel
         {
             T uiPanel = Instantiate(prefab, levelObj);

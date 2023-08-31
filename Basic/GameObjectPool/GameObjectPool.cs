@@ -46,28 +46,28 @@ namespace PartsKit
                 return obj;
             }
 
-            void ActionOnGet(GameObject bullet)
+            void ActionOnGet(GameObject gameObj)
             {
-                IPoolAction poolAction = bullet.GetComponent<IPoolAction>();
-                if (poolAction != null)
+                IPoolAction[] poolActions = gameObj.GetComponents<IPoolAction>();
+                foreach (IPoolAction poolAction in poolActions)
                 {
                     poolAction.PoolOnGet();
                 }
 
-                bullet.transform.parent = null;
-                bullet.SetActive(true);
+                gameObj.transform.parent = null;
+                gameObj.SetActive(true);
             }
 
-            void ActionOnRelease(GameObject bullet)
+            void ActionOnRelease(GameObject gameObj)
             {
-                IPoolAction poolAction = bullet.GetComponent<IPoolAction>();
-                if (poolAction != null)
+                IPoolAction[] poolActions = gameObj.GetComponents<IPoolAction>();
+                foreach (IPoolAction poolAction in poolActions)
                 {
                     poolAction.PoolOnRelease();
                 }
 
-                bullet.transform.parent = transform;
-                bullet.SetActive(false);
+                gameObj.transform.parent = transform;
+                gameObj.SetActive(false);
             }
 
             void ActionOnDestroy(GameObject bullet)

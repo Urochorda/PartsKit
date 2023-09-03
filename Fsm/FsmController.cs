@@ -3,23 +3,23 @@ using System.Collections.Generic;
 
 namespace PartsKit
 {
-    public class FsmController
+    public class FsmController<T>
     {
-        private readonly Dictionary<int, FsmState> mFsmPool = new Dictionary<int, FsmState>();
-        private FsmState mCurState;
-        public event Action<int> onStateChange;
+        private readonly Dictionary<T, FsmState<T>> mFsmPool = new Dictionary<T, FsmState<T>>();
+        private FsmState<T> mCurState;
+        public event Action<T> onStateChange;
 
-        public FsmController(int defaultStateId, Action onEntry, Action<float> onUpdate, Action<float> onFixUpdate,
+        public FsmController(T defaultStateId, Action onEntry, Action<float> onUpdate, Action<float> onFixUpdate,
             Action onExit)
         {
             AddState(defaultStateId, onEntry, onUpdate, onFixUpdate, onExit);
             SetState(defaultStateId, false);
         }
 
-        public void AddState(int stateId, Action onEntry, Action<float> onUpdate, Action<float> onFixUpdate,
+        public void AddState(T stateId, Action onEntry, Action<float> onUpdate, Action<float> onFixUpdate,
             Action onExit)
         {
-            FsmState state = new FsmState(stateId);
+            FsmState<T> state = new FsmState<T>(stateId);
             state.onEntry += onEntry;
             state.onUpdate += onUpdate;
             state.onFixUpdate += onFixUpdate;
@@ -27,19 +27,19 @@ namespace PartsKit
             mFsmPool[state.StateId] = state;
         }
 
-        public void RemoveState(int stateId)
+        public void RemoveState(T stateId)
         {
             mFsmPool.Remove(stateId);
         }
 
-        public void SetState(int stateId, bool isReset)
+        public void SetState(T stateId, bool isReset)
         {
-            if (!isReset && mCurState != null && stateId == mCurState.StateId)
+            if (!isReset && mCurState != null && stateId.Equals(mCurState.StateId))
             {
                 return;
             }
 
-            if (!mFsmPool.TryGetValue(stateId, out FsmState state))
+            if (!mFsmPool.TryGetValue(stateId, out FsmState<T> state))
             {
                 return;
             }
@@ -64,7 +64,7 @@ namespace PartsKit
         /// 获取当前状态，无状态则获取
         /// </summary>
         /// <returns></returns>
-        public int GetCurState()
+        public T GetCurState()
         {
             return mCurState.StateId;
         }

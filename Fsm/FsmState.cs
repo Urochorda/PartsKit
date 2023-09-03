@@ -2,15 +2,15 @@ using System;
 
 namespace PartsKit
 {
-    public class FsmState
+    public class FsmState<T>
     {
-        public int StateId { get; }
+        public T StateId { get; }
         public event Action onEntry;
         public event Action<float> onUpdate;
         public event Action<float> onFixUpdate;
         public event Action onExit;
 
-        public FsmState(int stateId)
+        public FsmState(T stateId)
         {
             StateId = stateId;
         }

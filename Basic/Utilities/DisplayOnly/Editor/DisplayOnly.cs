@@ -1,15 +1,10 @@
-﻿using UnityEditor;
+﻿#if UNITY_EDITOR
+
+using UnityEditor;
 using UnityEngine;
 
 namespace PartsKit
 {
-    /// <summary>
-    /// 设置属性只读
-    /// </summary>
-    public class DisplayOnly : PropertyAttribute
-    {
-    }
-
     [CustomPropertyDrawer(typeof(DisplayOnly))]
     public class ReadOnlyDrawer : PropertyDrawer
     {
@@ -26,3 +21,4 @@ namespace PartsKit
         }
     }
 }
+#endif

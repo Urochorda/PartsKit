@@ -49,6 +49,7 @@ namespace PartsKit
         private bool isUseRotationFlip;
 
         [SerializeField] private FlipTrueDirType rotationFlipForward = FlipTrueDirType.Right;
+        [SerializeField] private float rotationFlipPrecision = 0.001f;
         [SerializeField] private Vector3 rotationFlipDefaultEuler = Vector3.zero;
         [SerializeField] private Vector3 rotationFlipFlipEuler = new Vector3(0, 180, 0);
 
@@ -57,6 +58,7 @@ namespace PartsKit
 
         [SerializeField] private FlipTrueDirType scaleFlipForward = FlipTrueDirType.Right;
         [SerializeField] private FlipTrueDirType scaleFlipAxis = FlipTrueDirType.Forward;
+        [SerializeField] private float scaleFlipPrecision = 0.001f;
         [SerializeField] private Vector3 scaleFlipDefaultScale = Vector3.one;
         [SerializeField] private Vector3 scaleFlipFlipScale = new Vector3(1, -1, 1);
 
@@ -113,7 +115,7 @@ namespace PartsKit
             if (isUseRotationFlip)
             {
                 targetTransform.eulerAngles =
-                    CheckShouldFlip(TargetDirection, rotationFlipForward)
+                    CheckShouldFlip(TargetDirection, rotationFlipForward, rotationFlipPrecision)
                         ? rotationFlipFlipEuler
                         : rotationFlipDefaultEuler;
             }
@@ -145,25 +147,26 @@ namespace PartsKit
                 Vector3 rotationForward = GetRotationDir(targetTransform);
                 Vector3 rotationAxis = GetRotationAxis(targetTransform);
                 targetTransform.localScale =
-                    CheckShouldFlip(rotationForward, scaleFlipForward) == CheckShouldFlip(rotationAxis, scaleFlipAxis)
+                    CheckShouldFlip(rotationForward, scaleFlipForward, scaleFlipPrecision) ==
+                    CheckShouldFlip(rotationAxis, scaleFlipAxis, scaleFlipPrecision)
                         ? scaleFlipDefaultScale
                         : scaleFlipFlipScale;
             }
         }
 
-        private bool CheckShouldFlip(Vector3 targetDir, FlipTrueDirType lookAtScaleType)
+        private bool CheckShouldFlip(Vector3 targetDir, FlipTrueDirType lookAtScaleType, float precision)
         {
             bool isFlip = false;
             switch (lookAtScaleType)
             {
                 case FlipTrueDirType.Forward:
-                    isFlip = targetDir.z < 0;
+                    isFlip = targetDir.z < precision;
                     break;
                 case FlipTrueDirType.Right:
-                    isFlip = targetDir.x < 0;
+                    isFlip = targetDir.x < precision;
                     break;
                 case FlipTrueDirType.Up:
-                    isFlip = targetDir.y < 0;
+                    isFlip = targetDir.y < precision;
                     break;
             }
 
@@ -212,6 +215,7 @@ namespace PartsKit
         private Quaternion GetRotationDir(Transform targetTransform, Vector3 curDir, Vector3 targetDir, Vector3 axis)
         {
             float angle = Vector3.SignedAngle(curDir, targetDir, axis);
+
             if (rotationSpeed > 0)
             {
                 bool isNegative = angle < 0;

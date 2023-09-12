@@ -209,7 +209,7 @@ namespace PartsKit
             panel.transform.SetAsLastSibling();
             panelPool[panelKey] = panel;
             panel.gameObject.SetActive(true);
-            UIPanel.SetOpen(panel);
+            UIPanel.SetOpen(panel, this, panelKey);
             if (isRegisterDestroyed)
             {
                 new ActionRegister(() => DoClosePanel(panelKey, true))

@@ -54,7 +54,7 @@ namespace PartsKit
                     poolAction.PoolOnGet();
                 }
 
-                gameObj.transform.parent = null;
+                gameObj.transform.SetParent(null);
                 gameObj.SetActive(true);
             }
 
@@ -66,7 +66,7 @@ namespace PartsKit
                     poolAction.PoolOnRelease();
                 }
 
-                gameObj.transform.parent = transform;
+                gameObj.transform.SetParent(transform);
                 gameObj.SetActive(false);
             }
 

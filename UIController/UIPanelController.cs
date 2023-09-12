@@ -65,21 +65,6 @@ namespace PartsKit
         }
 
         /// <summary>
-        /// 打开面板，设置面板数据，输出面板对象
-        /// </summary>
-        public bool OpenPanel<T, TD>(string panelKey, string levelKey, TD data, out T panel) where T : UIPanel<TD>
-        {
-            if (OpenPanel(panelKey, levelKey, out panel))
-            {
-                panel.SetData(data);
-                return true;
-            }
-
-            panel = null;
-            return false;
-        }
-
-        /// <summary>
         /// 异步打开panel
         /// </summary>
         public void OpenPanelAsync<T>(string panelKey, string levelKey, Action<T> onPanelOpen) where T : UIPanel
@@ -108,15 +93,6 @@ namespace PartsKit
         public void OpenPanelAsync(string panelKey, string levelKey)
         {
             OpenPanelAsync<UIPanel>(panelKey, levelKey, null);
-        }
-
-        /// <summary>
-        /// 异步打开panel，设置数据
-        /// </summary>
-        public void OpenPanelAsync<T, TD>(string panelKey, string levelKey, TD data, Action<T> onPanelOpen)
-            where T : UIPanel<TD>
-        {
-            OpenPanelAsync<T>(panelKey, levelKey, (panel) => { panel.SetData(data); });
         }
 
         /// <summary>

@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.Serialization;
 
 namespace PartsKit
 {
@@ -23,7 +22,7 @@ namespace PartsKit
         {
             Forward,
             Right,
-            Up
+            Up,
         }
 
         public enum UpdateType
@@ -114,31 +113,19 @@ namespace PartsKit
 
             if (isUseRotationFlip)
             {
-                targetTransform.eulerAngles =
-                    CheckShouldFlip(TargetDirection, rotationFlipForward, rotationFlipPrecision)
-                        ? rotationFlipFlipEuler
-                        : rotationFlipDefaultEuler;
+                bool isFlip = CheckShouldFlip(TargetDirection, rotationFlipForward, rotationFlipPrecision,
+                    out bool isChange);
+                if (isChange)
+                {
+                    targetTransform.eulerAngles = isFlip ? rotationFlipFlipEuler : rotationFlipDefaultEuler;
+                }
             }
 
             if (isUseRotation)
             {
                 Vector3 rotationDir = GetRotationDir(targetTransform);
                 Vector3 rotationAxis = GetRotationAxis(targetTransform);
-                Vector3 targetDirValue = TargetDirection;
-                switch (rotationAxisType)
-                {
-                    case RotationAxis.Forward:
-                        targetDirValue = Vector3.ProjectOnPlane(targetDirValue, rotationAxis);
-                        break;
-                    case RotationAxis.Right:
-                        targetDirValue = Vector3.ProjectOnPlane(targetDirValue, rotationAxis);
-                        break;
-                    case RotationAxis.Up:
-                        targetDirValue = Vector3.ProjectOnPlane(targetDirValue, rotationAxis);
-                        break;
-                }
-
-                targetDirValue = targetDirValue.normalized; //规范化方向
+                Vector3 targetDirValue = Vector3.ProjectOnPlane(TargetDirection, rotationAxis).normalized;
                 targetTransform.rotation = GetRotationDir(targetTransform, rotationDir, targetDirValue, rotationAxis);
             }
 
@@ -147,30 +134,32 @@ namespace PartsKit
                 Vector3 rotationForward = GetRotationDir(targetTransform);
                 Vector3 rotationAxis = GetRotationAxis(targetTransform);
                 targetTransform.localScale =
-                    CheckShouldFlip(rotationForward, scaleFlipForward, scaleFlipPrecision) ==
-                    CheckShouldFlip(rotationAxis, scaleFlipAxis, scaleFlipPrecision)
+                    CheckShouldFlip(rotationForward, scaleFlipForward, scaleFlipPrecision, out _) ==
+                    CheckShouldFlip(rotationAxis, scaleFlipAxis, scaleFlipPrecision, out _)
                         ? scaleFlipDefaultScale
-                        : scaleFlipFlipScale;
+                        : scaleFlipFlipScale; //缩放是实时的
             }
         }
 
-        private bool CheckShouldFlip(Vector3 targetDir, FlipTrueDirType lookAtScaleType, float precision)
+        private bool CheckShouldFlip(Vector3 targetDir, FlipTrueDirType lookAtScaleType, float precision,
+            out bool isChange)
         {
-            bool isFlip = false;
+            float targetValue = 0;
             switch (lookAtScaleType)
             {
                 case FlipTrueDirType.Forward:
-                    isFlip = targetDir.z < precision;
+                    targetValue = targetDir.z;
                     break;
                 case FlipTrueDirType.Right:
-                    isFlip = targetDir.x < precision;
+                    targetValue = targetDir.x;
                     break;
                 case FlipTrueDirType.Up:
-                    isFlip = targetDir.y < precision;
+                    targetValue = targetDir.y;
                     break;
             }
 
-            return isFlip;
+            isChange = targetValue > precision || targetValue < -precision;
+            return targetValue < precision;
         }
 
         private Vector3 GetRotationDir(Transform targetTransform)

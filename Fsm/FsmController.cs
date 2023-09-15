@@ -3,27 +3,39 @@ using System.Collections.Generic;
 
 namespace PartsKit
 {
+    public class FsmCallBack
+    {
+        public Action OnEntry { get; set; }
+        public Action<float> OnUpdate { get; set; }
+        public Action<float> OnFixUpdate { get; set; }
+        public Action<float> OnLateUpdate { get; set; }
+        public Action OnExit { get; set; }
+    }
+
     public class FsmController<T>
     {
         private readonly Dictionary<T, FsmState<T>> mFsmPool = new Dictionary<T, FsmState<T>>();
         private FsmState<T> mCurState;
         public event Action<T> onStateChange;
 
-        public FsmController(T defaultStateId, Action onEntry, Action<float> onUpdate, Action<float> onFixUpdate,
-            Action onExit)
+        public FsmController(T defaultStateId, FsmCallBack callBack)
         {
-            AddState(defaultStateId, onEntry, onUpdate, onFixUpdate, onExit);
+            AddState(defaultStateId, callBack);
             SetState(defaultStateId, false);
         }
 
-        public void AddState(T stateId, Action onEntry, Action<float> onUpdate, Action<float> onFixUpdate,
-            Action onExit)
+        public void AddState(T stateId, FsmCallBack callBack)
         {
             FsmState<T> state = new FsmState<T>(stateId);
-            state.onEntry += onEntry;
-            state.onUpdate += onUpdate;
-            state.onFixUpdate += onFixUpdate;
-            state.onExit += onExit;
+            if (callBack != null)
+            {
+                state.onEntry += callBack.OnEntry;
+                state.onUpdate += callBack.OnUpdate;
+                state.onFixUpdate += callBack.OnFixUpdate;
+                state.onLateUpdate += callBack.OnLateUpdate;
+                state.onExit += callBack.OnExit;
+            }
+
             mFsmPool[state.StateId] = state;
         }
 
@@ -58,6 +70,11 @@ namespace PartsKit
         public void FixUpdateState(float deltaTime)
         {
             mCurState.FixUpdate(deltaTime);
+        }
+
+        public void LateUpdateState(float deltaTime)
+        {
+            mCurState.LateUpdate(deltaTime);
         }
 
         /// <summary>

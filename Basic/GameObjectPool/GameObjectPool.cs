@@ -78,6 +78,11 @@ namespace PartsKit
 
         public void Release(GameObject obj)
         {
+            if (obj == null)
+            {
+                return;
+            }
+
             if (!obj.TryGetComponent(out PoolItemKey itemKey))
             {
                 return;

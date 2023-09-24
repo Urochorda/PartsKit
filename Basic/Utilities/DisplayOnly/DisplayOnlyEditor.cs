@@ -6,7 +6,7 @@ using UnityEngine;
 namespace PartsKit
 {
     [CustomPropertyDrawer(typeof(DisplayOnly))]
-    public class ReadOnlyDrawer : PropertyDrawer
+    public class DisplayOnlyDrawer : PropertyDrawer
     {
         public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
         {

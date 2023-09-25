@@ -10,7 +10,7 @@ namespace PartsKit
         /// <summary>
         /// 委托对象
         /// </summary>
-        private Action mOnUnRegister { get; set; }
+        private Action mOnUnRegister;
 
         /// <summary>
         /// 带参构造函数

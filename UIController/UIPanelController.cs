@@ -212,8 +212,7 @@ namespace PartsKit
             UIPanel.SetOpen(panel, this, panelKey);
             if (isRegisterDestroyed)
             {
-                new ActionRegister(() => DoClosePanel(panelKey, true))
-                    .UnRegisterWhenGameObjectDestroyed(panel.gameObject);
+                panel.gameObject.AddDestroyListener(() => { DoClosePanel(panelKey, true); });
             }
         }
     }

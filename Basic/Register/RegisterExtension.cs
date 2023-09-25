@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 namespace PartsKit
@@ -6,16 +7,32 @@ namespace PartsKit
     {
         public static IRegister UnRegisterWhenGameObjectDestroyed(this IRegister register, GameObject gameObject)
         {
-            UnRegisterOnDestroyTrigger trigger = gameObject.GetComponent<UnRegisterOnDestroyTrigger>();
+            gameObject.AddDestroyListener(register.UnRegister);
+            return register;
+        }
+
+        public static void AddDestroyListener(this GameObject gameObject, Action register)
+        {
+            GameObjectRegister trigger = gameObject.GetComponent<GameObjectRegister>();
 
             if (!trigger)
             {
-                trigger = gameObject.AddComponent<UnRegisterOnDestroyTrigger>();
+                trigger = gameObject.AddComponent<GameObjectRegister>();
             }
 
-            trigger.AddUnRegister(register);
+            trigger.onDestory += register;
+        }
 
-            return register;
+        public static void RemoveDestroyListener(this GameObject gameObject, Action register)
+        {
+            GameObjectRegister trigger = gameObject.GetComponent<GameObjectRegister>();
+
+            if (!trigger)
+            {
+                return;
+            }
+
+            trigger.onDestory -= register;
         }
     }
 }

@@ -19,8 +19,8 @@ namespace PartsKit
         /// <param name="isTimelyCheck">是否每次获取都检测</param>
         public CheckNullProperty(T value, bool isTimelyCheck = true)
         {
-            SetTimelyCheck(isTimelyCheck);
-            SetData(value);
+            timelyCheck = isTimelyCheck;
+            property = value;
         }
 
         public void SetData(T value)

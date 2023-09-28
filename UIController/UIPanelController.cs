@@ -48,13 +48,8 @@ namespace PartsKit
                 {
                     return false;
                 }
-
-                SetUIPanelOpen(panelKey, panel, levelObj, true);
             }
-            else
-            {
-                SetUIPanelOpen(panelKey, panel, levelObj, false);
-            }
+            SetUIPanelOpen(panelKey, panel, levelObj);
 
             return true;
         }
@@ -77,14 +72,14 @@ namespace PartsKit
             panelPool.TryGetValue(panelKey, out UIPanel panelVal);
             if (panelVal is T openPanel)
             {
-                SetUIPanelOpen(panelKey, openPanel, levelObj, false);
+                SetUIPanelOpen(panelKey, openPanel, levelObj);
                 onPanelOpen?.Invoke(openPanel);
             }
             else
             {
                 CreateUIPanelAsync<T>(panelKey, levelObj, (createPanel) =>
                 {
-                    SetUIPanelOpen(panelKey, createPanel, levelObj, true);
+                    SetUIPanelOpen(panelKey, createPanel, levelObj);
                     onPanelOpen?.Invoke(createPanel);
                 });
             }
@@ -102,16 +97,24 @@ namespace PartsKit
         /// <param name="isDestroy">是否销毁</param>
         public void ClosePanel(string panelKey, bool isDestroy)
         {
+            if (!panelPool.TryGetValue(panelKey, out UIPanel uiPanel))
+            {
+                return;
+            }
+
+            if (uiPanel.IsOpen)
+            {
+                UIPanel.SetClose(uiPanel);
+            }
+            
             if (isDestroy)
             {
-                if (panelPool.TryGetValue(panelKey, out UIPanel uiPanel))
-                {
-                    Destroy(uiPanel.gameObject);
-                }
+                Destroy(uiPanel.gameObject);
             }
             else
             {
-                DoClosePanel(panelKey, false);
+                uiPanel.gameObject.SetActive(false);
+                uiPanel.transform.SetParent(resetPanelParent);
             }
         }
 
@@ -131,29 +134,6 @@ namespace PartsKit
         {
             levelObj = panelLevels.Find(item => item.LevelKey == levelKey).LevelObj; //结构体不用判空
             return levelObj != null;
-        }
-
-        private void DoClosePanel(string panelKey, bool isOriginDestroy)
-        {
-            if (!panelPool.TryGetValue(panelKey, out UIPanel uiPanel))
-            {
-                return;
-            }
-
-            if (uiPanel.IsOpen)
-            {
-                UIPanel.SetClose(uiPanel);
-            }
-
-            if (isOriginDestroy)
-            {
-                panelPool.Remove(panelKey);
-            }
-            else
-            {
-                uiPanel.gameObject.SetActive(false);
-                uiPanel.transform.SetParent(resetPanelParent);
-            }
         }
 
         private bool CreateUIPanel<T>(string panelKey, Transform levelObj, out T uiPanel) where T : UIPanel
@@ -198,7 +178,7 @@ namespace PartsKit
             return uiPanel;
         }
 
-        private void SetUIPanelOpen(string panelKey, UIPanel panel, Transform levelObj, bool isRegisterDestroyed)
+        private void SetUIPanelOpen(string panelKey, UIPanel panel, Transform levelObj)
         {
             if (panel.IsOpen)
             {
@@ -210,10 +190,6 @@ namespace PartsKit
             panelPool[panelKey] = panel;
             panel.gameObject.SetActive(true);
             UIPanel.SetOpen(panel, this, panelKey);
-            if (isRegisterDestroyed)
-            {
-                panel.gameObject.AddDestroyListener(() => { DoClosePanel(panelKey, true); });
-            }
         }
     }
 }

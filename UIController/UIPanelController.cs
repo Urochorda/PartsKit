@@ -110,6 +110,7 @@ namespace PartsKit
             if (isDestroy)
             {
                 Destroy(uiPanel.gameObject);
+                panelPool.Remove(panelKey);
             }
             else
             {

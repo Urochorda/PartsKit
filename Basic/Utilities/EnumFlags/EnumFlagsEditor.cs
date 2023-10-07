@@ -1,22 +1,24 @@
 #if UNITY_EDITOR
 
 using System;
-using PartsKit;
 using UnityEditor;
 using UnityEngine;
 
-[CustomPropertyDrawer(typeof(EnumFlagsAttribute))]
-public class EnumFlagsDrawer : PropertyDrawer
+namespace PartsKit
 {
-    public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
+    [CustomPropertyDrawer(typeof(EnumFlagsAttribute))]
+    public class EnumFlagsDrawer : PropertyDrawer
     {
-        position = EditorGUI.PrefixLabel(position, new GUIContent(property.displayName));
-        var enumType = (attribute as EnumFlagsAttribute)?.EnumType;
-        if (enumType != null)
+        public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
-            var e = EditorGUI.EnumFlagsField(position,
-                (Enum)Enum.ToObject(enumType, property.intValue));
-            property.intValue = Convert.ToInt32(e);
+            position = EditorGUI.PrefixLabel(position, new GUIContent(property.displayName));
+            var enumType = (attribute as EnumFlagsAttribute)?.EnumType;
+            if (enumType != null)
+            {
+                var e = EditorGUI.EnumFlagsField(position,
+                    (Enum)Enum.ToObject(enumType, property.intValue));
+                property.intValue = Convert.ToInt32(e);
+            }
         }
     }
 }

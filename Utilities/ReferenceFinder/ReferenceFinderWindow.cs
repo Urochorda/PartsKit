@@ -51,6 +51,7 @@ namespace PartsKit
         static void OpenWindow()
         {
             ReferenceFinderWindow window = GetWindow<ReferenceFinderWindow>();
+            window.minSize = new Vector2(600, 200);
             window.wantsMouseMove = false;
             window.titleContent = new GUIContent("Ref Finder");
             window.Show();

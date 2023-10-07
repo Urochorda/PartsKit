@@ -8,11 +8,6 @@ namespace PartsKit
         /// <summary>
         /// 绘制半圆锥题线框
         /// </summary>
-        /// <param name="center"></param>
-        /// <param name="height"></param>
-        /// <param name="radius"></param>
-        /// <param name="rotation"></param>
-        /// <param name="divide"></param>
         public static void DrawWireHemisphericalCone(Vector3 center, float height, float radius, Quaternion rotation,
             int divide = 25)
         {
@@ -31,6 +26,9 @@ namespace PartsKit
             }
         }
 
+        /// <summary>
+        /// 绘制半圆锥题线框（根据角度）
+        /// </summary>
         public static void DrawWireHemisphericalConeByAngle(Vector3 center, float height, float angle,
             Quaternion rotation,
             int divide = 25)
@@ -40,6 +38,9 @@ namespace PartsKit
             DrawWireHemisphericalCone(center, height, radius, rotation, divide);
         }
 
+        /// <summary>
+        /// 绘制视锥线框
+        /// </summary>
         public static void DrawWireVisionCone(Vector3 center, float radius, float angle, Quaternion rotation,
             int divide = 25)
         {
@@ -66,14 +67,6 @@ namespace PartsKit
         /// <summary>
         /// 绘制偏心圆线框
         /// </summary>
-        /// <param name="root"></param>
-        /// <param name="center"></param>
-        /// <param name="forward"></param>
-        /// <param name="right"></param>
-        /// <param name="radius"></param>
-        /// <param name="maxAngle"></param>
-        /// <param name="rotation"></param>
-        /// <param name="divide"></param>
         public static void DrawWireRootCircle(Vector3 root, Vector3 center, Vector3 forward, Vector3 right,
             float radius,
             float maxAngle,
@@ -123,13 +116,6 @@ namespace PartsKit
         /// <summary>
         /// 绘制圆线框
         /// </summary>
-        /// <param name="center"></param>
-        /// <param name="forward"></param>
-        /// <param name="right"></param>
-        /// <param name="radius"></param>
-        /// <param name="maxAngle"></param>
-        /// <param name="rotation"></param>
-        /// <param name="divide"></param>
         public static void DrawWireCircle(Vector3 center, Vector3 forward, Vector3 right, float radius, float maxAngle,
             Quaternion rotation, int divide = 25)
         {

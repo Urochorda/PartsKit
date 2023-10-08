@@ -5,7 +5,7 @@ namespace PartsKit
     /// <summary>
     /// 可根据targetRect设置自己的sizeDelta
     /// </summary>
-    [ExecuteInEditMode]
+    [ExecuteAlways]
     public class RectContainer : MonoBehaviour
     {
         [SerializeField] private RectTransform targetRectTransform;

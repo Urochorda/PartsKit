@@ -5,58 +5,85 @@ namespace PartsKit
 {
     public class TypeEventSystem
     {
+        private class TypeEventItem<T> : IEventItem
+        {
+            private Action<T> mOnEvent;
+            private readonly Action<TypeEventItem<T>, Action<T>> mOnInteriorUnRegister;
+
+            public TypeEventItem(Action<TypeEventItem<T>, Action<T>> onInteriorUnRegister)
+            {
+                mOnInteriorUnRegister = onInteriorUnRegister;
+            }
+
+            public IRegister Register(Action<T> onEvent)
+            {
+                mOnEvent += onEvent;
+                return new ActionRegister(() => { mOnInteriorUnRegister?.Invoke(this, onEvent); });
+            }
+
+            public void UnRegister(Action<T> onEvent)
+            {
+                mOnEvent -= onEvent;
+            }
+
+            public void Trigger(T t)
+            {
+                mOnEvent?.Invoke(t);
+            }
+        }
+
         public static TypeEventSystem Global { get; } = new TypeEventSystem(); //默认全局类型事件系统
 
         private readonly Dictionary<Type, IEventItem> mTypeEvents = new Dictionary<Type, IEventItem>();
 
         public void Send<T>() where T : new()
         {
-            GetEvent<EventItem<T>>()?.Trigger(new T());
+            GetEvent<T>()?.Trigger(new T());
         }
 
-        public void Send<T>(T e)
+        public void Send<T>(T e) where T : new()
         {
-            GetEvent<EventItem<T>>()?.Trigger(e);
+            GetEvent<T>()?.Trigger(e);
         }
 
-        public IRegister Register<T>(Action<T> onEvent)
+        public IRegister Register<T>(Action<T> onEvent) where T : new()
         {
-            var e = GetOrAddEvent<EventItem<T>>();
+            var e = GetOrAddEvent<T>();
             return e.Register(onEvent);
         }
 
-        public void UnRegister<T>(Action<T> onEvent)
+        public void UnRegister<T>(Action<T> onEvent) where T : new()
         {
-            var e = GetEvent<EventItem<T>>();
-            e?.UnRegister(onEvent);
+            var e = GetEvent<T>();
+            DoUnRegister(e, onEvent);
         }
 
-        private T AddEvent<T>() where T : IEventItem, new()
+        private void DoUnRegister<T>(TypeEventItem<T> eventItem, Action<T> onEvent) where T : new()
         {
-            T t = new T();
+            eventItem?.UnRegister(onEvent);
+        }
+
+        private TypeEventItem<T> AddEvent<T>() where T : new()
+        {
+            TypeEventItem<T> t = new TypeEventItem<T>(DoUnRegister);
             mTypeEvents.Add(typeof(T), t);
             return t;
         }
 
-        private T GetEvent<T>() where T : IEventItem
+        private TypeEventItem<T> GetEvent<T>() where T : new()
         {
             if (mTypeEvents.TryGetValue(typeof(T), out IEventItem e))
             {
-                return (T)e;
+                return e as TypeEventItem<T>;
             }
 
             return default;
         }
 
-        private T GetOrAddEvent<T>() where T : IEventItem, new()
+        private TypeEventItem<T> GetOrAddEvent<T>() where T : new()
         {
-            Type eType = typeof(T);
-            if (mTypeEvents.TryGetValue(eType, out IEventItem e))
-            {
-                return (T)e;
-            }
-
-            return AddEvent<T>();
+            TypeEventItem<T> e = GetEvent<T>() ?? AddEvent<T>();
+            return e;
         }
     }
 }

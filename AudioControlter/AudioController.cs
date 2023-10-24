@@ -1,147 +1,197 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Audio;
 
 namespace PartsKit
 {
+    public abstract class LoadAudioAssetFun : MonoBehaviour
+    {
+        public abstract AudioClipConfig LoadSoundClipGroup();
+        public abstract AudioClipConfig LoadMusicClipGroup();
+        public abstract AudioMixerConfig LoadAudioMixer();
+    }
+
     public class AudioController : MonoBehaviour
     {
         private const int AudioMixerMinVolume = -80;
         private const int AudioMixerMaxVolume = 20;
-        [SerializeField] private AudioClipConfig soundClipGroup;
-        [SerializeField] private AudioClipConfig musicClipGroup;
-        [SerializeField] private AudioMixer audioMixer;
-        [SerializeField] private string masterMixerName = "Master";
-        [SerializeField] private string soundMixerName = "Sound";
-        [SerializeField] private string musicMixerName = "Music";
-        [SerializeField] private string masterMixerVolume = "MasterVolume";
-        [SerializeField] private string soundMixerVolume = "SoundVolume";
-        [SerializeField] private string musicMixerVolume = "MusicVolume";
+        [SerializeField] private LoadAudioAssetFun customLoadAudioAssetFun;
         [SerializeField] private int minVolume = 0;
         [SerializeField] private int maxVolume = 100;
         [SerializeField] private AudioSource defaultSoundSource;
         [SerializeField] private AudioSource defaultSoundSource3D;
         [SerializeField] private AudioSource defaultMusicSource;
+        [SerializeField] private AudioSource defaultMusicSource3D;
         [SerializeField] private GameObjectPool objectPool;
 
+        private AudioClipConfig SoundClipGroup => customLoadAudioAssetFun.LoadSoundClipGroup();
+        private AudioClipConfig MusicClipGroup => customLoadAudioAssetFun.LoadMusicClipGroup();
+        private AudioMixer AudioMixer => customLoadAudioAssetFun.LoadAudioMixer().AudioMixer;
+        private string MasterMixerName => customLoadAudioAssetFun.LoadAudioMixer().MasterMixerName;
+        private string SoundMixerName => customLoadAudioAssetFun.LoadAudioMixer().SoundMixerName;
+        private string MusicMixerName => customLoadAudioAssetFun.LoadAudioMixer().MusicMixerName;
+        private string MasterMixerVolume => customLoadAudioAssetFun.LoadAudioMixer().MasterMixerVolume;
+        private string SoundMixerVolume => customLoadAudioAssetFun.LoadAudioMixer().SoundMixerVolume;
+        private string MusicMixerVolume => customLoadAudioAssetFun.LoadAudioMixer().MusicMixerVolume;
+
         private AudioMixerGroup SoundMixerGroup =>
-            audioMixer.FindMatchingGroups($"{masterMixerName}/{soundMixerName}")[0];
+            AudioMixer.FindMatchingGroups($"{MasterMixerName}/{SoundMixerName}")[0];
 
         private AudioMixerGroup MusicMixerGroup =>
-            audioMixer.FindMatchingGroups($"{masterMixerName}/{musicMixerName}")[0];
+            AudioMixer.FindMatchingGroups($"{MasterMixerName}/{MusicMixerName}")[0];
 
-        private AudioSource curMusicSource;
+        private readonly List<AudioSource> curMusicSourceList = new List<AudioSource>();
+
+        #region Play/Stop Audio
 
         public void PlaySound(string audioGroupName)
         {
-            if (!soundClipGroup.GetAudioClipGroup(audioGroupName, out AudioClipGroup clipGroup))
+            if (!SoundClipGroup.GetAudioClipGroup(audioGroupName, out AudioClipGroup clipGroup))
             {
                 return;
             }
 
             AudioClip audioClip = clipGroup.GetClip();
-
-            AudioSource source = null;
-            if (clipGroup.SourcePrefab.GetValue(out AudioSource audioSource))
-            {
-                source = objectPool.Get(audioSource);
-                StartCoroutine(FinishPlay(audioClip.length, () => { objectPool.Release(source.gameObject); }));
-            }
-            else
-            {
-                source = defaultSoundSource;
-            }
-
-            source.clip = null;
-            source.outputAudioMixerGroup = SoundMixerGroup;
-            source.PlayOneShot(audioClip, clipGroup.VolumeScale);
+            bool isOverrideSource = clipGroup.SourcePrefab.GetValue(out AudioSource overrideSourcePrefab);
+            AudioSource source = isOverrideSource ? objectPool.Get(overrideSourcePrefab) : defaultSoundSource;
+            DoPlaySound(audioClip, source, isOverrideSource, clipGroup.VolumeScale, source.transform.position);
         }
 
         public void PlaySound3D(string audioGroupName, Vector3 point)
         {
-            if (!soundClipGroup.GetAudioClipGroup(audioGroupName, out AudioClipGroup clipGroup))
+            if (!SoundClipGroup.GetAudioClipGroup(audioGroupName, out AudioClipGroup clipGroup))
             {
                 return;
             }
 
             AudioClip audioClip = clipGroup.GetClip();
+            bool isOverrideSource = clipGroup.SourcePrefab3D.GetValue(out AudioSource overrideSourcePrefab);
+            AudioSource source = isOverrideSource ? objectPool.Get(overrideSourcePrefab) : defaultSoundSource3D;
+            DoPlaySound(audioClip, source, isOverrideSource, clipGroup.VolumeScale, point);
+        }
 
-            AudioSource source = objectPool.Get(clipGroup.SourcePrefab3D.GetValue(out AudioSource audioSource)
-                ? audioSource
-                : defaultSoundSource3D);
-
-            StartCoroutine(FinishPlay(audioClip.length, () => { objectPool.Release(source.gameObject); }));
-
+        private void DoPlaySound(AudioClip audioClip, AudioSource source, bool isRelease, float volumeScale,
+            Vector3 point)
+        {
+            Transform sourceTransform = source.transform;
+            sourceTransform.SetParent(transform);
+            sourceTransform.position = point;
             source.clip = null;
             source.outputAudioMixerGroup = SoundMixerGroup;
-            source.PlayOneShot(audioClip, clipGroup.VolumeScale);
-            source.transform.position = point;
+            source.PlayOneShot(audioClip, volumeScale);
+            if (isRelease)
+            {
+                objectPool.Release(source.gameObject);
+            }
         }
 
-        public void PlayMusic(string audioGroupName)
+        public int PlayMusic(string audioGroupName, bool isLoop)
         {
-            if (!musicClipGroup.GetAudioClipGroup(audioGroupName, out AudioClipGroup clipGroup))
+            if (!MusicClipGroup.GetAudioClipGroup(audioGroupName, out AudioClipGroup clipGroup))
             {
-                return;
+                return -1;
             }
 
-            StopMusic();
             AudioClip audioClip = clipGroup.GetClip();
+            AudioSource targetMusicSource =
+                objectPool.Get(clipGroup.SourcePrefab.GetValue(out AudioSource overrideSourcePrefab)
+                    ? overrideSourcePrefab
+                    : defaultMusicSource);
 
-            if (clipGroup.SourcePrefab.GetValue(out AudioSource audioSource))
-            {
-                curMusicSource = objectPool.Get(audioSource);
-                StartCoroutine(FinishPlay(audioClip.length, () => { objectPool.Release(curMusicSource.gameObject); }));
-            }
-            else
-            {
-                curMusicSource = defaultMusicSource;
-            }
-
-            curMusicSource.clip = audioClip;
-            curMusicSource.volume = clipGroup.VolumeScale;
-            curMusicSource.loop = true;
-            curMusicSource.outputAudioMixerGroup = MusicMixerGroup;
-            curMusicSource.Play();
+            return DoPlayMusic(audioClip, targetMusicSource, isLoop, clipGroup.VolumeScale,
+                targetMusicSource.transform.position);
         }
 
-        public void StopMusic()
+        public int PlayMusic3D(string audioGroupName, bool isLoop, Vector3 point)
         {
-            if (curMusicSource != null)
+            if (!MusicClipGroup.GetAudioClipGroup(audioGroupName, out AudioClipGroup clipGroup))
             {
-                curMusicSource.Stop();
+                return -1;
             }
+
+            AudioClip audioClip = clipGroup.GetClip();
+            AudioSource targetMusicSource =
+                objectPool.Get(clipGroup.SourcePrefab3D.GetValue(out AudioSource overrideSourcePrefab)
+                    ? overrideSourcePrefab
+                    : defaultMusicSource3D);
+
+            return DoPlayMusic(audioClip, targetMusicSource, isLoop, clipGroup.VolumeScale, point);
         }
+
+        private int DoPlayMusic(AudioClip audioClip, AudioSource source, bool isLoop, float volumeScale,
+            Vector3 point)
+        {
+            Transform sourceTransform = source.transform;
+            sourceTransform.SetParent(transform);
+            sourceTransform.position = point;
+            source.transform.SetParent(transform);
+            source.clip = audioClip;
+            source.volume = volumeScale;
+            source.loop = isLoop;
+            source.outputAudioMixerGroup = MusicMixerGroup;
+            source.Play();
+
+            curMusicSourceList.Add(source);
+            if (!isLoop) //如果不是loop则定时回收
+            {
+                StartCoroutine(FinishPlay(audioClip.length, () =>
+                {
+                    curMusicSourceList.Remove(source);
+                    objectPool.Release(source.gameObject);
+                }));
+            }
+
+            return source.GetInstanceID();
+        }
+
+        public void StopMusic(ref int instanceID)
+        {
+            int targetInsID = instanceID;
+            AudioSource targetMusicSource = curMusicSourceList.Find(item => item.GetInstanceID() == targetInsID);
+            if (targetMusicSource != null)
+            {
+                targetMusicSource.Stop();
+                curMusicSourceList.Remove(targetMusicSource);
+                objectPool.Release(targetMusicSource.gameObject);
+            }
+
+            instanceID = -1;
+        }
+
+        #endregion
+
+        #region Get/Set Volume
 
         public void SetMasterVolume(float volume)
         {
-            SetVolume(masterMixerVolume, volume);
+            SetVolume(MasterMixerVolume, volume);
         }
 
         public void SetSoundVolume(float volume)
         {
-            SetVolume(soundMixerVolume, volume);
+            SetVolume(SoundMixerVolume, volume);
         }
 
         public void SetMusicVolume(float volume)
         {
-            SetVolume(musicMixerVolume, volume);
+            SetVolume(MusicMixerVolume, volume);
         }
 
         public float GetMasterVolume()
         {
-            return GetVolume(masterMixerVolume);
+            return GetVolume(MasterMixerVolume);
         }
 
         public float GetSoundVolume()
         {
-            return GetVolume(soundMixerVolume);
+            return GetVolume(SoundMixerVolume);
         }
 
         public float GetMusicVolume()
         {
-            return GetVolume(musicMixerVolume);
+            return GetVolume(MusicMixerVolume);
         }
 
         private void SetVolume(string nameKey, float volume)
@@ -151,12 +201,12 @@ namespace PartsKit
                 (AudioMixerMaxVolume - AudioMixerMinVolume) * volumeN +
                 AudioMixerMinVolume; //根据audioMixer的volume返回折算，这样写表示计算公式
             targetVolume = Mathf.Clamp(targetVolume, AudioMixerMinVolume, AudioMixerMaxVolume);
-            audioMixer.SetFloat(nameKey, targetVolume);
+            AudioMixer.SetFloat(nameKey, targetVolume);
         }
 
         private float GetVolume(string nameKey)
         {
-            if (!audioMixer.GetFloat(nameKey, out float volume))
+            if (!AudioMixer.GetFloat(nameKey, out float volume))
             {
                 return minVolume;
             }
@@ -165,6 +215,8 @@ namespace PartsKit
             float targetVolume = (maxVolume - minVolume) * volumeN + minVolume; //根据audioMixer的volume返回折算，这样写表示计算公式
             return targetVolume;
         }
+
+        #endregion
 
         private IEnumerator FinishPlay(float time, Action finish)
         {

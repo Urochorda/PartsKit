@@ -65,7 +65,7 @@ namespace PartsKit
         }
     }
 
-    [CreateAssetMenu(menuName = "PartsKit/AudioClipConfig", fileName = "AudioClipConfig_")]
+    [CreateAssetMenu(menuName = "PartsKit/Audio/AudioClipConfig", fileName = "AudioClipConfig_")]
     public class AudioClipConfig : ScriptableObject
     {
         [SerializeField] private List<AudioClipGroup> audioClipGroups;

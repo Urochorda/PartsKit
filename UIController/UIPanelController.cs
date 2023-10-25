@@ -49,6 +49,7 @@ namespace PartsKit
                     return false;
                 }
             }
+
             SetUIPanelOpen(panelKey, panel, levelObj);
 
             return true;
@@ -106,7 +107,7 @@ namespace PartsKit
             {
                 UIPanel.SetClose(uiPanel);
             }
-            
+
             if (isDestroy)
             {
                 Destroy(uiPanel.gameObject);
@@ -122,10 +123,16 @@ namespace PartsKit
         /// <summary>
         /// 获取打开的面板
         /// </summary>
-        public bool GetOpenedPanel(string panelKey, out UIPanel panel)
+        public bool GetOpenedPanel<T>(string panelKey, out T panel) where T : UIPanel
         {
-            return panelPool.TryGetValue(panelKey, out panel) && panel != null &&
-                   panel.gameObject.activeSelf;
+            if (!panelPool.TryGetValue(panelKey, out UIPanel panelVal) || panelVal is not T tPanel || !tPanel.IsOpen)
+            {
+                panel = null;
+                return false;
+            }
+
+            panel = tPanel;
+            return true;
         }
 
         /// <summary>

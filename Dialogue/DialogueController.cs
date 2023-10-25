@@ -24,15 +24,15 @@ namespace PartsKit
         private int curGroupIndex;
         private Action curOnComplete;
         private Tweener curPlayNodeAnim;
-        private bool isPlayingDialogue;
-        private bool isPlayingNode;
+        public bool IsPlayingDialogue { get; private set; }
+        public bool IsPlayingNode { get; private set; }
 
         /// <summary>
         /// 播放对话
         /// </summary>
-        public bool PlayDialogue(int nodeConfigKey, bool isForce, Action onComplete)
+        public bool TryPlayDialogue(int nodeConfigKey, bool isForce, Action onComplete)
         {
-            if (isPlayingDialogue && !isForce) //正在播放对话&&非强制更新
+            if (IsPlayingDialogue && !isForce) //正在播放对话&&非强制更新
             {
                 return false;
             }
@@ -43,7 +43,7 @@ namespace PartsKit
             curGroupIndex = 0;
             curOnComplete = onComplete;
             curShowPanel.Show();
-            isPlayingDialogue = true;
+            IsPlayingDialogue = true;
             return DoPlayNode(curGroupIndex);
         }
 
@@ -52,12 +52,12 @@ namespace PartsKit
         /// </summary>
         public void StopDialogue()
         {
-            if (!isPlayingDialogue)
+            if (!IsPlayingDialogue)
             {
                 return;
             }
 
-            isPlayingDialogue = false;
+            IsPlayingDialogue = false;
             StopCurNode();
             curShowPanel.Hide();
             curOnComplete?.Invoke();
@@ -86,7 +86,7 @@ namespace PartsKit
         /// <summary>
         /// 结束节点播放
         /// </summary>
-        private void StopCurNode()
+        public void StopCurNode()
         {
             curPlayNodeAnim?.Kill();
         }
@@ -96,7 +96,7 @@ namespace PartsKit
         /// </summary>
         public bool TryAdvancePlayNode()
         {
-            if (!isPlayingNode) //没有播放则不加速
+            if (!IsPlayingNode) //没有播放则不加速
             {
                 return false;
             }
@@ -120,7 +120,7 @@ namespace PartsKit
             DialogNodeGroup group = curNode.NodeGroups[index];
             curShowPanel.SetCharacters(group.Characters);
 
-            isPlayingNode = true;
+            IsPlayingNode = true;
             string targetString = group.ContentKey.GetLocalizedString();
             int endIndex = targetString.Length - 1;
             float duration = targetString.Length * charDuration;
@@ -131,7 +131,7 @@ namespace PartsKit
                 curShowPanel.SetContent(content);
             }, endIndex, duration).OnKill(() =>
             {
-                isPlayingNode = false;
+                IsPlayingNode = false;
                 curPlayNodeAnim = null;
             });
             return true;

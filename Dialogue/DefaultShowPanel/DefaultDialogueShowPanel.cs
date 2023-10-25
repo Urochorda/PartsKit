@@ -7,13 +7,19 @@ namespace PartsKit
     public class DefaultDialogueShowPanel : MonoBehaviour, IDialogueShowPanel
     {
         [SerializeField] private Text contentText;
-        [SerializeField] private List<DefaultDialogShowCharacter> showCharacters;
+        [SerializeField] private List<DefaultDialogueShowCharacter> showCharacters;
 
-        private readonly List<DefaultDialogShowCharacter> curShowCharacters = new List<DefaultDialogShowCharacter>();
+        private readonly List<DefaultDialogueShowCharacter>
+            curShowCharacters = new List<DefaultDialogueShowCharacter>();
 
         public void Show()
         {
             gameObject.SetActive(true);
+            contentText.text = string.Empty;
+            foreach (DefaultDialogueShowCharacter showCharacter in showCharacters)
+            {
+                showCharacter.SetHide();
+            }
         }
 
         public void Hide()
@@ -23,7 +29,7 @@ namespace PartsKit
 
         public void SetCharacters(List<DialogueCharacterConfig> characters)
         {
-            foreach (DefaultDialogShowCharacter showCharacter in curShowCharacters)
+            foreach (DefaultDialogueShowCharacter showCharacter in curShowCharacters)
             {
                 showCharacter.SetHide();
             }
@@ -38,12 +44,12 @@ namespace PartsKit
             foreach (DialogueCharacterConfig characterConfig in characters)
             {
                 int showCharacterIndex = showCharacters.FindIndex(item => item.Seat == characterConfig.SeatKey);
-                if (showCharacterIndex <= 0)
+                if (showCharacterIndex < 0)
                 {
                     continue;
                 }
 
-                DefaultDialogShowCharacter targetShowCharacter = showCharacters[showCharacterIndex];
+                DefaultDialogueShowCharacter targetShowCharacter = showCharacters[showCharacterIndex];
                 curShowCharacters.Add(targetShowCharacter);
                 targetShowCharacter.SetShow(characterConfig);
             }

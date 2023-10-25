@@ -3,7 +3,7 @@ using UnityEngine.UI;
 
 namespace PartsKit
 {
-    public class DefaultDialogShowCharacter : MonoBehaviour
+    public class DefaultDialogueShowCharacter : MonoBehaviour
     {
         [field: SerializeField] public int Seat { get; set; }
         [field: SerializeField] public Image HeadImage { get; set; }

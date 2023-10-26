@@ -27,7 +27,7 @@ namespace PartsKit
             gameObject.SetActive(false);
         }
 
-        public void SetCharacters(List<DialogueCharacterConfig> characters)
+        public void SetCharacters(List<DialogueCharacter> characters)
         {
             foreach (DefaultDialogueShowCharacter showCharacter in curShowCharacters)
             {
@@ -41,9 +41,14 @@ namespace PartsKit
                 return;
             }
 
-            foreach (DialogueCharacterConfig characterConfig in characters)
+            foreach (DialogueCharacter character in characters)
             {
-                int showCharacterIndex = showCharacters.FindIndex(item => item.Seat == characterConfig.SeatKey);
+                if (character == null || character.Config == null)
+                {
+                    continue;
+                }
+
+                int showCharacterIndex = showCharacters.FindIndex(item => item.Seat == character.SeatKey);
                 if (showCharacterIndex < 0)
                 {
                     continue;
@@ -51,7 +56,7 @@ namespace PartsKit
 
                 DefaultDialogueShowCharacter targetShowCharacter = showCharacters[showCharacterIndex];
                 curShowCharacters.Add(targetShowCharacter);
-                targetShowCharacter.SetShow(characterConfig);
+                targetShowCharacter.SetShow(character);
             }
         }
 

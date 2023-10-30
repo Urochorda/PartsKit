@@ -25,7 +25,7 @@ namespace PartsKit
         [field: SerializeField] public MatchSceneMode MatchMode { get; set; } = MatchSceneMode.Include;
         [field: SerializeField] public List<SceneAsset> MatchScenePool { get; set; }
 
-        public static void PlayFromStartScent()
+        public static void PlayFromStartScene()
         {
             if (!EditorApplication.isPlaying)
             {
@@ -92,12 +92,13 @@ namespace PartsKit
                 EditorSceneManager.playModeStartScene = scene;
             }
 
-            EditorApplication.isPlaying = !EditorApplication.isPlaying;
 
-            if (EditorApplication.isPlaying)
-            {
-                EditorSceneManager.playModeStartScene = null; //恢复设置
-            }
+            EditorApplication.isPlaying = !EditorApplication.isPlaying;
+        }
+
+        public static void StopPlay()
+        {
+            EditorSceneManager.playModeStartScene = null; //恢复设置;
         }
     }
 }

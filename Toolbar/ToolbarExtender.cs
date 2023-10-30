@@ -9,14 +9,14 @@ using UnityEngine.UIElements;
 namespace PartsKit
 {
     [InitializeOnLoad]
-    public static class CustomToolbar
+    public static class ToolbarExtender
     {
         public static event Action OnGuiBodyCallback;
         private static readonly Type KToolbarType = typeof(Editor).Assembly.GetType("UnityEditor.Toolbar");
         private static ScriptableObject sCurrentToolbar;
 
 
-        static CustomToolbar()
+        static ToolbarExtender()
         {
             EditorApplication.update += OnUpdate;
         }

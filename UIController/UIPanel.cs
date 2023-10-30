@@ -6,15 +6,15 @@ namespace PartsKit
     {
         public bool IsOpen { get; private set; }
         public string PanelKey { get; private set; }
-        private UIPanelController thisPanelController;
+        private UIController thisController;
 
         /// <summary>
         /// 设置打开，由Controller调用，不要调用
         /// </summary>
-        public static void SetOpen(UIPanel uiPanel, UIPanelController panelController, string panelKey)
+        public static void SetOpen(UIPanel uiPanel, UIController controller, string panelKey)
         {
             uiPanel.IsOpen = true;
-            uiPanel.thisPanelController = panelController;
+            uiPanel.thisController = controller;
             uiPanel.PanelKey = panelKey;
             uiPanel.OnOpen();
         }
@@ -25,14 +25,14 @@ namespace PartsKit
         public static void SetClose(UIPanel uiPanel)
         {
             uiPanel.IsOpen = false;
-            uiPanel.thisPanelController = null;
+            uiPanel.thisController = null;
             uiPanel.PanelKey = string.Empty;
             uiPanel.OnClose();
         }
 
         public void Close(bool isDestroy)
         {
-            thisPanelController.ClosePanel(PanelKey, isDestroy);
+            thisController.ClosePanel(PanelKey, isDestroy);
         }
 
         protected virtual void OnOpen()

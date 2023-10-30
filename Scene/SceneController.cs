@@ -17,7 +17,7 @@ namespace PartsKit
         public abstract void OnFailed();
     }
 
-    public class LoadingSceneManager : MonoBehaviour
+    public class SceneController : MonoBehaviour
     {
         [Serializable]
         private struct LoadingSceneEffectPool

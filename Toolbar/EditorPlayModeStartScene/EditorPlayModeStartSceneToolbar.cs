@@ -10,8 +10,8 @@ namespace PartsKit
     {
         static EditorPlayModeStartSceneToolbar()
         {
-            CustomToolbar.OnGuiBodyCallback -= OnGuiBody;
-            CustomToolbar.OnGuiBodyCallback += OnGuiBody;
+            ToolbarExtender.OnGuiBodyCallback -= OnGuiBody;
+            ToolbarExtender.OnGuiBodyCallback += OnGuiBody;
         }
 
         private static void OnGuiBody()

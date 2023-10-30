@@ -10,7 +10,7 @@ namespace PartsKit
         public abstract void LoadAsync<T>(string panelKey, Action<T> onPanelLoad) where T : UIPanel;
     }
 
-    public class UIPanelController : MonoBehaviour
+    public class UIController : MonoBehaviour
     {
         [Serializable]
         private struct UILevelData

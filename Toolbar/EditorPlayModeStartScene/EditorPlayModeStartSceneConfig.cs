@@ -13,10 +13,17 @@ namespace PartsKit
         fileName = "EditorPlayModeStartSceneConfig")]
     public class EditorPlayModeStartSceneConfig : ScriptableObject
     {
+        public enum MatchSceneMode
+        {
+            Include = 1,
+            Exclude = 2,
+        }
+
         private const string ConfigPath = "EditorPlayStartSceneConfig";
         [field: SerializeField] public bool IsActive { get; set; }
         [field: SerializeField] public SceneAsset StartSceneAsset { get; set; }
-        [field: SerializeField] public List<SceneAsset> CanJumpScene { get; set; }
+        [field: SerializeField] public MatchSceneMode MatchMode { get; set; } = MatchSceneMode.Include;
+        [field: SerializeField] public List<SceneAsset> MatchScenePool { get; set; }
 
         public static void PlayFromStartScent()
         {
@@ -47,11 +54,23 @@ namespace PartsKit
                 if (!configList.Exists(item => item.StartSceneAsset == activeSceneAsset))
                 {
                     EditorPlayModeStartSceneConfig targetConfig =
-                        configList.Find(item => item.CanJumpScene.Contains(activeSceneAsset));
+                        configList.Find(item =>
+                        {
+                            switch (item.MatchMode)
+                            {
+                                case MatchSceneMode.Include:
+                                    return item.MatchScenePool.Contains(activeSceneAsset);
+                                case MatchSceneMode.Exclude:
+                                    return !item.MatchScenePool.Contains(activeSceneAsset);
+                                default:
+                                    return false;
+                            }
+                        });
+
                     if (targetConfig == null)
                     {
                         Debug.LogError(
-                            $"\"{activeScene.name}\" is not in the \"{nameof(CanJumpScene)}\" list");
+                            $"\"{activeScene.name}\" failed to match the scene");
                         return;
                     }
 

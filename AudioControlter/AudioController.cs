@@ -13,7 +13,7 @@ namespace PartsKit
         public abstract AudioMixerConfig LoadAudioMixer();
     }
 
-    public class AudioController : MonoBehaviour
+    public class AudioController : PartsKitBehaviour
     {
         private const int AudioMixerMinVolume = -80;
         private const int AudioMixerMaxVolume = 20;
@@ -43,6 +43,14 @@ namespace PartsKit
             AudioMixer.FindMatchingGroups($"{MasterMixerName}/{MusicMixerName}")[0];
 
         private readonly List<AudioSource> curMusicSourceList = new List<AudioSource>();
+
+        protected override void OnInit()
+        {
+        }
+
+        protected override void OnDeInit()
+        {
+        }
 
         #region Play/Stop Audio
 

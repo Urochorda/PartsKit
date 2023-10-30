@@ -13,7 +13,7 @@ namespace PartsKit
     /// <summary>
     /// 简单的对话控制器（只有最简单的播放对话功能，不提供选择分支功能）
     /// </summary>
-    public class DialogueController : MonoBehaviour
+    public class DialogueController : PartsKitBehaviour
     {
         [SerializeField] private LoadDialogueFun loadDialogueFun;
         [SerializeField] private float charDuration = 0.2f;
@@ -26,6 +26,14 @@ namespace PartsKit
         private Tweener curPlayNodeAnim;
         public bool IsPlayingDialogue { get; private set; }
         public bool IsPlayingNode { get; private set; }
+
+        protected override void OnInit()
+        {
+        }
+
+        protected override void OnDeInit()
+        {
+        }
 
         /// <summary>
         /// 播放对话

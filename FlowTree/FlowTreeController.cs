@@ -62,7 +62,7 @@ namespace PartsKit
         /// <summary>
         /// 初始化流程树
         /// </summary>
-        public void Init(FlowTreeData treeDataVal)
+        public FlowTreeController(FlowTreeData treeDataVal)
         {
             treeData = treeDataVal;
             RootTreeNode = new FlowTreeNode(null, null);

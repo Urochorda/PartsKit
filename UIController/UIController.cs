@@ -10,7 +10,7 @@ namespace PartsKit
         public abstract void LoadAsync<T>(string panelKey, Action<T> onPanelLoad) where T : UIPanel;
     }
 
-    public class UIController : MonoBehaviour
+    public class UIController : PartsKitBehaviour
     {
         [Serializable]
         private struct UILevelData
@@ -28,6 +28,14 @@ namespace PartsKit
         [SerializeField] private Transform resetPanelParent;
 
         private readonly Dictionary<string, UIPanel> panelPool = new Dictionary<string, UIPanel>();
+
+        protected override void OnInit()
+        {
+        }
+
+        protected override void OnDeInit()
+        {
+        }
 
         /// <summary>
         /// 打开面板，输出打开的面板对象

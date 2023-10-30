@@ -17,7 +17,7 @@ namespace PartsKit
         public abstract void OnFailed();
     }
 
-    public class SceneController : MonoBehaviour
+    public class SceneController : PartsKitBehaviour
     {
         [Serializable]
         private struct LoadingSceneEffectPool
@@ -28,6 +28,14 @@ namespace PartsKit
 
         [SerializeField] private LoadingSceneEffect defaultLoadingEffect;
         [SerializeField] private List<LoadingSceneEffectPool> loadingEffectPool;
+
+        protected override void OnInit()
+        {
+        }
+
+        protected override void OnDeInit()
+        {
+        }
 
         public AsyncOperationHandle<SceneInstance> LoadSceneAsync(object key, string loadingEffectKey = "",
             LoadSceneMode loadMode = LoadSceneMode.Single, bool activateOnLoad = true,

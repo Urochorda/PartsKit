@@ -1,0 +1,16 @@
+{
+    "name": "PartsKit.Audio",
+    "rootNamespace": "",
+    "references": [
+        "GUID:8915aaf97111e97449c749d0c3bef703"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

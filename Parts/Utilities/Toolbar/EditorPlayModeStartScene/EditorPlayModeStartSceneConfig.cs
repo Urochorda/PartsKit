@@ -13,14 +13,14 @@ namespace PartsKit
     {
         public enum MatchSceneMode
         {
-            Include = 1,
-            Exclude = 2,
+            Exclude = 1,
+            Include = 2,
         }
 
         private const string ConfigPath = "EditorPlayStartSceneConfig";
         [field: SerializeField] public bool IsActive { get; set; }
         [field: SerializeField] public SceneAsset StartSceneAsset { get; set; }
-        [field: SerializeField] public MatchSceneMode MatchMode { get; set; } = MatchSceneMode.Include;
+        [field: SerializeField] public MatchSceneMode MatchMode { get; set; } = MatchSceneMode.Exclude;
         [field: SerializeField] public List<SceneAsset> MatchScenePool { get; set; }
 
         public static void PlayFromStartScene()

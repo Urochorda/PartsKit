@@ -1,6 +1,4 @@
-﻿#if UNITY_EDITOR
-
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 
@@ -175,4 +173,3 @@ namespace PartsKit
         }
     }
 }
-#endif

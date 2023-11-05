@@ -11,7 +11,7 @@ namespace PartsKit
     }
 
 //资源引用树
-    public class AssetTreeView : TreeView
+    public class AssetTreeView : UnityEditor.IMGUI.Controls.TreeView
     {
         //图标宽度
         const float kIconWidth = 18f;

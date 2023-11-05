@@ -4,13 +4,13 @@ using UnityEngine.UIElements;
 
 namespace PartsKit
 {
-    public class NodeGraphWindow : EditorWindow
+    public class BlueprintWindow : EditorWindow
     {
         public const string GraphWindowStyle = "NodeGroupStyles/NodeGroupWindow";
 
         private VisualElement rootView;
-        private GraphData graphData;
-        private NodeGraphView graphView;
+        private Blueprint blueprint;
+        private BlueprintView graphView;
 
         protected virtual void OnEnable()
         {
@@ -40,20 +40,20 @@ namespace PartsKit
         /// <summary>
         /// 初始化窗口
         /// </summary>
-        public void InitWindow(GraphData graphDataVal)
+        public void InitWindow(Blueprint blueprintVal)
         {
-            InitGraph(graphDataVal);
+            InitGraph(blueprintVal);
         }
 
         #endregion
 
         #region Graph
 
-        private void InitGraph(GraphData graphDataVal)
+        private void InitGraph(Blueprint blueprintVal)
         {
-            if (graphData != null)
+            if (blueprint != null)
             {
-                EditorUtility.SetDirty(graphData);
+                EditorUtility.SetDirty(blueprint);
                 AssetDatabase.SaveAssets();
             }
 
@@ -62,24 +62,24 @@ namespace PartsKit
                 rootView.Remove(graphView);
             }
 
-            graphData = graphDataVal;
-            graphView = OnCreateGraphView(graphData);
+            blueprint = blueprintVal;
+            graphView = OnCreateGraphView(blueprint);
             if (graphView == null)
             {
                 Debug.LogError("GraphView is Null!");
                 return;
             }
 
-            graphView.Init(graphData);
+            graphView.Init(blueprint);
             OnInitGraphView(graphView);
         }
 
-        protected virtual NodeGraphView OnCreateGraphView(GraphData graphDataVal)
+        protected virtual BlueprintView OnCreateGraphView(Blueprint blueprintVal)
         {
-            return new NodeGraphView();
+            return new BlueprintView();
         }
 
-        protected virtual void OnInitGraphView(NodeGraphView graphViewVal)
+        protected virtual void OnInitGraphView(BlueprintView graphViewVal)
         {
         }
 

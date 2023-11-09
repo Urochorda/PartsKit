@@ -5,19 +5,33 @@ using UnityEngine.UIElements;
 
 namespace PartsKit
 {
-    public abstract class BlueprintNode
+    [Serializable]
+    public class BlueprintNode
     {
+        public static BlueprintNode CreateFromType(Type nodeType)
+        {
+            if (!nodeType.IsSubclassOf(typeof(BlueprintNode)))
+            {
+                return null;
+            }
+
+            BlueprintNode node = Activator.CreateInstance(nodeType) as BlueprintNode;
+            return node;
+        }
+
+        #region 可序列化的字段
+
+        [field: SerializeField] public string Guid { get; private set; }
+        [field: SerializeField] public Rect Rect { get; set; }
+
+        #endregion
+
         public virtual string NodeName => GetType().Name;
         public virtual Color NodeColor => Color.clear;
         public virtual StyleSheet LayoutStyle => null;
         public virtual bool Deletable => true;
-
-        public string Guid { get; private set; }
-        public Rect Rect { get; set; }
-
-        //端口是节点实例化时动态注册的，不需要序列化
-        [field: NonSerialized] public List<IBlueprintPort> InputPort { get; set; }
-        [field: NonSerialized] public List<IBlueprintPort> OutputPort { get; set; }
+        public List<IBlueprintPort> InputPort { get; }
+        public List<IBlueprintPort> OutputPort { get; }
 
         public BlueprintNode()
         {
@@ -25,9 +39,9 @@ namespace PartsKit
             OutputPort = new List<IBlueprintPort>();
         }
 
-        public void OnCreateByView(string guidVal)
+        public void OnCreateByEditorView()
         {
-            Guid = guidVal;
+            Guid = System.Guid.NewGuid().ToString();
         }
 
         public void Init()
@@ -35,13 +49,16 @@ namespace PartsKit
             RegisterPort();
         }
 
-        protected abstract void RegisterPort();
+        protected virtual void RegisterPort()
+        {
+        }
 
         /// <summary>
         /// 添加一个端口
         /// </summary>
         public void AddPort(IBlueprintPort treeNodePort)
         {
+            treeNodePort.OwnerNode = this;
             switch (treeNodePort.PortDirection)
             {
                 case IBlueprintPort.Direction.Input:
@@ -73,6 +90,25 @@ namespace PartsKit
                     Debug.LogError("portType错误");
                     break;
             }
+        }
+
+        /// <summary>
+        /// 获取一个port
+        /// </summary>
+        public IBlueprintPort GetPort(IBlueprintPort.Direction portType, string portName)
+        {
+            switch (portType)
+            {
+                case IBlueprintPort.Direction.Input:
+                    return InputPort.Find(item => item.PortName == portName);
+                case IBlueprintPort.Direction.Output:
+                    return OutputPort.Find(item => item.PortName == portName);
+                default:
+                    Debug.LogError("portType错误");
+                    break;
+            }
+
+            return null;
         }
     }
 }

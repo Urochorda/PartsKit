@@ -1,31 +1,62 @@
-﻿using UnityEditor.Experimental.GraphView;
+﻿using System;
+using System.Collections.Generic;
+using UnityEditor.Experimental.GraphView;
+using UnityEngine.UIElements;
 
 namespace PartsKit
 {
     public class BlueprintNodeView : Node
     {
-        private BlueprintNode blueprintNode;
+        public BlueprintNode BlueprintNode { get; private set; }
 
-        public void Init(BlueprintNode blueprintNodeVal)
+        public virtual void Init(BlueprintNode blueprintNodeVal)
         {
-            blueprintNode = blueprintNodeVal;
+            BlueprintNode = blueprintNodeVal;
             InitPorts();
+            title = blueprintNodeVal.NodeName;
+            viewDataKey = blueprintNodeVal.Guid;
+            SetPosition(blueprintNodeVal.Rect);
         }
 
         private void InitPorts()
         {
-            // todo BlueprintPortView
-            foreach (var inputPort in blueprintNode.InputPort)
+            foreach (var inputPort in BlueprintNode.InputPort)
             {
-                BlueprintPortView portView = BlueprintPortView.CreatePortView(inputPort);
+                BlueprintPortView portView = InstantiateBlueprintPort(inputPort);
                 inputContainer.Add(portView);
             }
 
-            foreach (var outputPort in blueprintNode.OutputPort)
+            foreach (var outputPort in BlueprintNode.OutputPort)
             {
-                BlueprintPortView portView = BlueprintPortView.CreatePortView(outputPort);
+                BlueprintPortView portView = InstantiateBlueprintPort(outputPort);
                 outputContainer.Add(portView);
             }
+        }
+
+        public BlueprintPortView GetPortView(Direction portDirection, string portName)
+        {
+            List<BlueprintPortView> allPort = GetAllPort(portDirection);
+            BlueprintPortView portView = allPort.Find(item => item.portName == portName);
+            return portView;
+        }
+
+        public List<BlueprintPortView> GetAllPort(Direction portDirection)
+        {
+            switch (portDirection)
+            {
+                case Direction.Input:
+                    return inputContainer.Query<BlueprintPortView>().ToList();
+                case Direction.Output:
+                    return outputContainer.Query<BlueprintPortView>().ToList();
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(portDirection), portDirection, null);
+            }
+        }
+
+        public BlueprintPortView InstantiateBlueprintPort(IBlueprintPort portData)
+        {
+            BlueprintPortView port = BlueprintPortView.Create<Edge>(this, portData);
+            return port;
         }
     }
 }

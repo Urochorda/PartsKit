@@ -6,81 +6,72 @@ namespace PartsKit
 {
     public class BlueprintWindow : EditorWindow
     {
-        public const string GraphWindowStyle = "NodeGroupStyles/NodeGroupWindow";
-
-        private VisualElement rootView;
-        private Blueprint blueprint;
-        private BlueprintView graphView;
+        private BlueprintView blueprintView;
 
         protected virtual void OnEnable()
         {
-            InitRootView();
         }
 
         protected virtual void OnDisable()
         {
-            if (graphView != null)
+            if (blueprintView != null)
             {
-                graphView.SaveGraphData();
+                blueprintView.SaveBlueprintData();
             }
         }
 
         #region Window
 
         /// <summary>
-        /// 初始化rootView
-        /// </summary>
-        private void InitRootView()
-        {
-            rootView = rootVisualElement;
-            rootView.name = "graphRootView";
-            rootView.styleSheets.Add(Resources.Load<StyleSheet>(GraphWindowStyle));
-        }
-
-        /// <summary>
-        /// 初始化窗口
+        /// 根据数据初始化窗口
         /// </summary>
         public void InitWindow(Blueprint blueprintVal)
         {
-            InitGraph(blueprintVal);
+            InitBlueprintView(blueprintVal);
         }
 
         #endregion
 
-        #region Graph
+        #region BlueprintView
 
-        private void InitGraph(Blueprint blueprintVal)
+        /// <summary>
+        /// 根据数据初始化
+        /// </summary>
+        private void InitBlueprintView(Blueprint blueprintVal)
         {
-            if (blueprint != null)
+            if (blueprintView != null)
             {
-                EditorUtility.SetDirty(blueprint);
-                AssetDatabase.SaveAssets();
+                blueprintView.SaveBlueprintData();
+                blueprintView.parent.Remove(blueprintView);
             }
 
-            if (graphView != null)
-            {
-                rootView.Remove(graphView);
-            }
-
-            blueprint = blueprintVal;
-            graphView = OnCreateGraphView(blueprint);
-            if (graphView == null)
+            blueprintView = OnCreateBlueprintView();
+            if (blueprintView == null)
             {
                 Debug.LogError("GraphView is Null!");
                 return;
             }
 
-            graphView.Init(blueprint);
-            OnInitGraphView(graphView);
+            OnInitBlueprintView(blueprintView, blueprintVal);
         }
 
-        protected virtual BlueprintView OnCreateGraphView(Blueprint blueprintVal)
+        /// <summary>
+        /// 创建BlueprintView，默认创建BlueprintView，如果扩展BlueprintView，可重写生成方法
+        /// </summary>
+        protected virtual BlueprintView OnCreateBlueprintView()
         {
-            return new BlueprintView();
+            BlueprintView bv = new BlueprintView();
+            rootVisualElement.Add(bv);
+            bv.StretchToParentSize();
+            return bv;
         }
 
-        protected virtual void OnInitGraphView(BlueprintView graphViewVal)
+        /// <summary>
+        /// 初始化blueprintView
+        /// </summary>
+        protected virtual void OnInitBlueprintView(BlueprintView blueprintViewVal, Blueprint blueprintVal)
         {
+            blueprintViewVal.Init(this, blueprintVal);
         }
 
         #endregion

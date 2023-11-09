@@ -1,13 +1,12 @@
 {
-    "name": "PartsKit.Editor",
+    "name": "PartsKit.Test",
     "rootNamespace": "",
     "references": [
+        "GUID:8e3aa62c5e824404d9584029bbab957f",
         "GUID:05efe4fdf6721ba4480fc3f6de26e908",
         "GUID:4988cf9794f41d64c884876ab6574b89"
     ],
-    "includePlatforms": [
-        "Editor"
-    ],
+    "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
     "overrideReferences": false,

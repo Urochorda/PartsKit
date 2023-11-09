@@ -27,6 +27,7 @@ namespace PartsKit
         public Orientation PortOrientation { get; set; } //节点方向，用作view层显示
         public Capacity PortCapacity { get; set; } //节点连接类型，用作view层显示
         public Direction PortDirection { get; set; } //节点类型，输入输出
+        public BlueprintNode OwnerNode { get; set; } //节点所属Node
         public void SetValue(IBlueprintPort data);
     }
 
@@ -37,6 +38,7 @@ namespace PartsKit
         public IBlueprintPort.Orientation PortOrientation { get; set; }
         public IBlueprintPort.Capacity PortCapacity { get; set; }
         public IBlueprintPort.Direction PortDirection { get; set; }
+        public BlueprintNode OwnerNode { get; set; }
         public Action<T> OnSet { get; set; }
         public Func<T> OnGet { get; set; }
         public Action OnSetDefault { get; set; }

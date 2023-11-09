@@ -55,7 +55,7 @@ namespace PartsKit
 
         public BlueprintPortView InstantiateBlueprintPort(IBlueprintPort portData)
         {
-            BlueprintPortView port = BlueprintPortView.Create<Edge>(this, portData);
+            BlueprintPortView port = BlueprintPortView.Create<BlueprintEdgeView>(this, portData);
             return port;
         }
     }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using UnityEditor.Experimental.GraphView;
+using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace PartsKit
@@ -16,6 +17,7 @@ namespace PartsKit
             title = blueprintNodeVal.NodeName;
             viewDataKey = blueprintNodeVal.Guid;
             SetPosition(blueprintNodeVal.Rect);
+            SetColor(blueprintNodeVal.NodeColor);
         }
 
         private void InitPorts()
@@ -55,8 +57,13 @@ namespace PartsKit
 
         public BlueprintPortView InstantiateBlueprintPort(IBlueprintPort portData)
         {
-            BlueprintPortView port = BlueprintPortView.Create<Edge>(this, portData);
+            BlueprintPortView port = BlueprintPortView.Create<BlueprintEdgeView>(this, portData);
             return port;
+        }
+        
+        protected virtual void SetColor(Color color)
+        {
+            titleContainer.style.color = new StyleColor(color);
         }
     }
 }

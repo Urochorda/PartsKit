@@ -115,8 +115,8 @@ namespace PartsKit
                         case BlueprintNodeView blueprintNodeView:
                             blueprint.RemoveNode(blueprintNodeView.BlueprintNode);
                             break;
-                        case Edge edge:
-                            Debug.LogError("删除：" + edge);
+                        case BlueprintEdgeView blueprintEdgeView:
+                            blueprint.RemoveEdge(blueprintEdgeView.BlueprintEdge);
                             break;
                     }
                 }
@@ -139,8 +139,13 @@ namespace PartsKit
             {
                 foreach (Edge edgeView in changes.edgesToCreate)
                 {
-                    BlueprintPortView inputPortView = edgeView.input as BlueprintPortView;
-                    BlueprintPortView outputPortView = edgeView.output as BlueprintPortView;
+                    if (edgeView is not BlueprintEdgeView blueprintEdgeView)
+                    {
+                        continue;
+                    }
+
+                    BlueprintPortView inputPortView = blueprintEdgeView.input as BlueprintPortView;
+                    BlueprintPortView outputPortView = blueprintEdgeView.output as BlueprintPortView;
                     if (inputPortView == null || outputPortView == null)
                     {
                         continue;
@@ -148,6 +153,7 @@ namespace PartsKit
 
                     BlueprintEdge blueprintEdge =
                         BlueprintEdge.CreateBlueprintEdge(inputPortView.BlueprintPort, outputPortView.BlueprintPort);
+                    blueprintEdgeView.Init(blueprintEdge);
                     blueprint.AddEdge(blueprintEdge);
                 }
             }
@@ -246,7 +252,8 @@ namespace PartsKit
                 return;
             }
 
-            Edge edge = inputPort.ConnectTo<Edge>(outputPort);
+            BlueprintEdgeView edge = inputPort.ConnectTo<BlueprintEdgeView>(outputPort);
+            edge.Init(blueprintEdge);
             AddElement(edge);
         }
 

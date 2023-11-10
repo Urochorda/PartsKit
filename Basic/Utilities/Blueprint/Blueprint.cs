@@ -8,8 +8,13 @@ namespace PartsKit
     public class Blueprint : ScriptableObject
     {
         //可能有派生类，所以用SerializeReference
-        [field: SerializeReference] public List<BlueprintNode> Nodes { get; private set; } = new List<BlueprintNode>();
-        [field: SerializeReference] public List<BlueprintEdge> Edges { get; private set; } = new List<BlueprintEdge>();
+        [field: DisplayOnly]
+        [field: SerializeReference]
+        public List<BlueprintNode> Nodes { get; private set; } = new List<BlueprintNode>();
+
+        [field: DisplayOnly]
+        [field: SerializeReference]
+        public List<BlueprintEdge> Edges { get; private set; } = new List<BlueprintEdge>();
 
         private void OnEnable()
         {

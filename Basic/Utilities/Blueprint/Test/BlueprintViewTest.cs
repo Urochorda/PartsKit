@@ -27,6 +27,7 @@ namespace PartsKit
                     new SearcherItem("InOutPutTest", userData: typeof(BlueprintNodeInOutPutTest)),
                     new SearcherItem("GameObjectTest", userData: typeof(BlueprintNodeGameObjectTest)),
                     new SearcherItem("ColorTest", userData: typeof(BlueprintNodeColorTest)),
+                    new SearcherItem("DeletableTest", userData: typeof(BlueprintNodeDeletableTest)),
                 })
             };
 

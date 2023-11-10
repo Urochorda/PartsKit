@@ -18,6 +18,9 @@ namespace PartsKit
             viewDataKey = blueprintNodeVal.Guid;
             SetPosition(blueprintNodeVal.Rect);
             SetColor(blueprintNodeVal.NodeColor);
+
+            if (!blueprintNodeVal.Deletable)
+                capabilities &= ~Capabilities.Deletable;
         }
 
         private void InitPorts()
@@ -60,10 +63,16 @@ namespace PartsKit
             BlueprintPortView port = BlueprintPortView.Create<BlueprintEdgeView>(this, portData);
             return port;
         }
-        
+
         protected virtual void SetColor(Color color)
         {
-            titleContainer.style.color = new StyleColor(color);
+            if (color == Color.clear)
+            {
+                return;
+            }
+
+            StyleColor styleColor = new StyleColor(color);
+            titleContainer.style.backgroundColor = styleColor;
         }
     }
 }

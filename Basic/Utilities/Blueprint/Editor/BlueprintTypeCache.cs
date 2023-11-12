@@ -17,15 +17,21 @@ namespace PartsKit
         private static void BuildScriptCache()
         {
             NodeViewPerType.Clear();
-            foreach (var nodeViewType in TypeCache.GetTypesDerivedFrom<BlueprintNodeView>())
+            TypeCache.TypeCollection typeCollection = TypeCache.GetTypesDerivedFrom<BlueprintNodeView>();
+            AddNodeViewScriptAsset(typeof(BlueprintNodeView));
+            foreach (var nodeViewType in typeCollection)
             {
-                if (!nodeViewType.IsAbstract)
-                    AddNodeViewScriptAsset(nodeViewType);
+                AddNodeViewScriptAsset(nodeViewType);
             }
         }
 
         private static void AddNodeViewScriptAsset(Type type)
         {
+            if (type.IsAbstract)
+            {
+                return;
+            }
+
             if (type.GetCustomAttributes(typeof(BlueprintNodeTypeAttribute), false) is not BlueprintNodeTypeAttribute[]
                 attrs)
             {

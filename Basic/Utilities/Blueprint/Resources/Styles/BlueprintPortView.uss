@@ -1,0 +1,11 @@
+.PartsKit_BlueprintExecutePortData {
+    --port-color: #fbda41;
+}
+
+.PartsKit_BlueprintExecutePortData #connector, .PartsKit_BlueprintExecutePortData #connector #cap {
+    border-radius: 0;
+}
+
+.System_Boolean {
+    --port-color: #ee3f4d
+}

@@ -225,7 +225,7 @@ namespace PartsKit
             }
 
             BlueprintNode blueprintNode = BlueprintNode.CreateFromType((Type)searcherItem.UserData);
-            blueprintNode.OnCreateByEditorView();
+            blueprintNode.OnCreate();
             AddNode(blueprintNode, graphMousePosition, true);
             return true;
         }

@@ -30,16 +30,16 @@ namespace PartsKit
         public virtual Color NodeColor => Color.clear;
         public virtual StyleSheet LayoutStyle => null;
         public virtual bool Deletable => true;
-        public List<IBlueprintPort> InputPort { get; }
-        public List<IBlueprintPort> OutputPort { get; }
+        public List<IBlueprintPort> InputPorts { get; }
+        public List<IBlueprintPort> OutputPorts { get; }
 
         public BlueprintNode()
         {
-            InputPort = new List<IBlueprintPort>();
-            OutputPort = new List<IBlueprintPort>();
+            InputPorts = new List<IBlueprintPort>();
+            OutputPorts = new List<IBlueprintPort>();
         }
 
-        public void OnCreateByEditorView()
+        public void OnCreate()
         {
             Guid = System.Guid.NewGuid().ToString();
         }
@@ -62,10 +62,10 @@ namespace PartsKit
             switch (treeNodePort.PortDirection)
             {
                 case IBlueprintPort.Direction.Input:
-                    InputPort.Add(treeNodePort);
+                    InputPorts.Add(treeNodePort);
                     break;
                 case IBlueprintPort.Direction.Output:
-                    OutputPort.Add(treeNodePort);
+                    OutputPorts.Add(treeNodePort);
                     break;
                 default:
                     Debug.LogError("portType错误");
@@ -81,10 +81,10 @@ namespace PartsKit
             switch (portType)
             {
                 case IBlueprintPort.Direction.Input:
-                    InputPort.RemoveAll(item => item.PortName == portName);
+                    InputPorts.RemoveAll(item => item.PortName == portName);
                     break;
                 case IBlueprintPort.Direction.Output:
-                    OutputPort.RemoveAll(item => item.PortName == portName);
+                    OutputPorts.RemoveAll(item => item.PortName == portName);
                     break;
                 default:
                     Debug.LogError("portType错误");
@@ -100,14 +100,36 @@ namespace PartsKit
             switch (portType)
             {
                 case IBlueprintPort.Direction.Input:
-                    return InputPort.Find(item => item.PortName == portName);
+                    return InputPorts.Find(item => item.PortName == portName);
                 case IBlueprintPort.Direction.Output:
-                    return OutputPort.Find(item => item.PortName == portName);
+                    return OutputPorts.Find(item => item.PortName == portName);
                 default:
                     Debug.LogError("portType错误");
                     break;
             }
 
+            return null;
+        }
+
+        /// <summary>
+        /// 尝试执行
+        /// </summary>
+        public BlueprintExecutePort TryExecuted(string portName)
+        {
+            IBlueprintPort inPort = GetPort(IBlueprintPort.Direction.Input, portName);
+            if (inPort == null)
+            {
+                return null;
+            }
+
+            return OnExecuted(inPort);
+        }
+
+        /// <summary>
+        /// 执行节点
+        /// </summary>
+        protected virtual BlueprintExecutePort OnExecuted(IBlueprintPort port)
+        {
             return null;
         }
     }

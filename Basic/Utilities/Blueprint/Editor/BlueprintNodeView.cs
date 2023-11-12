@@ -25,13 +25,13 @@ namespace PartsKit
 
         private void InitPorts()
         {
-            foreach (var inputPort in BlueprintNode.InputPort)
+            foreach (var inputPort in BlueprintNode.InputPorts)
             {
                 BlueprintPortView portView = InstantiateBlueprintPort(inputPort);
                 inputContainer.Add(portView);
             }
 
-            foreach (var outputPort in BlueprintNode.OutputPort)
+            foreach (var outputPort in BlueprintNode.OutputPorts)
             {
                 BlueprintPortView portView = InstantiateBlueprintPort(outputPort);
                 outputContainer.Add(portView);

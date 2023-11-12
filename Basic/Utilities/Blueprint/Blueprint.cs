@@ -1,10 +1,8 @@
-using System;
 using System.Collections.Generic;
 using UnityEngine;
 
 namespace PartsKit
 {
-    [CreateAssetMenu(menuName = "PartsKit/Blueprint/Blueprint", fileName = "Blueprint_")]
     public class Blueprint : ScriptableObject
     {
         //可能有派生类，所以用SerializeReference
@@ -20,6 +18,11 @@ namespace PartsKit
         {
             InitNode();
             InitPort();
+            OnInit();
+        }
+
+        protected virtual void OnInit()
+        {
         }
 
         private void InitNode()
@@ -73,7 +76,7 @@ namespace PartsKit
 
         public void AddNode(BlueprintNode treeNode)
         {
-            if (treeNode == null || Nodes.Exists(item => item.Guid == treeNode.Guid))
+            if (treeNode == null || Nodes.Contains(treeNode))
             {
                 Debug.LogError("Add Node Err");
                 return;
@@ -100,7 +103,12 @@ namespace PartsKit
 
         public void AddEdge(BlueprintEdge edge)
         {
-            //todo 校验
+            if (Edges.Contains(edge))
+            {
+                Debug.LogError("Add Edge Err");
+                return;
+            }
+
             Edges.Add(edge);
         }
 

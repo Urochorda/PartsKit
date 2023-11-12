@@ -129,6 +129,8 @@ namespace PartsKit
         public BlueprintNodeView OwnerNodeView { get; private set; }
         public IBlueprintPort BlueprintPort { get; private set; }
 
+        private BlueprintPortStyle? CurPortStyle { get; set; }
+
         private BlueprintPortView(Orientation portOrientation, Direction portDirection, Capacity portCapacity,
             Type type) : base(portOrientation, portDirection, portCapacity, type)
         {
@@ -139,6 +141,47 @@ namespace PartsKit
             OwnerNodeView = ownerNodeView;
             BlueprintPort = blueprintPort;
             portName = blueprintPort.PortName;
+
+            if (CurPortStyle != null)
+            {
+                visualClass = string.Empty;
+                styleSheets.Remove(CurPortStyle.Value.StyleSheet);
+            }
+
+            if (BlueprintPort.PortStyle != null)
+            {
+                CurPortStyle = BlueprintPort.PortStyle;
+                visualClass = BlueprintPort.PortStyle.Value.VisualClass;
+                styleSheets.Add(BlueprintPort.PortStyle.Value.StyleSheet);
+            }
+
+            DefaultColor();
+        }
+
+        private void DefaultColor()
+        {
+            int typeAsc = Asc(portType.ToString());
+
+            System.Random random = new System.Random(typeAsc);
+            portColor = new Color(Random(random, 0, 100), Random(random, 123, 564), Random(random, 1026, 520218), 1);
+
+            int Asc(string character)
+            {
+                int asc = 0;
+                System.Text.ASCIIEncoding asciiEncoding = new System.Text.ASCIIEncoding();
+                byte[] ascBytes = asciiEncoding.GetBytes(character);
+                foreach (int b in ascBytes)
+                {
+                    asc += b;
+                }
+
+                return asc;
+            }
+
+            float Random(System.Random randomVal, int min, int max)
+            {
+                return (randomVal.Next(min, max) - min) / (float)(max - min);
+            }
         }
     }
 }

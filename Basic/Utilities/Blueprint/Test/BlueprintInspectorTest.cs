@@ -4,7 +4,7 @@ using UnityEngine.UIElements;
 
 namespace PartsKit
 {
-    [CustomEditor(typeof(Blueprint), true)]
+    [CustomEditor(typeof(TestBlueprint), true)]
     public class BlueprintInspectorTest : Editor
     {
         public override VisualElement CreateInspectorGUI()

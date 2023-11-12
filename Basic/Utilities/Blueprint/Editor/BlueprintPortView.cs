@@ -162,8 +162,10 @@ namespace PartsKit
         {
             int typeAsc = Asc(portType.ToString());
 
-            System.Random random = new System.Random(typeAsc);
-            portColor = new Color(Random(random, 0, 100), Random(random, 123, 564), Random(random, 1026, 520218), 1);
+            System.Random randomR = new System.Random(typeAsc);
+            System.Random randomG = new System.Random(typeAsc * 3);
+            System.Random randomB = new System.Random(typeAsc * 4);
+            portColor = new Color(Random(randomR), Random(randomG), Random(randomB), 1);
 
             int Asc(string character)
             {
@@ -178,9 +180,9 @@ namespace PartsKit
                 return asc;
             }
 
-            float Random(System.Random randomVal, int min, int max)
+            float Random(System.Random randomVal)
             {
-                return (randomVal.Next(min, max) - min) / (float)(max - min);
+                return randomVal.Next(0, 100) / 100f;
             }
         }
     }

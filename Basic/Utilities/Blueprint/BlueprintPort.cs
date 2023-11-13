@@ -75,6 +75,34 @@ namespace PartsKit
             portNameVal, portOrientationVal, portDirectionVal, portCapacityVal, isExecute)
         {
         }
+
+        public BlueprintExecutePort Execute()
+        {
+            BlueprintExecutePort nextExecute = null;
+            switch (PortDirection)
+            {
+                case IBlueprintPort.Direction.Input:
+                {
+                    BlueprintNode.TryExecuted(OwnerNode, PortName, out nextExecute);
+                    break;
+                }
+
+                case IBlueprintPort.Direction.Output:
+                {
+                    nextExecute = NextExecute;
+                    break;
+                }
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+
+            if (nextExecute != null)
+            {
+                return nextExecute.Execute();
+            }
+
+            return this;
+        }
     }
 
     public static class BlueprintPortUtility

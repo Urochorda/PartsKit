@@ -33,9 +33,11 @@ namespace PartsKit
             }
         }
 
-        public void Executed()
+        public void Update()
         {
-            curExecutePort = curExecutePort.OwnerNode.TryExecuted(curExecutePort.PortName);
+            curExecutePort ??= rootNode.OutputExePort;
+            Executed(curExecutePort.OwnerNode, curExecutePort.PortDirection, curExecutePort.PortName,
+                out curExecutePort);
         }
     }
 }

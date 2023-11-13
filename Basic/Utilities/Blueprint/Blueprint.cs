@@ -116,5 +116,18 @@ namespace PartsKit
         {
             Edges.Remove(edge);
         }
+
+        public void Executed(BlueprintNode beginNode, IBlueprintPort.Direction portType, string portName,
+            out BlueprintExecutePort endPort)
+        {
+            if (beginNode.GetPort(portType, portName) is BlueprintExecutePort exePort)
+            {
+                endPort = exePort.Execute();
+            }
+            else
+            {
+                endPort = null;
+            }
+        }
     }
 }

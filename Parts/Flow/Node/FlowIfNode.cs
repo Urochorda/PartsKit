@@ -31,10 +31,10 @@ namespace PartsKit
             AddPort(ConditionPort);
         }
 
-        protected override BlueprintExecutePort OnExecuted(IBlueprintPort port)
+        protected override void OnExecuted(IBlueprintPort port, out BlueprintExecutePort nextPort)
         {
             bool isTree = ConditionPort.GetValue();
-            return isTree ? TreeOutputExePort : FalseOutputExePort;
+            nextPort = isTree ? TreeOutputExePort : FalseOutputExePort;
         }
     }
 }

@@ -46,27 +46,25 @@ namespace PartsKit
             AddPort(ConditionPort);
         }
 
-        protected override BlueprintExecutePort OnExecuted(IBlueprintPort port)
+        protected override void OnExecuted(IBlueprintPort port, out BlueprintExecutePort nextPort)
         {
             FlowPointState curCondition = ConditionPort.GetValue();
 
-            BlueprintExecutePort nextPort;
             switch (curCondition)
             {
                 default:
                 case FlowPointState.Default:
                 case FlowPointState.Running:
-                    nextPort = InputExePort; //继续执行
+                    RunningExePort.Execute(); //执行一下运行连接的逻辑
+                    nextPort = null; //本次主线运行结束
                     break;
                 case FlowPointState.Fail:
-                    nextPort = FailExePort; //失败节点
+                    nextPort = FailExePort; //下一个节点为失败节点
                     break;
                 case FlowPointState.Success:
-                    nextPort = SuccessExePort; //成功节点
+                    nextPort = SuccessExePort; //下一个节点为成功节点
                     break;
             }
-
-            return nextPort;
         }
     }
 }

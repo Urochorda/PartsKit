@@ -144,46 +144,14 @@ namespace PartsKit
 
             if (CurPortStyle != null)
             {
-                visualClass = string.Empty;
                 styleSheets.Remove(CurPortStyle.Value.StyleSheet);
             }
 
-            if (BlueprintPort.PortStyle != null)
-            {
-                CurPortStyle = BlueprintPort.PortStyle;
-                visualClass = BlueprintPort.PortStyle.Value.VisualClass;
-                styleSheets.Add(BlueprintPort.PortStyle.Value.StyleSheet);
-            }
-
-            DefaultColor();
-        }
-
-        private void DefaultColor()
-        {
-            int typeAsc = Asc(portType.ToString());
-
-            System.Random randomR = new System.Random(typeAsc);
-            System.Random randomG = new System.Random(typeAsc * 3);
-            System.Random randomB = new System.Random(typeAsc * 4);
-            portColor = new Color(Random(randomR), Random(randomG), Random(randomB), 1);
-
-            int Asc(string character)
-            {
-                int asc = 0;
-                System.Text.ASCIIEncoding asciiEncoding = new System.Text.ASCIIEncoding();
-                byte[] ascBytes = asciiEncoding.GetBytes(character);
-                foreach (int b in ascBytes)
-                {
-                    asc += b;
-                }
-
-                return asc;
-            }
-
-            float Random(System.Random randomVal)
-            {
-                return randomVal.Next(0, 100) / 100f;
-            }
+            BlueprintPortStyle portStyle = BlueprintPortUtility.GetRegisterPortStyle(portType);
+            CurPortStyle = portStyle;
+            visualClass = portStyle.VisualClass;
+            styleSheets.Add(portStyle.StyleSheet);
+            portColor = portStyle.PortColor;
         }
     }
 }

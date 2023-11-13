@@ -1,4 +1,7 @@
+using System;
 using System.Collections.Generic;
+using System.Security.Cryptography;
+using System.Text;
 using UnityEngine;
 
 namespace PartsKit
@@ -166,5 +169,26 @@ namespace PartsKit
         //
         //     return mesh;
         // }
+
+        public static Color GenerateColorByType(Type type)
+        {
+            string typeName = type.FullName;
+            byte[] hashBytes = ComputeSHA256Hash(typeName);
+
+            // Use multiple bytes for better color distribution
+            float hue = Mathf.Repeat((hashBytes[0] ^ hashBytes[1]) / 255.0f, 1.0f);
+
+            // float saturation = Mathf.Repeat((hashBytes[2] ^ hashBytes[3]) / 255.0f, 1.0f);
+            // float value = Mathf.Repeat((hashBytes[4] ^ hashBytes[5]) / 255.0f, 1.0f);
+            //return Color.HSVToRGB(hue, saturation, value);
+            return Color.HSVToRGB(hue, 0.8f, 0.8f);
+
+            byte[] ComputeSHA256Hash(string input)
+            {
+                using SHA256 sha256 = SHA256.Create();
+                byte[] inputBytes = Encoding.UTF8.GetBytes(input);
+                return sha256.ComputeHash(inputBytes);
+            }
+        }
     }
 }

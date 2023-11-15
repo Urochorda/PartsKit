@@ -7,7 +7,6 @@ namespace PartsKit
     /// </summary>
     public enum FlowPointState
     {
-        Default = 0,
         Running = 1, //运行中
         Fail = 2, //失败
         Success = 3, //成功
@@ -17,7 +16,7 @@ namespace PartsKit
     [FlowCreateNode("Common", CreateName, "流程节点")]
     public class FlowPointNode : BlueprintNode
     {
-        private const string CreateName = "Point";
+        private const string CreateName = "Point(wait for running)";
         public override string NodeName => CreateName;
         public BlueprintExecutePort InputExePort { get; private set; }
         public BlueprintExecutePort RunningExePort { get; private set; }
@@ -46,23 +45,34 @@ namespace PartsKit
             AddPort(ConditionPort);
         }
 
-        protected override void OnExecuted(IBlueprintPort port, out BlueprintExecutePort nextPort)
+        protected override void OnExecuted(IBlueprintPort port, out BlueprintExecutePort nextPort,
+            out BlueprintExecuteState executeState)
         {
+            if (port != InputExePort)
+            {
+                throw new ArgumentOutOfRangeException();
+            }
+
             FlowPointState curCondition = ConditionPort.GetValue();
 
             switch (curCondition)
             {
                 default:
-                case FlowPointState.Default:
+                    nextPort = null;
+                    executeState = BlueprintExecuteState.End;
+                    break;
                 case FlowPointState.Running:
-                    RunningExePort.Execute(); //执行一下运行连接的逻辑
-                    nextPort = null; //本次主线运行结束
+                    //下一个节点走运行中，但是本节点并未结束
+                    nextPort = RunningExePort;
+                    executeState = BlueprintExecuteState.Wait;
                     break;
                 case FlowPointState.Fail:
-                    nextPort = FailExePort; //下一个节点为失败节点
+                    nextPort = FailExePort;
+                    executeState = BlueprintExecuteState.End;
                     break;
                 case FlowPointState.Success:
-                    nextPort = SuccessExePort; //下一个节点为成功节点
+                    nextPort = SuccessExePort;
+                    executeState = BlueprintExecuteState.End;
                     break;
             }
         }

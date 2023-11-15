@@ -36,8 +36,7 @@ namespace PartsKit
         public void Update()
         {
             curExecutePort ??= rootNode.OutputExePort;
-            Executed(curExecutePort.OwnerNode, curExecutePort.PortDirection, curExecutePort.PortName,
-                out curExecutePort);
+            BeginExecuted(curExecutePort);
         }
     }
 }

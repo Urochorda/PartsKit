@@ -153,5 +153,21 @@ namespace PartsKit
             styleSheets.Add(portStyle.StyleSheet);
             portColor = portStyle.PortColor;
         }
+
+        public void SetExecuteState(bool isExecute)
+        {
+            if (isExecute)
+            {
+                portColor = Color.green;
+                return;
+            }
+
+            if (CurPortStyle == null)
+            {
+                return;
+            }
+
+            portColor = CurPortStyle.Value.PortColor;
+        }
     }
 }

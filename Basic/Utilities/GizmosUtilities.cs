@@ -174,14 +174,18 @@ namespace PartsKit
         {
             string typeName = type.FullName;
             byte[] hashBytes = ComputeSHA256Hash(typeName);
-
-            // Use multiple bytes for better color distribution
+            
             float hue = Mathf.Repeat((hashBytes[0] ^ hashBytes[1]) / 255.0f, 1.0f);
-
-            // float saturation = Mathf.Repeat((hashBytes[2] ^ hashBytes[3]) / 255.0f, 1.0f);
-            // float value = Mathf.Repeat((hashBytes[4] ^ hashBytes[5]) / 255.0f, 1.0f);
-            //return Color.HSVToRGB(hue, saturation, value);
-            return Color.HSVToRGB(hue, 0.8f, 0.8f);
+            
+            float minS = 0.5f;
+            float saturation = Mathf.Repeat((hashBytes[2] ^ hashBytes[3]) / 255.0f, 1.0f);
+            saturation = minS + saturation * (1 - minS);
+            
+            float minV = 0.9f;
+            float value = Mathf.Repeat((hashBytes[4] ^ hashBytes[5]) / 255.0f, 1.0f);
+            value = minV + value * (1 - minV);
+            
+            return Color.HSVToRGB(hue, saturation, value);
 
             byte[] ComputeSHA256Hash(string input)
             {

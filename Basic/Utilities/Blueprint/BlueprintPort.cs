@@ -50,6 +50,12 @@ namespace PartsKit
         public List<IBlueprintPort> NextPorts { get; set; } //下一个端口
     }
 
+    public enum BlueprintExecuteState
+    {
+        Running = 1, //本节点需要继续执行
+        End = 2, //本节点执行完毕
+        Wait = 3, //本次执行到本节点后暂停
+    }
 
     public struct BlueprintExecutePortData
     {
@@ -70,20 +76,24 @@ namespace PartsKit
             }
         }
 
+        public BlueprintExecuteState ExecuteState { get; private set; }
+
         public BlueprintExecutePort(string portNameVal, IBlueprintPort.Orientation portOrientationVal,
-            IBlueprintPort.Direction portDirectionVal, IBlueprintPort.Capacity portCapacityVal, bool isExecute) : base(
+            IBlueprintPort.Direction portDirectionVal, IBlueprintPort.Capacity portCapacityVal,
+            bool isExecute) : base(
             portNameVal, portOrientationVal, portDirectionVal, portCapacityVal, isExecute)
         {
         }
 
-        public BlueprintExecutePort Execute()
+        public void Execute(out BlueprintExecutePort nextExecute)
         {
-            BlueprintExecutePort nextExecute = null;
             switch (PortDirection)
             {
                 case IBlueprintPort.Direction.Input:
                 {
-                    BlueprintNode.TryExecuted(OwnerNode, PortName, out nextExecute);
+                    BlueprintNode.TryExecuted(OwnerNode, PortName, out nextExecute,
+                        out BlueprintExecuteState executeStateVal);
+                    ExecuteState = executeStateVal;
                     break;
                 }
 
@@ -95,13 +105,6 @@ namespace PartsKit
                 default:
                     throw new ArgumentOutOfRangeException();
             }
-
-            if (nextExecute != null)
-            {
-                return nextExecute.Execute();
-            }
-
-            return this;
         }
     }
 
@@ -110,7 +113,7 @@ namespace PartsKit
         private const string DefaultStylePath = "Styles/BlueprintPortView";
         private static StyleSheet privatePortStyleSheet;
 
-        private static readonly Dictionary<Type, BlueprintPortStyle> typePortStyleDic =
+        private static readonly Dictionary<Type, BlueprintPortStyle> TypePortStyleDic =
             new Dictionary<Type, BlueprintPortStyle>();
 
         static BlueprintPortUtility()
@@ -144,12 +147,12 @@ namespace PartsKit
 
         public static void RegisterPortStyle(Type type, BlueprintPortStyle style)
         {
-            typePortStyleDic[type] = style;
+            TypePortStyleDic[type] = style;
         }
 
         public static BlueprintPortStyle GetRegisterPortStyle(Type type)
         {
-            if (typePortStyleDic.TryGetValue(type, out BlueprintPortStyle style))
+            if (TypePortStyleDic.TryGetValue(type, out BlueprintPortStyle style))
             {
                 return style;
             }
@@ -227,7 +230,7 @@ namespace PartsKit
         public bool IsExecute { get; set; }
         public List<IBlueprintPort> PrePorts { get; set; }
         public List<IBlueprintPort> NextPorts { get; set; }
-        public T DefaultValue { get; set; } //默认数据当LastPort为null时使用默认数据
+        public T DefaultValue { get; set; } //默认数据当PrePort为null时使用默认数据
 
         /// <summary>
         /// 参数为必要数据，必填

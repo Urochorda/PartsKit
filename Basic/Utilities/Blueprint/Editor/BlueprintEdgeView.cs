@@ -9,6 +9,7 @@ namespace PartsKit
         public virtual void Init(BlueprintEdge blueprintEdgeVal)
         {
             BlueprintEdge = blueprintEdgeVal;
+            viewDataKey = blueprintEdgeVal.Guid;
         }
     }
 }

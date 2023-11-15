@@ -14,6 +14,7 @@ namespace PartsKit
         private Blueprint blueprint;
         private BlueprintWindow window;
         private readonly List<Port> compatiblePorts = new List<Port>();
+        private readonly List<BlueprintExecutePort> lastExecutePorts = new List<BlueprintExecutePort>();
 
         public BlueprintView()
         {
@@ -61,6 +62,16 @@ namespace PartsKit
             //注册创建节点事件，注册后会自动在BuildContextualMenu中绘制CreateNode按钮
             nodeCreationRequest = (c) => { ShowNodeSearchWindow(c.screenMousePosition); };
             graphViewChanged = GraphViewChangedCallback;
+            blueprint.OnExecutedUpdate += DrawExecuteLine;
+        }
+
+        public void Dispose()
+        {
+            SaveBlueprintData();
+            if (blueprint != null)
+            {
+                blueprint.OnExecutedUpdate -= DrawExecuteLine;
+            }
         }
 
         private void InitView()
@@ -292,6 +303,60 @@ namespace PartsKit
             windowMousePosition =
                 windowRoot.ChangeCoordinatesTo(windowRoot.parent, screenMousePosition - window.position.position);
             graphMousePosition = contentViewContainer.WorldToLocal(windowMousePosition);
+        }
+
+        private void DrawExecuteLine()
+        {
+            if (blueprint == null)
+            {
+                return;
+            }
+
+            for (var i = lastExecutePorts.Count - 1; i >= 0; i--)
+            {
+                BlueprintExecutePort lastExePort = lastExecutePorts[i];
+                if (blueprint.AllExecutePortStack.Contains(lastExePort))
+                {
+                    continue;
+                }
+
+                BlueprintPortView bPortView = GetBPortView(lastExePort);
+                if (bPortView != null)
+                {
+                    bPortView.SetExecuteState(false);
+                }
+
+                lastExecutePorts.RemoveAt(i);
+            }
+
+            foreach (BlueprintExecutePort lastExePort in blueprint.AllExecutePortStack)
+            {
+                if (lastExecutePorts.Contains(lastExePort))
+                {
+                    continue;
+                }
+
+                BlueprintPortView bPortView = GetBPortView(lastExePort);
+                if (bPortView != null)
+                {
+                    bPortView.SetExecuteState(true);
+                }
+
+                lastExecutePorts.Add(lastExePort);
+            }
+
+            BlueprintPortView GetBPortView(BlueprintExecutePort exePortData)
+            {
+                Node nodeView = GetNodeByGuid(exePortData.OwnerNode.Guid);
+                if (nodeView is not BlueprintNodeView bNodeView)
+                {
+                    return null;
+                }
+
+                BlueprintPortView bPortView = bNodeView.GetPortView(exePortData.PortDirection.ToEditorDirection(),
+                    exePortData.PortName);
+                return bPortView;
+            }
         }
     }
 }

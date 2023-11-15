@@ -1,3 +1,4 @@
+using System;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -8,16 +9,9 @@ namespace PartsKit
     {
         private BlueprintView blueprintView;
 
-        protected virtual void OnEnable()
+        protected virtual void OnDestroy()
         {
-        }
-
-        protected virtual void OnDisable()
-        {
-            if (blueprintView != null)
-            {
-                blueprintView.SaveBlueprintData();
-            }
+            DisposeBlueprintView();
         }
 
         #region Window
@@ -41,8 +35,7 @@ namespace PartsKit
         {
             if (blueprintView != null)
             {
-                blueprintView.SaveBlueprintData();
-                blueprintView.parent.Remove(blueprintView);
+                DisposeBlueprintView();
             }
 
             blueprintView = OnCreateBlueprintView();
@@ -53,6 +46,17 @@ namespace PartsKit
             }
 
             OnInitBlueprintView(blueprintView, blueprintVal);
+        }
+
+        private void DisposeBlueprintView()
+        {
+            if (blueprintView == null)
+            {
+                return;
+            }
+
+            blueprintView.Dispose();
+            blueprintView.parent.Remove(blueprintView);
         }
 
         /// <summary>

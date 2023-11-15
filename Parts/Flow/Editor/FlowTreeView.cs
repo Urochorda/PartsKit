@@ -65,7 +65,7 @@ namespace PartsKit
             {
                 if (curSearcherItem == null)
                 {
-                    return null;
+                    return nodeSearcherItems.Find(item => item.Name == cName);
                 }
 
                 return curSearcherItem.Children.Find(item => item.Name == cName);

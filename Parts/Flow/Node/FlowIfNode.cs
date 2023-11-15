@@ -11,19 +11,21 @@ namespace PartsKit
         public BlueprintExecutePort InputExePort { get; private set; }
         public BlueprintExecutePort TreeOutputExePort { get; private set; }
         public BlueprintExecutePort FalseOutputExePort { get; private set; }
-        public BlueprintPort<bool> ConditionPort { get; private set; }
+        public BlueprintValuePort<bool> ConditionPort { get; private set; }
+
+        private BlueprintExecutePortResult executePortResult;
 
         protected override void RegisterPort()
         {
             base.RegisterPort();
             InputExePort = BlueprintPortUtility.CreateExecutePort("InputExe",
-                IBlueprintPort.Orientation.Horizontal, IBlueprintPort.Direction.Input);
+                IBlueprintPort.Orientation.Horizontal, IBlueprintPort.Direction.Input, OnInputExecuted);
             TreeOutputExePort = BlueprintPortUtility.CreateExecutePort("TrueExe",
-                IBlueprintPort.Orientation.Horizontal, IBlueprintPort.Direction.Output);
+                IBlueprintPort.Orientation.Horizontal, IBlueprintPort.Direction.Output, OnOutputExecuted);
             FalseOutputExePort = BlueprintPortUtility.CreateExecutePort("FalseExe",
-                IBlueprintPort.Orientation.Horizontal, IBlueprintPort.Direction.Output);
-            ConditionPort = BlueprintPortUtility.CreateInOutputPort<bool>("Condition",
-                IBlueprintPort.Orientation.Horizontal, IBlueprintPort.Direction.Input);
+                IBlueprintPort.Orientation.Horizontal, IBlueprintPort.Direction.Output, OnOutputExecuted);
+            ConditionPort = BlueprintPortUtility.CreateValuePort<bool>("Condition",
+                IBlueprintPort.Orientation.Horizontal, IBlueprintPort.Direction.Input, GetConditionValue);
 
             AddPort(InputExePort);
             AddPort(TreeOutputExePort);
@@ -31,12 +33,31 @@ namespace PartsKit
             AddPort(ConditionPort);
         }
 
-        protected override void OnExecuted(IBlueprintPort port, out BlueprintExecutePort nextPort,
-            out BlueprintExecuteState executeState)
+        private BlueprintExecutePortResult OnInputExecuted(BlueprintExecutePort executePort)
         {
-            bool isTree = ConditionPort.GetValue();
-            nextPort = isTree ? TreeOutputExePort : FalseOutputExePort;
-            executeState = BlueprintExecuteState.End;
+            ConditionPort.GetValue(out bool isTree);
+            executePortResult.NextExecute = isTree ? TreeOutputExePort : FalseOutputExePort;
+            executePortResult.ExecuteState = BlueprintExecuteState.End;
+            return executePortResult;
+        }
+
+        private BlueprintExecutePortResult OnOutputExecuted(BlueprintExecutePort executePort)
+        {
+            executePort.GetNextExecute(out BlueprintExecutePort targetPort);
+            executePortResult.NextExecute = targetPort;
+            executePortResult.ExecuteState = BlueprintExecuteState.End;
+            return executePortResult;
+        }
+
+        private bool GetConditionValue(BlueprintValuePort<bool> conditionPort)
+        {
+            bool state = false;
+            if (conditionPort.GetPrePortFirst(out BlueprintValuePort<bool> targetPort))
+            {
+                targetPort.GetValue(out state);
+            }
+
+            return state;
         }
     }
 }

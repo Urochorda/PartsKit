@@ -11,16 +11,16 @@ namespace PartsKit
         protected override void RegisterPort()
         {
             //Horizontal
-            AddPort(BlueprintPortUtility.CreateInOutputPort<int>("Input", IBlueprintPort.Orientation.Horizontal,
-                IBlueprintPort.Direction.Input));
-            AddPort(BlueprintPortUtility.CreateInOutputPort<bool>("Output", IBlueprintPort.Orientation.Horizontal,
-                IBlueprintPort.Direction.Output));
+            AddPort(BlueprintPortUtility.CreateValuePort<int>("Input", IBlueprintPort.Orientation.Horizontal,
+                IBlueprintPort.Direction.Input, null));
+            AddPort(BlueprintPortUtility.CreateValuePort<bool>("Output", IBlueprintPort.Orientation.Horizontal,
+                IBlueprintPort.Direction.Output, null));
 
             //Vertical
-            AddPort(BlueprintPortUtility.CreateInOutputPort<float>("InputV", IBlueprintPort.Orientation.Vertical,
-                IBlueprintPort.Direction.Input));
-            AddPort(BlueprintPortUtility.CreateInOutputPort<float>("OutputV", IBlueprintPort.Orientation.Vertical,
-                IBlueprintPort.Direction.Output));
+            AddPort(BlueprintPortUtility.CreateValuePort<float>("InputV", IBlueprintPort.Orientation.Vertical,
+                IBlueprintPort.Direction.Input, null));
+            AddPort(BlueprintPortUtility.CreateValuePort<float>("OutputV", IBlueprintPort.Orientation.Vertical,
+                IBlueprintPort.Direction.Output, null));
         }
     }
 }

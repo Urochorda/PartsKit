@@ -22,21 +22,23 @@ namespace PartsKit
         public BlueprintExecutePort RunningExePort { get; private set; }
         public BlueprintExecutePort FailExePort { get; private set; }
         public BlueprintExecutePort SuccessExePort { get; private set; }
-        public BlueprintPort<FlowPointState> ConditionPort { get; private set; }
+        public BlueprintValuePort<FlowPointState> ConditionPort { get; private set; }
+
+        private BlueprintExecutePortResult executePortResult;
 
         protected override void RegisterPort()
         {
             base.RegisterPort();
             InputExePort = BlueprintPortUtility.CreateExecutePort("InputExe",
-                IBlueprintPort.Orientation.Horizontal, IBlueprintPort.Direction.Input);
+                IBlueprintPort.Orientation.Horizontal, IBlueprintPort.Direction.Input, OnInputExecuted);
             RunningExePort = BlueprintPortUtility.CreateExecutePort("RunningExe",
-                IBlueprintPort.Orientation.Horizontal, IBlueprintPort.Direction.Output);
+                IBlueprintPort.Orientation.Horizontal, IBlueprintPort.Direction.Output, OnOutputExecuted);
             FailExePort = BlueprintPortUtility.CreateExecutePort("FailExe",
-                IBlueprintPort.Orientation.Horizontal, IBlueprintPort.Direction.Output);
+                IBlueprintPort.Orientation.Horizontal, IBlueprintPort.Direction.Output, OnOutputExecuted);
             SuccessExePort = BlueprintPortUtility.CreateExecutePort("SuccessExe",
-                IBlueprintPort.Orientation.Horizontal, IBlueprintPort.Direction.Output);
-            ConditionPort = BlueprintPortUtility.CreateInOutputPort<FlowPointState>("Condition",
-                IBlueprintPort.Orientation.Horizontal, IBlueprintPort.Direction.Input);
+                IBlueprintPort.Orientation.Horizontal, IBlueprintPort.Direction.Output, OnOutputExecuted);
+            ConditionPort = BlueprintPortUtility.CreateValuePort<FlowPointState>("Condition",
+                IBlueprintPort.Orientation.Horizontal, IBlueprintPort.Direction.Input, GetConditionValue);
 
             AddPort(InputExePort);
             AddPort(RunningExePort);
@@ -45,16 +47,12 @@ namespace PartsKit
             AddPort(ConditionPort);
         }
 
-        protected override void OnExecuted(IBlueprintPort port, out BlueprintExecutePort nextPort,
-            out BlueprintExecuteState executeState)
+        private BlueprintExecutePortResult OnInputExecuted(BlueprintExecutePort executePort)
         {
-            if (port != InputExePort)
-            {
-                throw new ArgumentOutOfRangeException();
-            }
+            ConditionPort.GetValue(out FlowPointState curCondition);
 
-            FlowPointState curCondition = ConditionPort.GetValue();
-
+            BlueprintExecutePort nextPort;
+            BlueprintExecuteState executeState;
             switch (curCondition)
             {
                 default:
@@ -75,6 +73,29 @@ namespace PartsKit
                     executeState = BlueprintExecuteState.End;
                     break;
             }
+
+            executePortResult.NextExecute = nextPort;
+            executePortResult.ExecuteState = executeState;
+            return executePortResult;
+        }
+
+        private BlueprintExecutePortResult OnOutputExecuted(BlueprintExecutePort executePort)
+        {
+            executePort.GetNextExecute(out BlueprintExecutePort targetPort);
+            executePortResult.NextExecute = targetPort;
+            executePortResult.ExecuteState = BlueprintExecuteState.End;
+            return executePortResult;
+        }
+
+        private FlowPointState GetConditionValue(BlueprintValuePort<FlowPointState> conditionPort)
+        {
+            FlowPointState state = FlowPointState.Success;
+            if (conditionPort.GetPrePortFirst(out BlueprintValuePort<FlowPointState> targetPort))
+            {
+                targetPort.GetValue(out state);
+            }
+
+            return state;
         }
     }
 }

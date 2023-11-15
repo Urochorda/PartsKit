@@ -19,23 +19,6 @@ namespace PartsKit
             return node;
         }
 
-        /// <summary>
-        /// 尝试执行
-        /// </summary>
-        public static void TryExecuted(BlueprintNode node, string portName, out BlueprintExecutePort nextPort,
-            out BlueprintExecuteState executeState)
-        {
-            IBlueprintPort inPort = node.GetPort(IBlueprintPort.Direction.Input, portName);
-            if (inPort == null)
-            {
-                nextPort = null;
-                executeState = BlueprintExecuteState.End;
-                return;
-            }
-
-            node.OnExecuted(inPort, out nextPort, out executeState);
-        }
-
         #region 可序列化的字段
 
         [field: SerializeField] public string Guid { get; private set; }
@@ -126,16 +109,6 @@ namespace PartsKit
             }
 
             return null;
-        }
-
-        /// <summary>
-        /// 执行节点
-        /// </summary>
-        protected virtual void OnExecuted(IBlueprintPort port, out BlueprintExecutePort nextPort,
-            out BlueprintExecuteState executeState)
-        {
-            nextPort = null;
-            executeState = BlueprintExecuteState.End;
         }
     }
 }

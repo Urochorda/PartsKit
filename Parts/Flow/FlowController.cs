@@ -1,4 +1,5 @@
 using System;
+using UnityEngine;
 
 namespace PartsKit
 {
@@ -17,18 +18,22 @@ namespace PartsKit
     public class FlowController : PartsKitBehaviour
     {
         private FlowData data; //流程树数据
+        [SerializeField] private FlowTree tree;
 
         protected override void OnInit()
         {
+            SetData(new FlowData() { Tree = tree });
         }
 
         protected override void OnDeInit()
         {
+            data.Tree.EndRun();
         }
 
         public void SetData(FlowData dataVal)
         {
             data = dataVal;
+            data.Tree.BeginRun();
         }
 
         private void Update()
@@ -38,7 +43,7 @@ namespace PartsKit
                 return;
             }
 
-            data.Tree.Update();
+            data.Tree.UpdateRun();
         }
     }
 }

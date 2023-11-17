@@ -11,8 +11,8 @@ namespace PartsKit
         /// </summary>
         public BlueprintValuePort(string portNameVal, IBlueprintPort.Orientation portOrientationVal,
             IBlueprintPort.Direction portDirectionVal, IBlueprintPort.Capacity portCapacityVal,
-            Func<BlueprintValuePort<T>, T> onGetValueVal) : base(portNameVal,
-            portOrientationVal, portDirectionVal, portCapacityVal)
+            string propertyFieldNameVal, Func<BlueprintValuePort<T>, T> onGetValueVal) : base(portNameVal,
+            portOrientationVal, portDirectionVal, portCapacityVal, propertyFieldNameVal)
         {
             onGetValue = onGetValueVal;
         }

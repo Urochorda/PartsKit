@@ -13,7 +13,7 @@ namespace PartsKit
         public BlueprintExecutePort TreeOutputExePort { get; private set; }
         public BlueprintExecutePort FalseOutputExePort { get; private set; }
         public BlueprintValuePort<bool> ConditionPort { get; private set; }
-        [SerializeField] private bool Condition = true;
+        [SerializeField] private bool condition = true;
 
         private BlueprintExecutePortResult executePortResult;
 
@@ -27,7 +27,8 @@ namespace PartsKit
             FalseOutputExePort = BlueprintPortUtility.CreateExecutePort("FalseExe",
                 IBlueprintPort.Orientation.Horizontal, IBlueprintPort.Direction.Output, OnOutputExecuted);
             ConditionPort = BlueprintPortUtility.CreateValuePort<bool>("Condition",
-                IBlueprintPort.Orientation.Horizontal, IBlueprintPort.Direction.Input, GetConditionValue);
+                IBlueprintPort.Orientation.Horizontal, IBlueprintPort.Direction.Input, nameof(condition),
+                GetConditionValue);
 
             AddPort(InputExePort);
             AddPort(TreeOutputExePort);
@@ -53,7 +54,7 @@ namespace PartsKit
 
         private bool GetConditionValue(BlueprintValuePort<bool> conditionPort)
         {
-            bool state = Condition;
+            bool state = condition;
             if (conditionPort.GetPrePortFirst(out BlueprintValuePort<bool> targetPort))
             {
                 targetPort.GetValue(out state);

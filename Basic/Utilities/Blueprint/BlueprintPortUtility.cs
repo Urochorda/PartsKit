@@ -109,14 +109,15 @@ namespace PartsKit
 
         public static BlueprintValuePort<T> CreateValuePort<T>(string portNameVal,
             IBlueprintPort.Orientation portOrientationVal, IBlueprintPort.Direction portDirectionVal,
-            Func<BlueprintValuePort<T>, T> getValueVal)
+            string propertyFieldNameVal, Func<BlueprintValuePort<T>, T> getValueVal)
+
         {
             IBlueprintPort.Capacity portCapacityVal = portDirectionVal == IBlueprintPort.Direction.Input
                 ? IBlueprintPort.Capacity.Single
                 : IBlueprintPort.Capacity.Multi;
 
             return new BlueprintValuePort<T>(portNameVal, portOrientationVal, portDirectionVal, portCapacityVal,
-                getValueVal);
+                propertyFieldNameVal, getValueVal);
         }
     }
 
@@ -155,6 +156,7 @@ namespace PartsKit
         }
 
         public string PortName { get; set; } //用作名称展示，也用作唯一标识
+        public string PropertyFieldName { get; set; } //PropertyField展示的名字
         public Type PortType { get; } //端口类型，用作view层显示
         public Orientation PortOrientation { get; set; } //节点方向，用作view层显示
         public Capacity PortCapacity { get; set; } //节点连接类型，用作view层显示
@@ -167,6 +169,7 @@ namespace PartsKit
     public class BlueprintPortBase<T> : IBlueprintPort
     {
         public string PortName { get; set; }
+        public string PropertyFieldName { get; set; }
         public Type PortType { get; }
         public IBlueprintPort.Orientation PortOrientation { get; set; }
         public IBlueprintPort.Capacity PortCapacity { get; set; }
@@ -179,9 +182,10 @@ namespace PartsKit
         /// 参数为必要数据，必填
         /// </summary>
         protected BlueprintPortBase(string portNameVal, IBlueprintPort.Orientation portOrientationVal,
-            IBlueprintPort.Direction portDirectionVal, IBlueprintPort.Capacity portCapacityVal)
+            IBlueprintPort.Direction portDirectionVal, IBlueprintPort.Capacity portCapacityVal,string propertyFieldNameVal)
         {
             PortName = portNameVal;
+            PropertyFieldName = propertyFieldNameVal;
             PortType = typeof(T);
             PortOrientation = portOrientationVal;
             PortDirection = portDirectionVal;

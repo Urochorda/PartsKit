@@ -27,7 +27,7 @@ namespace PartsKit
 
         private BlueprintExecutePortResult executePortResult;
 
-        [SerializeField] public FlowPointState Condition = FlowPointState.Success;
+        [SerializeField] public FlowPointState condition = FlowPointState.Success;
 
         protected override void RegisterPort()
         {
@@ -41,7 +41,8 @@ namespace PartsKit
             SuccessExePort = BlueprintPortUtility.CreateExecutePort("SuccessExe",
                 IBlueprintPort.Orientation.Horizontal, IBlueprintPort.Direction.Output, OnOutputExecuted);
             ConditionPort = BlueprintPortUtility.CreateValuePort<FlowPointState>("Condition",
-                IBlueprintPort.Orientation.Horizontal, IBlueprintPort.Direction.Input, GetConditionValue);
+                IBlueprintPort.Orientation.Horizontal, IBlueprintPort.Direction.Input, nameof(condition),
+                GetConditionValue);
 
             AddPort(InputExePort);
             AddPort(RunningExePort);
@@ -92,7 +93,7 @@ namespace PartsKit
 
         private FlowPointState GetConditionValue(BlueprintValuePort<FlowPointState> conditionPort)
         {
-            FlowPointState state = Condition;
+            FlowPointState state = condition;
             if (conditionPort.GetPrePortFirst(out BlueprintValuePort<FlowPointState> targetPort))
             {
                 targetPort.GetValue(out state);

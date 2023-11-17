@@ -189,7 +189,7 @@ namespace PartsKit
         private void AddPropertyField()
         {
             SerializedProperty serializedProperty =
-                OwnerNodeView.FindNodeProperty(BlueprintPort.PortName);
+                OwnerNodeView.FindNodeProperty(BlueprintPort.PropertyFieldName);
             if (propertyFieldElement != null)
             {
                 contentContainer.Remove(propertyFieldElement);

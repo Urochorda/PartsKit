@@ -16,15 +16,15 @@ namespace PartsKit
         {
             //Horizontal
             AddPort(BlueprintPortUtility.CreateValuePort<GameObject>("Input", IBlueprintPort.Orientation.Horizontal,
-                IBlueprintPort.Direction.Input, null));
+                IBlueprintPort.Direction.Input, string.Empty,null));
             AddPort(BlueprintPortUtility.CreateValuePort<GameObject>("Output", IBlueprintPort.Orientation.Horizontal,
-                IBlueprintPort.Direction.Output, null));
+                IBlueprintPort.Direction.Output, string.Empty,null));
 
             //Vertical
             AddPort(BlueprintPortUtility.CreateValuePort<string>("InputV", IBlueprintPort.Orientation.Vertical,
-                IBlueprintPort.Direction.Input, null));
+                IBlueprintPort.Direction.Input, string.Empty,null));
             AddPort(BlueprintPortUtility.CreateValuePort<string>("OutputV", IBlueprintPort.Orientation.Vertical,
-                IBlueprintPort.Direction.Output, null));
+                IBlueprintPort.Direction.Output, string.Empty,null));
         }
     }
 }

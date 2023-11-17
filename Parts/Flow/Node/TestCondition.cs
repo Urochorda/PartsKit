@@ -6,17 +6,19 @@ using UnityEngine;
 [FlowCreateNode("Test", "CreateName", "")]
 public class TestCondition : BlueprintNode
 {
-    [SerializeField] private bool OutputBool = true;
-    [SerializeField] private FlowPointState OutputFlowStata = FlowPointState.Running;
+    [SerializeField] private bool outputBool = true;
+    [SerializeField] private FlowPointState outputFlowStata = FlowPointState.Running;
 
     protected override void RegisterPort()
     {
         base.RegisterPort();
 
         var boolOutput = BlueprintPortUtility.CreateValuePort<bool>("OutputBool",
-            IBlueprintPort.Orientation.Horizontal, IBlueprintPort.Direction.Output, GetConditionValueBool);
+            IBlueprintPort.Orientation.Horizontal, IBlueprintPort.Direction.Output, nameof(outputBool),
+            GetConditionValueBool);
         var flowStataOutput = BlueprintPortUtility.CreateValuePort<FlowPointState>("OutputFlowStata",
-            IBlueprintPort.Orientation.Horizontal, IBlueprintPort.Direction.Output, GetConditionValuePointState);
+            IBlueprintPort.Orientation.Horizontal, IBlueprintPort.Direction.Output, nameof(outputFlowStata),
+            GetConditionValuePointState);
 
         AddPort(boolOutput);
         AddPort(flowStataOutput);
@@ -24,7 +26,7 @@ public class TestCondition : BlueprintNode
 
     private bool GetConditionValueBool(BlueprintValuePort<bool> conditionPort)
     {
-        bool state = OutputBool;
+        bool state = outputBool;
         if (conditionPort.GetPrePortFirst(out BlueprintValuePort<bool> targetPort))
         {
             targetPort.GetValue(out state);
@@ -35,7 +37,7 @@ public class TestCondition : BlueprintNode
 
     private FlowPointState GetConditionValuePointState(BlueprintValuePort<FlowPointState> conditionPort)
     {
-        FlowPointState state = OutputFlowStata;
+        FlowPointState state = outputFlowStata;
         if (conditionPort.GetPrePortFirst(out BlueprintValuePort<FlowPointState> targetPort))
         {
             targetPort.GetValue(out state);

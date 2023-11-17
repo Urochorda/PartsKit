@@ -31,7 +31,7 @@ namespace PartsKit
         public BlueprintExecutePort(string portNameVal, IBlueprintPort.Orientation portOrientationVal,
             IBlueprintPort.Direction portDirectionVal, IBlueprintPort.Capacity portCapacityVal,
             Func<BlueprintExecutePort, BlueprintExecutePortResult> onExecuteVal) : base(
-            portNameVal, portOrientationVal, portDirectionVal, portCapacityVal)
+            portNameVal, portOrientationVal, portDirectionVal, portCapacityVal,String.Empty)
         {
             onExecute = onExecuteVal;
         }

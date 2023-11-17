@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using UnityEditor;
 using UnityEditor.Experimental.GraphView;
+using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -130,6 +132,7 @@ namespace PartsKit
         public IBlueprintPort BlueprintPort { get; private set; }
 
         private BlueprintPortStyle? CurPortStyle { get; set; }
+        private VisualElement propertyFieldElement;
 
         private BlueprintPortView(Orientation portOrientation, Direction portDirection, Capacity portCapacity,
             Type type) : base(portOrientation, portDirection, portCapacity, type)
@@ -152,6 +155,7 @@ namespace PartsKit
             visualClass = portStyle.VisualClass;
             styleSheets.Add(portStyle.StyleSheet);
             portColor = portStyle.PortColor;
+            AddPropertyField();
         }
 
         public void SetExecuteState(bool isExecute)
@@ -168,6 +172,49 @@ namespace PartsKit
             }
 
             portColor = CurPortStyle.Value.PortColor;
+        }
+
+        public override void Connect(Edge edge)
+        {
+            base.Connect(edge);
+            UpdatePropertyFieldDisplay(DisplayStyle.None);
+        }
+
+        public override void Disconnect(Edge edge)
+        {
+            base.Disconnect(edge);
+            UpdatePropertyFieldDisplay(DisplayStyle.Flex);
+        }
+
+        private void AddPropertyField()
+        {
+            SerializedProperty serializedProperty =
+                OwnerNodeView.FindNodeProperty(BlueprintPort.PortName);
+            if (propertyFieldElement != null)
+            {
+                contentContainer.Remove(propertyFieldElement);
+                propertyFieldElement = null;
+            }
+
+            if (serializedProperty != null)
+            {
+                var element = new PropertyField(serializedProperty, string.Empty);
+                element.Bind(OwnerNodeView.SerializedObject);
+                propertyFieldElement = new VisualElement();
+                propertyFieldElement.Add(element);
+                contentContainer.Add(propertyFieldElement);
+            }
+        }
+
+        private void UpdatePropertyFieldDisplay(DisplayStyle displayStyle)
+        {
+            if (BlueprintPort == null || BlueprintPort.PortDirection == IBlueprintPort.Direction.Output ||
+                propertyFieldElement == null)
+            {
+                return;
+            }
+
+            propertyFieldElement.style.display = displayStyle;
         }
     }
 }

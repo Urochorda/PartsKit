@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using UnityEditor;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -9,9 +10,12 @@ namespace PartsKit
     public class BlueprintNodeView : Node
     {
         public BlueprintNode BlueprintNode { get; private set; }
+        private BlueprintView ownerView;
+        public SerializedObject SerializedObject => ownerView.SerializedObject;
 
-        public virtual void Init(BlueprintNode blueprintNodeVal)
+        public virtual void Init(BlueprintNode blueprintNodeVal, BlueprintView ownerViewVal)
         {
+            ownerView = ownerViewVal;
             BlueprintNode = blueprintNodeVal;
             InitPorts();
             title = blueprintNodeVal.NodeName;
@@ -36,6 +40,11 @@ namespace PartsKit
                 BlueprintPortView portView = InstantiateBlueprintPort(outputPort);
                 outputContainer.Add(portView);
             }
+        }
+
+        public SerializedProperty FindNodeProperty(string relativePropertyPath)
+        {
+            return ownerView.FindNodeProperty(BlueprintNode, relativePropertyPath);
         }
 
         public BlueprintPortView GetPortView(Direction portDirection, string portName)

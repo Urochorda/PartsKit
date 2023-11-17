@@ -1,4 +1,5 @@
 using System;
+using UnityEngine;
 
 namespace PartsKit
 {
@@ -12,6 +13,7 @@ namespace PartsKit
         public BlueprintExecutePort TreeOutputExePort { get; private set; }
         public BlueprintExecutePort FalseOutputExePort { get; private set; }
         public BlueprintValuePort<bool> ConditionPort { get; private set; }
+        [SerializeField] private bool Condition = true;
 
         private BlueprintExecutePortResult executePortResult;
 
@@ -51,7 +53,7 @@ namespace PartsKit
 
         private bool GetConditionValue(BlueprintValuePort<bool> conditionPort)
         {
-            bool state = false;
+            bool state = Condition;
             if (conditionPort.GetPrePortFirst(out BlueprintValuePort<bool> targetPort))
             {
                 targetPort.GetValue(out state);

@@ -1,4 +1,5 @@
 ﻿using System;
+using UnityEngine;
 
 namespace PartsKit
 {
@@ -25,6 +26,8 @@ namespace PartsKit
         public BlueprintValuePort<FlowPointState> ConditionPort { get; private set; }
 
         private BlueprintExecutePortResult executePortResult;
+
+        [SerializeField] public FlowPointState Condition = FlowPointState.Success;
 
         protected override void RegisterPort()
         {
@@ -89,7 +92,7 @@ namespace PartsKit
 
         private FlowPointState GetConditionValue(BlueprintValuePort<FlowPointState> conditionPort)
         {
-            FlowPointState state = FlowPointState.Success;
+            FlowPointState state = Condition;
             if (conditionPort.GetPrePortFirst(out BlueprintValuePort<FlowPointState> targetPort))
             {
                 targetPort.GetValue(out state);

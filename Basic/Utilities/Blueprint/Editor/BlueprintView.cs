@@ -11,8 +11,11 @@ namespace PartsKit
     public class BlueprintView : GraphView
     {
         private const string DefaultStylePath = "Styles/BlueprintView";
-        private Blueprint blueprint;
-        private BlueprintWindow window;
+
+        public BlueprintWindow Window { get; private set; }
+        public Blueprint Blueprint { get; private set; }
+        public SerializedObject SerializedObject { get; private set; }
+
         private readonly List<Port> compatiblePorts = new List<Port>();
         private readonly List<BlueprintExecutePort> lastExecutePorts = new List<BlueprintExecutePort>();
 
@@ -48,12 +51,14 @@ namespace PartsKit
         /// </summary>
         public void Init(BlueprintWindow windowVal, Blueprint blueprintVal)
         {
-            blueprint = blueprintVal;
-            window = windowVal;
-            if (blueprint == null)
+            Blueprint = blueprintVal;
+            Window = windowVal;
+            if (Blueprint == null)
             {
                 return;
             }
+
+            SerializedObject = new SerializedObject(blueprintVal);
 
             //等所有view都初始化完毕后再设置，避免初始化引起的变化导致数据错乱
             graphViewChanged = null;
@@ -62,26 +67,26 @@ namespace PartsKit
             //注册创建节点事件，注册后会自动在BuildContextualMenu中绘制CreateNode按钮
             nodeCreationRequest = (c) => { ShowNodeSearchWindow(c.screenMousePosition); };
             graphViewChanged = GraphViewChangedCallback;
-            blueprint.OnExecutedUpdate += DrawExecuteLine;
+            Blueprint.OnExecutedUpdate += DrawExecuteLine;
         }
 
         public void Dispose()
         {
             SaveBlueprintData();
-            if (blueprint != null)
+            if (Blueprint != null)
             {
-                blueprint.OnExecutedUpdate -= DrawExecuteLine;
+                Blueprint.OnExecutedUpdate -= DrawExecuteLine;
             }
         }
 
         private void InitView()
         {
-            foreach (BlueprintNode node in blueprint.Nodes)
+            foreach (BlueprintNode node in Blueprint.Nodes)
             {
                 AddNode(node, Vector2.zero, false);
             }
 
-            foreach (BlueprintEdge node in blueprint.Edges)
+            foreach (BlueprintEdge node in Blueprint.Edges)
             {
                 CreateEdge(node);
             }
@@ -92,13 +97,25 @@ namespace PartsKit
         /// </summary>
         public void SaveBlueprintData()
         {
-            if (blueprint == null)
+            if (Blueprint == null)
             {
                 return;
             }
 
-            EditorUtility.SetDirty(blueprint);
+            EditorUtility.SetDirty(Blueprint);
             AssetDatabase.SaveAssets();
+        }
+
+        /// <summary>
+        /// 和获取节点的属性
+        /// </summary>
+        public SerializedProperty FindNodeProperty(BlueprintNode node, string relativePropertyPath)
+        {
+            SerializedObject.Update();
+            int index = Blueprint.Nodes.FindIndex(item => item.Guid == node.Guid);
+            SerializedProperty serializedProperty = SerializedObject.FindProperty("nodes").GetArrayElementAtIndex(index)
+                .FindPropertyRelative(relativePropertyPath);
+            return serializedProperty;
         }
 
         /// <summary>
@@ -124,10 +141,10 @@ namespace PartsKit
                     switch (element)
                     {
                         case BlueprintNodeView blueprintNodeView:
-                            blueprint.RemoveNode(blueprintNodeView.BlueprintNode);
+                            Blueprint.RemoveNode(blueprintNodeView.BlueprintNode);
                             break;
                         case BlueprintEdgeView blueprintEdgeView:
-                            blueprint.RemoveEdge(blueprintEdgeView.BlueprintEdge);
+                            Blueprint.RemoveEdge(blueprintEdgeView.BlueprintEdge);
                             break;
                     }
                 }
@@ -162,10 +179,12 @@ namespace PartsKit
                         continue;
                     }
 
+                    //先将数据设置好，再去初始化视图
                     BlueprintEdge blueprintEdge =
                         BlueprintEdge.CreateBlueprintEdge(inputPortView.BlueprintPort, outputPortView.BlueprintPort);
+                    Blueprint.AddEdge(blueprintEdge);
+
                     blueprintEdgeView.Init(blueprintEdge);
-                    blueprint.AddEdge(blueprintEdge);
                 }
             }
 
@@ -221,7 +240,7 @@ namespace PartsKit
             ScreenMousePositionTo(screenMousePosition, out Vector2 windowMousePosition,
                 out Vector2 graphMousePosition);
 
-            SearcherWindow.Show(window, GetNodeSearcherItems(), "Create Node",
+            SearcherWindow.Show(Window, GetNodeSearcherItems(), "Create Node",
                 item => CreateNode(item, graphMousePosition), windowMousePosition);
         }
 
@@ -280,16 +299,17 @@ namespace PartsKit
                 return;
             }
 
+            //先将数据设置好，再去初始化视图
             if (isAddData)
             {
                 Rect nodePos = new Rect(graphMousePosition, new Vector2(100, 100));
                 //设置数据存储
                 node.Rect = nodePos;
-                blueprint.AddNode(node);
+                Blueprint.AddNode(node);
             }
 
             //创建view
-            nodeView.Init(node);
+            nodeView.Init(node, this);
             AddElement(nodeView);
         }
 
@@ -299,15 +319,15 @@ namespace PartsKit
         private void ScreenMousePositionTo(Vector2 screenMousePosition, out Vector2 windowMousePosition,
             out Vector2 graphMousePosition)
         {
-            var windowRoot = window.rootVisualElement;
+            var windowRoot = Window.rootVisualElement;
             windowMousePosition =
-                windowRoot.ChangeCoordinatesTo(windowRoot.parent, screenMousePosition - window.position.position);
+                windowRoot.ChangeCoordinatesTo(windowRoot.parent, screenMousePosition - Window.position.position);
             graphMousePosition = contentViewContainer.WorldToLocal(windowMousePosition);
         }
 
         private void DrawExecuteLine()
         {
-            if (blueprint == null)
+            if (Blueprint == null)
             {
                 return;
             }
@@ -315,7 +335,7 @@ namespace PartsKit
             for (var i = lastExecutePorts.Count - 1; i >= 0; i--)
             {
                 BlueprintExecutePort lastExePort = lastExecutePorts[i];
-                if (blueprint.AllExecutePortStack.Contains(lastExePort))
+                if (Blueprint.AllExecutePortStack.Contains(lastExePort))
                 {
                     continue;
                 }
@@ -329,7 +349,7 @@ namespace PartsKit
                 lastExecutePorts.RemoveAt(i);
             }
 
-            foreach (BlueprintExecutePort lastExePort in blueprint.AllExecutePortStack)
+            foreach (BlueprintExecutePort lastExePort in Blueprint.AllExecutePortStack)
             {
                 if (lastExecutePorts.Contains(lastExePort))
                 {

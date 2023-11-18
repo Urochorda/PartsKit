@@ -344,12 +344,7 @@ namespace PartsKit
                     continue;
                 }
 
-                BlueprintPortView bPortView = GetBPortView(lastExePort);
-                if (bPortView != null)
-                {
-                    bPortView.SetExecuteState(false);
-                }
-
+                SetBPortExecuteState(lastExePort, false);
                 lastExecutePorts.RemoveAt(i);
             }
 
@@ -360,13 +355,26 @@ namespace PartsKit
                     continue;
                 }
 
-                BlueprintPortView bPortView = GetBPortView(lastExePort);
+                SetBPortExecuteState(lastExePort, true);
+                lastExecutePorts.Add(lastExePort);
+            }
+
+            void SetBPortExecuteState(BlueprintExecutePort exePortData, bool state)
+            {
+                BlueprintPortView bPortView = GetBPortView(exePortData);
                 if (bPortView != null)
                 {
-                    bPortView.SetExecuteState(true);
+                    bPortView.SetExecuteState(state);
+                    List<BlueprintEdge> edgeList = Blueprint.GetEdgeByPort(exePortData);
+                    foreach (BlueprintEdge edge in edgeList)
+                    {
+                        Edge edgeView = GetEdgeByGuid(edge.Guid);
+                        if (edgeView != null)
+                        {
+                            edgeView.UpdateEdgeControl();
+                        }
+                    }
                 }
-
-                lastExecutePorts.Add(lastExePort);
             }
 
             BlueprintPortView GetBPortView(BlueprintExecutePort exePortData)

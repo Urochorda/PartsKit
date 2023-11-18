@@ -158,20 +158,31 @@ namespace PartsKit
             AddPropertyField();
         }
 
+        private bool execute;
+
         public void SetExecuteState(bool isExecute)
         {
+            if (execute == isExecute)
+            {
+                return;
+            }
+
+            execute = isExecute;
             if (isExecute)
             {
                 portColor = Color.green;
-                return;
             }
-
-            if (CurPortStyle == null)
+            else
             {
-                return;
+                if (CurPortStyle != null)
+                {
+                    portColor = CurPortStyle.Value.PortColor;
+                }
             }
 
-            portColor = CurPortStyle.Value.PortColor;
+            //为了触发下portTopLeftRightBottom的刷新
+            highlight = !highlight;
+            highlight = !highlight;
         }
 
         public override void Connect(Edge edge)

@@ -115,6 +115,27 @@ namespace PartsKit
             }
         }
 
+        public List<BlueprintEdge> GetEdgeByPort(IBlueprintPort port)
+        {
+            if (port == null)
+            {
+                return new List<BlueprintEdge>();
+            }
+
+            return Edges.FindAll(item =>
+            {
+                switch (port.PortDirection)
+                {
+                    case IBlueprintPort.Direction.Input:
+                        return item.InputPortName == port.PortName;
+                    case IBlueprintPort.Direction.Output:
+                        return item.OutputPortName == port.PortName;
+                }
+
+                return false;
+            });
+        }
+
         public void BeginExecuted(BlueprintExecutePort targetPort)
         {
             DoExecuted(targetPort);

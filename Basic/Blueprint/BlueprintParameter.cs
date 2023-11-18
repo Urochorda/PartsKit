@@ -1,13 +1,18 @@
 namespace PartsKit
 {
-    public class BlueprintParameter<T>
+    public interface IBlueprintParameter
     {
-        private T value;
         public string NameKey { get; }
+    }
 
-        public BlueprintParameter(string nameKey)
+    public class BlueprintParameter<T> : IBlueprintParameter
+    {
+        public string NameKey { get; }
+        private T value;
+
+        public BlueprintParameter(string nameKeyVal)
         {
-            NameKey = nameKey;
+            NameKey = nameKeyVal;
         }
 
         public T GetValue()

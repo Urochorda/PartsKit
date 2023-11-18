@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEditor;
 using UnityEditor.Experimental.GraphView;
 using UnityEditor.Searcher;
@@ -18,6 +19,9 @@ namespace PartsKit
 
         private readonly List<Port> compatiblePorts = new List<Port>();
         private readonly List<BlueprintExecutePort> lastExecutePorts = new List<BlueprintExecutePort>();
+
+        protected override bool canCopySelection => selection.Any(e => e is BlueprintNodeView);
+        protected override bool canCutSelection => selection.Any(e => e is BlueprintNodeView);
 
         public BlueprintView()
         {

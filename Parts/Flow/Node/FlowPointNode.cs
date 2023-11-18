@@ -17,7 +17,7 @@ namespace PartsKit
     [FlowCreateNode("Common", CreateName, "流程节点")]
     public class FlowPointNode : BlueprintNode
     {
-        private const string CreateName = "Point(wait for running)";
+        private const string CreateName = "Point (wait for running)";
         public override string NodeName => CreateName;
         public BlueprintExecutePort InputExePort { get; private set; }
         public BlueprintExecutePort RunningExePort { get; private set; }

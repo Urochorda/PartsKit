@@ -166,7 +166,7 @@ namespace PartsKit
         public List<IBlueprintPort> NextPorts { get; set; } //下一个端口
     }
 
-    public class BlueprintPortBase<T> : IBlueprintPort
+    public abstract class BlueprintPortBase<T> : IBlueprintPort
     {
         public string PortName { get; set; }
         public string PropertyFieldName { get; set; }
@@ -182,7 +182,8 @@ namespace PartsKit
         /// 参数为必要数据，必填
         /// </summary>
         protected BlueprintPortBase(string portNameVal, IBlueprintPort.Orientation portOrientationVal,
-            IBlueprintPort.Direction portDirectionVal, IBlueprintPort.Capacity portCapacityVal,string propertyFieldNameVal)
+            IBlueprintPort.Direction portDirectionVal, IBlueprintPort.Capacity portCapacityVal,
+            string propertyFieldNameVal)
         {
             PortName = portNameVal;
             PropertyFieldName = propertyFieldNameVal;

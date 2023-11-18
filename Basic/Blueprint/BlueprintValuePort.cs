@@ -17,9 +17,9 @@ namespace PartsKit
             onGetValue = onGetValueVal;
         }
 
-        public void GetValue(out T nextExecute)
+        public void GetValue(out T value)
         {
-            nextExecute = onGetValue == null ? default : onGetValue.Invoke(this);
+            value = onGetValue == null ? default : onGetValue.Invoke(this);
         }
 
         public bool GetPrePortFirst(out BlueprintValuePort<T> targetPort)

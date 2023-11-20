@@ -15,9 +15,9 @@ namespace PartsKit
         public Stack<BlueprintExecutePort> ExecutePortStack { get; } = new Stack<BlueprintExecutePort>();
         public Stack<BlueprintExecutePort> AllExecutePortStack { get; } = new Stack<BlueprintExecutePort>();
 
-        public event Action OnExecutedUpdate;
+        public event Action OnExecutedChange;
 
-        private void OnEnable()
+        protected virtual void OnEnable()
         {
             InitData();
             OnInit();
@@ -59,12 +59,17 @@ namespace PartsKit
                     return true;
                 }
 
-                UpdatePortLink(inputPort, outputPort, true);
                 return false;
             });
+
+            foreach (BlueprintEdge edge in Edges)
+            {
+                edge.Init();
+                UpdateLinkByEdge(edge, true);
+            }
         }
 
-        public void AddNode(BlueprintNode treeNode)
+        public virtual void AddNode(BlueprintNode treeNode)
         {
             if (treeNode == null || Nodes.Contains(treeNode))
             {
@@ -72,11 +77,12 @@ namespace PartsKit
                 return;
             }
 
+            //先加入列表后init
             Nodes.Add(treeNode);
             treeNode.Init();
         }
 
-        public void RemoveNode(BlueprintNode treeNode)
+        public virtual void RemoveNode(BlueprintNode treeNode)
         {
             if (treeNode == null)
             {
@@ -86,12 +92,12 @@ namespace PartsKit
             Nodes.Remove(treeNode);
         }
 
-        public BlueprintNode GetNode(string guid)
+        public BlueprintNode GetNodeByGuid(string guid)
         {
             return Nodes.Find(item => item != null && item.Guid == guid);
         }
 
-        public void AddEdge(BlueprintEdge edge)
+        public virtual void AddEdge(BlueprintEdge edge)
         {
             if (Edges.Contains(edge))
             {
@@ -99,20 +105,16 @@ namespace PartsKit
                 return;
             }
 
+            //先加入列表后init
             Edges.Add(edge);
-            if (GetPortByEdge(edge, out IBlueprintPort inputPort, out IBlueprintPort outputPort))
-            {
-                UpdatePortLink(inputPort, outputPort, true);
-            }
+            edge.Init();
+            UpdateLinkByEdge(edge, true);
         }
 
-        public void RemoveEdge(BlueprintEdge edge)
+        public virtual void RemoveEdge(BlueprintEdge edge)
         {
             Edges.Remove(edge);
-            if (GetPortByEdge(edge, out IBlueprintPort inputPort, out IBlueprintPort outputPort))
-            {
-                UpdatePortLink(inputPort, outputPort, false);
-            }
+            UpdateLinkByEdge(edge, false);
         }
 
         public List<BlueprintEdge> GetEdgeByPort(IBlueprintPort port)
@@ -135,6 +137,49 @@ namespace PartsKit
                 return false;
             });
         }
+
+        private bool GetPortByEdge(BlueprintEdge edge, out IBlueprintPort inputPort, out IBlueprintPort outputPort)
+        {
+            inputPort = null;
+            outputPort = null;
+            BlueprintNode inputNode = GetNodeByGuid(edge.InputNodeGuid);
+            BlueprintNode outputNode = GetNodeByGuid(edge.OutputNodeGuid);
+            if (inputNode == null || outputNode == null)
+            {
+                return false;
+            }
+
+            inputPort = inputNode.GetPort(IBlueprintPort.Direction.Input, edge.InputPortName);
+            outputPort = outputNode.GetPort(IBlueprintPort.Direction.Output, edge.OutputPortName);
+
+            return inputPort != null && outputPort != null;
+        }
+
+        private void UpdateLinkByEdge(BlueprintEdge edge, bool isAdd)
+        {
+            GetPortByEdge(edge, out IBlueprintPort inputPort, out IBlueprintPort outputPort);
+            if (isAdd) //如果时添加的edge则设置edge的port
+            {
+                edge.InputPort = inputPort;
+                edge.OutputPort = outputPort;
+            }
+
+            if (inputPort != null && outputPort != null)
+            {
+                if (isAdd)
+                {
+                    outputPort.NextPorts.Add(inputPort);
+                    inputPort.PrePorts.Add(outputPort);
+                }
+                else
+                {
+                    outputPort.NextPorts.Remove(inputPort);
+                    inputPort.PrePorts.Remove(outputPort);
+                }
+            }
+        }
+
+        #region Executed
 
         public void BeginExecuted(BlueprintExecutePort targetPort)
         {
@@ -161,7 +206,7 @@ namespace PartsKit
 
         private void DoExecuted(BlueprintExecutePort targetPort)
         {
-            if (targetPort == null || targetPort.OwnerNode == null || GetNode(targetPort.OwnerNode.Guid) == null)
+            if (targetPort == null || targetPort.OwnerNode == null || GetNodeByGuid(targetPort.OwnerNode.Guid) == null)
             {
                 return;
             }
@@ -206,44 +251,15 @@ namespace PartsKit
                 AllExecutePortStack.Push(curExecutePort);
             }
 
-            OnExecutedUpdate?.Invoke();
+            OnExecutedChange?.Invoke();
         }
 
         private void PushAllExePortStack(BlueprintExecutePort targetPort)
         {
             AllExecutePortStack.Push(targetPort);
-            OnExecutedUpdate?.Invoke();
+            OnExecutedChange?.Invoke();
         }
 
-        private bool GetPortByEdge(BlueprintEdge edge, out IBlueprintPort inputPort, out IBlueprintPort outputPort)
-        {
-            inputPort = null;
-            outputPort = null;
-            BlueprintNode inputNode = GetNode(edge.InputNodeGuid);
-            BlueprintNode outputNode = GetNode(edge.OutputNodeGuid);
-            if (inputNode == null || outputNode == null)
-            {
-                return false;
-            }
-
-            inputPort = inputNode.GetPort(IBlueprintPort.Direction.Input, edge.InputPortName);
-            outputPort = outputNode.GetPort(IBlueprintPort.Direction.Output, edge.OutputPortName);
-
-            return inputPort != null && outputPort != null;
-        }
-
-        private void UpdatePortLink(IBlueprintPort inputPort, IBlueprintPort outputPort, bool add)
-        {
-            if (add)
-            {
-                outputPort.NextPorts.Add(inputPort);
-                inputPort.PrePorts.Add(outputPort);
-            }
-            else
-            {
-                outputPort.NextPorts.Remove(inputPort);
-                inputPort.PrePorts.Remove(outputPort);
-            }
-        }
+        #endregion
     }
 }

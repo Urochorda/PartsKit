@@ -29,7 +29,14 @@ namespace PartsKit
 
         #endregion
 
-        private BlueprintEdge()
+        public IBlueprintPort InputPort { get; set; }
+        public IBlueprintPort OutputPort { get; set; }
+
+        protected BlueprintEdge()
+        {
+        }
+
+        public virtual void Init()
         {
         }
     }

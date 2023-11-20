@@ -139,7 +139,7 @@ namespace PartsKit
         {
         }
 
-        private void Init(BlueprintNodeView ownerNodeView, IBlueprintPort blueprintPort)
+        public virtual void Init(BlueprintNodeView ownerNodeView, IBlueprintPort blueprintPort)
         {
             OwnerNodeView = ownerNodeView;
             BlueprintPort = blueprintPort;
@@ -160,7 +160,7 @@ namespace PartsKit
 
         private bool execute;
 
-        public void SetExecuteState(bool isExecute)
+        public virtual void SetExecuteState(bool isExecute)
         {
             if (execute == isExecute)
             {

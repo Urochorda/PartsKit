@@ -27,8 +27,7 @@ namespace PartsKit
 
             if (rootNode == null)
             {
-                rootNode = new FlowRootNode();
-                rootNode.OnCreate();
+                rootNode = BlueprintNode.Create<FlowRootNode>();
                 AddNode(rootNode);
             }
         }

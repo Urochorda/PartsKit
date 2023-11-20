@@ -16,6 +16,18 @@ namespace PartsKit
             }
 
             BlueprintNode node = Activator.CreateInstance(nodeType) as BlueprintNode;
+            if (node != null)
+            {
+                node.OnCreate();
+            }
+
+            return node;
+        }
+
+        public static T Create<T>() where T : BlueprintNode, new()
+        {
+            T node = new T();
+            node.OnCreate();
             return node;
         }
 
@@ -39,12 +51,12 @@ namespace PartsKit
             OutputPorts = new List<IBlueprintPort>();
         }
 
-        public void OnCreate()
+        protected virtual void OnCreate()
         {
             Guid = System.Guid.NewGuid().ToString();
         }
 
-        public void Init()
+        public virtual void Init()
         {
             RegisterPort();
         }
@@ -56,7 +68,7 @@ namespace PartsKit
         /// <summary>
         /// 添加一个端口
         /// </summary>
-        public void AddPort(IBlueprintPort treeNodePort)
+        public virtual void AddPort(IBlueprintPort treeNodePort)
         {
             treeNodePort.OwnerNode = this;
             switch (treeNodePort.PortDirection)
@@ -76,7 +88,7 @@ namespace PartsKit
         /// <summary>
         /// 移除一个端口
         /// </summary>
-        public void RemovePort(IBlueprintPort.Direction portType, string portName)
+        public virtual void RemovePort(IBlueprintPort.Direction portType, string portName)
         {
             switch (portType)
             {

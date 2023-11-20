@@ -53,7 +53,7 @@ namespace PartsKit
         /// <summary>
         /// 根据数据初始化
         /// </summary>
-        public void Init(BlueprintWindow windowVal, Blueprint blueprintVal)
+        public virtual void Init(BlueprintWindow windowVal, Blueprint blueprintVal)
         {
             Blueprint = blueprintVal;
             Window = windowVal;
@@ -71,15 +71,15 @@ namespace PartsKit
             //注册创建节点事件，注册后会自动在BuildContextualMenu中绘制CreateNode按钮
             nodeCreationRequest = (c) => { ShowNodeSearchWindow(c.screenMousePosition); };
             graphViewChanged = GraphViewChangedCallback;
-            Blueprint.OnExecutedUpdate += DrawExecuteLine;
+            Blueprint.OnExecutedChange += DrawExecuteLine;
         }
 
-        public void Dispose()
+        public virtual void Dispose()
         {
             SaveBlueprintData();
             if (Blueprint != null)
             {
-                Blueprint.OnExecutedUpdate -= DrawExecuteLine;
+                Blueprint.OnExecutedChange -= DrawExecuteLine;
             }
         }
 
@@ -99,7 +99,7 @@ namespace PartsKit
         /// <summary>
         /// 保存数据
         /// </summary>
-        public void SaveBlueprintData()
+        public virtual void SaveBlueprintData()
         {
             if (Blueprint == null)
             {
@@ -136,7 +136,7 @@ namespace PartsKit
         /// </summary>
         /// <param name="changes"></param>
         /// <returns></returns>
-        private GraphViewChange GraphViewChangedCallback(GraphViewChange changes)
+        protected GraphViewChange GraphViewChangedCallback(GraphViewChange changes)
         {
             if (changes.elementsToRemove != null)
             {
@@ -259,7 +259,6 @@ namespace PartsKit
             }
 
             BlueprintNode blueprintNode = BlueprintNode.CreateFromType((Type)searcherItem.UserData);
-            blueprintNode.OnCreate();
             AddNode(blueprintNode, graphMousePosition, true);
             return true;
         }
@@ -329,6 +328,9 @@ namespace PartsKit
             graphMousePosition = contentViewContainer.WorldToLocal(windowMousePosition);
         }
 
+        /// <summary>
+        /// 绘制执行线
+        /// </summary>
         private void DrawExecuteLine()
         {
             if (Blueprint == null)

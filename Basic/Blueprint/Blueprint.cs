@@ -138,6 +138,12 @@ namespace PartsKit
             });
         }
 
+        public virtual void GetBlackboard(out BlueprintBlackboard blackboard, out string propertyPath)
+        {
+            blackboard = null;
+            propertyPath = String.Empty;
+        }
+
         private bool GetPortByEdge(BlueprintEdge edge, out IBlueprintPort inputPort, out IBlueprintPort outputPort)
         {
             inputPort = null;

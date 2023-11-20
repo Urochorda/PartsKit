@@ -16,6 +16,7 @@ namespace PartsKit
         public BlueprintWindow Window { get; private set; }
         public Blueprint Blueprint { get; private set; }
         public SerializedObject SerializedObject { get; private set; }
+        public BlueprintBlackboardView BlackboardView { get; private set; }
 
         private readonly List<Port> compatiblePorts = new List<Port>();
         private readonly List<BlueprintExecutePort> lastExecutePorts = new List<BlueprintExecutePort>();
@@ -94,6 +95,13 @@ namespace PartsKit
             {
                 CreateEdge(node);
             }
+
+            BlackboardView = OnCreateBlackboardView();
+            if (BlackboardView != null)
+            {
+                Blueprint.GetBlackboard(out BlueprintBlackboard blackboard, out _);
+                OnInitBlackboardView(BlackboardView, blackboard);
+            }
         }
 
         /// <summary>
@@ -119,6 +127,27 @@ namespace PartsKit
             int index = Blueprint.Nodes.FindIndex(item => item.Guid == node.Guid);
             SerializedProperty serializedProperty = SerializedObject.FindProperty("nodes").GetArrayElementAtIndex(index)
                 .FindPropertyRelative(relativePropertyPath);
+            SerializedObject.ApplyModifiedProperties();
+
+            return serializedProperty;
+        }
+
+        /// <summary>
+        /// 获取黑板的属性 todo 非最终代码
+        /// </summary>
+        /// <returns></returns>
+        public SerializedProperty FindBlackboardProperty()
+        {
+            SerializedObject.Update();
+            Blueprint.GetBlackboard(out BlueprintBlackboard blackboard, out string propertyPath);
+            if (blackboard == null)
+            {
+                return null;
+            }
+
+            SerializedProperty serializedProperty = SerializedObject.FindProperty(propertyPath);
+            SerializedObject.ApplyModifiedProperties();
+
             return serializedProperty;
         }
 
@@ -391,6 +420,25 @@ namespace PartsKit
                     exePortData.PortName);
                 return bPortView;
             }
+        }
+
+        /// <summary>
+        /// 创建黑板view
+        /// </summary>
+        protected virtual BlueprintBlackboardView OnCreateBlackboardView()
+        {
+            BlueprintBlackboardView bv = new BlueprintBlackboardView();
+            Add(bv);
+            return bv;
+        }
+
+        /// <summary>
+        /// 初始化黑板
+        /// </summary>
+        protected virtual void OnInitBlackboardView(BlueprintBlackboardView blackboardViewVal,
+            BlueprintBlackboard blackboardVal)
+        {
+            blackboardViewVal.Init(this, blackboardVal);
         }
     }
 }

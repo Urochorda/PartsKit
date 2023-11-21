@@ -16,4 +16,15 @@ namespace PartsKit
             NodeHelp = nodeHelp;
         }
     }
+
+    [AttributeUsage(AttributeTargets.Class)]
+    public class FlowCreateParameterAttribute : Attribute
+    {
+        public string CreateName { get; }
+
+        public FlowCreateParameterAttribute(string createName)
+        {
+            CreateName = createName;
+        }
+    }
 }

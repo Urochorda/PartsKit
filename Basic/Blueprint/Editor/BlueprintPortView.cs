@@ -128,11 +128,12 @@ namespace PartsKit
             return ele;
         }
 
-        public BlueprintNodeView OwnerNodeView { get; private set; }
+        public BlueprintNodeView OwnerView { get; private set; }
         public IBlueprintPort BlueprintPort { get; private set; }
 
         private BlueprintPortStyle? CurPortStyle { get; set; }
         private VisualElement propertyFieldElement;
+        private bool execute;
 
         private BlueprintPortView(Orientation portOrientation, Direction portDirection, Capacity portCapacity,
             Type type) : base(portOrientation, portDirection, portCapacity, type)
@@ -141,7 +142,7 @@ namespace PartsKit
 
         public virtual void Init(BlueprintNodeView ownerNodeView, IBlueprintPort blueprintPort)
         {
-            OwnerNodeView = ownerNodeView;
+            OwnerView = ownerNodeView;
             BlueprintPort = blueprintPort;
             portName = blueprintPort.PortName;
 
@@ -157,8 +158,6 @@ namespace PartsKit
             portColor = portStyle.PortColor;
             AddPropertyField();
         }
-
-        private bool execute;
 
         public virtual void SetExecuteState(bool isExecute)
         {
@@ -200,7 +199,7 @@ namespace PartsKit
         private void AddPropertyField()
         {
             SerializedProperty serializedProperty =
-                OwnerNodeView.FindNodeProperty(BlueprintPort.PropertyFieldName);
+                OwnerView.FindNodeProperty(BlueprintPort.PropertyFieldName);
             if (propertyFieldElement != null)
             {
                 contentContainer.Remove(propertyFieldElement);
@@ -210,7 +209,7 @@ namespace PartsKit
             if (serializedProperty != null)
             {
                 var element = new PropertyField(serializedProperty, string.Empty);
-                element.Bind(OwnerNodeView.SerializedObject);
+                element.Bind(OwnerView.SerializedObject);
                 propertyFieldElement = new VisualElement();
                 propertyFieldElement.Add(element);
                 contentContainer.Add(propertyFieldElement);

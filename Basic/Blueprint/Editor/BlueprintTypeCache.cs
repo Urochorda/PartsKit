@@ -5,9 +5,22 @@ using UnityEditor;
 
 namespace PartsKit
 {
+    public class BlueprintCreateParameterInfo
+    {
+        public string CreateName { get; }
+        public Type ParameterType { get; }
+
+        public BlueprintCreateParameterInfo(string createNameVal, Type parameterTypeVal)
+        {
+            CreateName = createNameVal;
+            ParameterType = parameterTypeVal;
+        }
+    }
+
     public static class BlueprintTypeCache
     {
         private static Dictionary<Type, Type> NodeViewPerType { get; } = new Dictionary<Type, Type>();
+        private static Dictionary<Type, Type> ParameterFieldPerType { get; } = new Dictionary<Type, Type>();
 
         static BlueprintTypeCache()
         {
@@ -16,12 +29,24 @@ namespace PartsKit
 
         private static void BuildScriptCache()
         {
-            NodeViewPerType.Clear();
-            TypeCache.TypeCollection typeCollection = TypeCache.GetTypesDerivedFrom<BlueprintNodeView>();
-            AddNodeViewScriptAsset(typeof(BlueprintNodeView));
-            foreach (var nodeViewType in typeCollection)
             {
-                AddNodeViewScriptAsset(nodeViewType);
+                NodeViewPerType.Clear();
+                TypeCache.TypeCollection typeCollection = TypeCache.GetTypesDerivedFrom<BlueprintNodeView>();
+                AddNodeViewScriptAsset(typeof(BlueprintNodeView));
+                foreach (var nodeViewType in typeCollection)
+                {
+                    AddNodeViewScriptAsset(nodeViewType);
+                }
+            }
+
+            {
+                NodeViewPerType.Clear();
+                TypeCache.TypeCollection typeCollection = TypeCache.GetTypesDerivedFrom<BlueprintBlackboardField>();
+                AddNodeViewScriptAsset(typeof(BlueprintBlackboardField));
+                foreach (var nodeViewType in typeCollection)
+                {
+                    AddParameterFieldScriptAsset(nodeViewType);
+                }
             }
         }
 
@@ -55,6 +80,39 @@ namespace PartsKit
             }
 
             return typeof(BlueprintNodeView);
+        }
+
+        private static void AddParameterFieldScriptAsset(Type type)
+        {
+            if (type.IsAbstract)
+            {
+                return;
+            }
+
+            if (type.GetCustomAttributes(typeof(ParameterFieldTypeAttribute), false) is not ParameterFieldTypeAttribute
+                []
+                attrs)
+            {
+                return;
+            }
+
+            if (attrs.Length <= 0)
+            {
+                return;
+            }
+
+            Type nodeType = attrs.First().ParameterType;
+            ParameterFieldPerType[nodeType] = type;
+        }
+
+        public static Type GetParameterFieldType(Type nodeType)
+        {
+            if (ParameterFieldPerType.TryGetValue(nodeType, out Type parameterFieldType))
+            {
+                return parameterFieldType;
+            }
+
+            return typeof(BlueprintBlackboardField);
         }
     }
 }

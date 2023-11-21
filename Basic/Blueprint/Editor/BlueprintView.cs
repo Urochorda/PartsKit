@@ -12,12 +12,12 @@ namespace PartsKit
     public class BlueprintView : GraphView
     {
         private const string DefaultStylePath = "Styles/BlueprintView";
-
         public BlueprintWindow Window { get; private set; }
         public Blueprint Blueprint { get; private set; }
         public SerializedObject SerializedObject { get; private set; }
         public BlueprintBlackboardView BlackboardView { get; private set; }
 
+        public Func<IEnumerable<SearcherItem>> OnGetNodeSearcherItems { get; set; }
         private readonly List<Port> compatiblePorts = new List<Port>();
         private readonly List<BlueprintExecutePort> lastExecutePorts = new List<BlueprintExecutePort>();
 
@@ -96,12 +96,7 @@ namespace PartsKit
                 CreateEdge(node);
             }
 
-            BlackboardView = OnCreateBlackboardView();
-            if (BlackboardView != null)
-            {
-                Blueprint.GetBlackboard(out BlueprintBlackboard blackboard, out _);
-                OnInitBlackboardView(BlackboardView, blackboard);
-            }
+            CreateBlackboardView();
         }
 
         /// <summary>
@@ -124,7 +119,18 @@ namespace PartsKit
         public SerializedProperty FindNodeProperty(BlueprintNode node, string relativePropertyPath)
         {
             SerializedObject.Update();
-            int index = Blueprint.Nodes.FindIndex(item => item.Guid == node.Guid);
+            int index = -1;
+            int macCount = Blueprint.Nodes.Count;
+            for (int i = 0; i < macCount; i++)
+            {
+                BlueprintNode item = Blueprint.Nodes[i];
+                if (item.Guid == node.Guid)
+                {
+                    index = i;
+                    break;
+                }
+            }
+
             SerializedProperty serializedProperty = SerializedObject.FindProperty("nodes").GetArrayElementAtIndex(index)
                 .FindPropertyRelative(relativePropertyPath);
             SerializedObject.ApplyModifiedProperties();
@@ -133,39 +139,11 @@ namespace PartsKit
         }
 
         /// <summary>
-        /// 获取黑板的属性 todo 非最终代码
-        /// </summary>
-        /// <returns></returns>
-        public SerializedProperty FindBlackboardProperty()
-        {
-            SerializedObject.Update();
-            Blueprint.GetBlackboard(out BlueprintBlackboard blackboard, out string propertyPath);
-            if (blackboard == null)
-            {
-                return null;
-            }
-
-            SerializedProperty serializedProperty = SerializedObject.FindProperty(propertyPath);
-            SerializedObject.ApplyModifiedProperties();
-
-            return serializedProperty;
-        }
-
-        /// <summary>
-        /// 绘制菜单按钮
-        /// </summary>
-        /// <param name="evt"></param>
-        public override void BuildContextualMenu(ContextualMenuPopulateEvent evt)
-        {
-            base.BuildContextualMenu(evt);
-        }
-
-        /// <summary>
         /// view中任意变化后处理数据
         /// </summary>
         /// <param name="changes"></param>
         /// <returns></returns>
-        protected GraphViewChange GraphViewChangedCallback(GraphViewChange changes)
+        private GraphViewChange GraphViewChangedCallback(GraphViewChange changes)
         {
             if (changes.elementsToRemove != null)
             {
@@ -260,9 +238,10 @@ namespace PartsKit
         /// 获取节点创建搜索列表
         /// </summary>
         /// <returns></returns>
-        protected virtual List<SearcherItem> GetNodeSearcherItems()
+        private IEnumerable<SearcherItem> GetNodeSearcherItems()
         {
-            return new List<SearcherItem>();
+            IEnumerable<SearcherItem> targetList = OnGetNodeSearcherItems?.Invoke();
+            return targetList ?? new List<SearcherItem>();
         }
 
         /// <summary>
@@ -273,7 +252,7 @@ namespace PartsKit
             ScreenMousePositionTo(screenMousePosition, out Vector2 windowMousePosition,
                 out Vector2 graphMousePosition);
 
-            SearcherWindow.Show(Window, GetNodeSearcherItems(), "Create Node",
+            SearcherWindow.Show(Window, GetNodeSearcherItems().ToList(), "Create Node",
                 item => CreateNode(item, graphMousePosition), windowMousePosition);
         }
 
@@ -425,20 +404,40 @@ namespace PartsKit
         /// <summary>
         /// 创建黑板view
         /// </summary>
-        protected virtual BlueprintBlackboardView OnCreateBlackboardView()
+        private void CreateBlackboardView()
         {
-            BlueprintBlackboardView bv = new BlueprintBlackboardView();
-            Add(bv);
-            return bv;
+            BlackboardView = new BlueprintBlackboardView();
+            Add(BlackboardView);
+            BlackboardView.Init(this, Blueprint.Blackboard);
         }
 
         /// <summary>
-        /// 初始化黑板
+        /// 黑板字段重命名
         /// </summary>
-        protected virtual void OnInitBlackboardView(BlueprintBlackboardView blackboardViewVal,
-            BlueprintBlackboard blackboardVal)
+        public virtual void RenameBlackboardParameter(BlueprintBlackboardField field, string newName)
         {
-            blackboardViewVal.Init(this, blackboardVal);
+            newName = Blueprint.Blackboard.GetUniqueParameterName(newName);
+            field.text = newName;
+            field.Parameter.ParameterName = newName;
+        }
+
+        /// <summary>
+        /// 添加黑板字段
+        /// </summary>
+        public virtual void AddBlackboardParameter(BlueprintCreateParameterInfo createInfo)
+        {
+            IBlueprintParameter parameter = IBlueprintParameter.CreateFromType(createInfo.ParameterType);
+            Blueprint.Blackboard.AddParameter(parameter);
+            BlackboardView.AddBlackboardField(parameter);
+        }
+
+        /// <summary>
+        /// 移除黑板字段
+        /// </summary>
+        public virtual void RemoveBlackboardParameter(BlueprintBlackboardField field)
+        {
+            Blueprint.Blackboard.RemoveParameter(field.Parameter);
+            BlackboardView.RemoveBlackboardField(field);
         }
     }
 }

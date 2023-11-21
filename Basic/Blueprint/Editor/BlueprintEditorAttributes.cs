@@ -12,4 +12,15 @@ namespace PartsKit
             NodeType = nodeType;
         }
     }
+
+    [AttributeUsage(AttributeTargets.Class)]
+    public class ParameterFieldTypeAttribute : Attribute
+    {
+        public Type ParameterType { get; }
+
+        public ParameterFieldTypeAttribute(Type parameterType)
+        {
+            ParameterType = parameterType;
+        }
+    }
 }

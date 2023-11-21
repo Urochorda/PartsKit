@@ -10,7 +10,7 @@ namespace PartsKit
     {
         public static BlueprintNode CreateFromType(Type nodeType)
         {
-            if (!nodeType.IsSubclassOf(typeof(BlueprintNode)))
+            if (!typeof(BlueprintNode).IsAssignableFrom(nodeType))
             {
                 return null;
             }

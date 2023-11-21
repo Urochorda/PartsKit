@@ -9,9 +9,11 @@ namespace PartsKit
         //可能有派生类，所以用SerializeReference
         [DisplayOnly] [SerializeReference] private List<BlueprintNode> nodes = new List<BlueprintNode>();
         [DisplayOnly] [SerializeReference] private List<BlueprintEdge> edges = new List<BlueprintEdge>();
+        [DisplayOnly] [SerializeReference] private BlueprintBlackboard blackboard = new BlueprintBlackboard();
 
-        public List<BlueprintNode> Nodes => nodes;
-        public List<BlueprintEdge> Edges => edges;
+        public IReadOnlyList<BlueprintNode> Nodes => nodes;
+        public IReadOnlyList<BlueprintEdge> Edges => edges;
+        public BlueprintBlackboard Blackboard => blackboard;
         public Stack<BlueprintExecutePort> ExecutePortStack { get; } = new Stack<BlueprintExecutePort>();
         public Stack<BlueprintExecutePort> AllExecutePortStack { get; } = new Stack<BlueprintExecutePort>();
 
@@ -29,7 +31,7 @@ namespace PartsKit
 
         private void InitData()
         {
-            Nodes.RemoveAll(item =>
+            nodes.RemoveAll(item =>
             {
                 if (item == null || string.IsNullOrEmpty(item.Guid))
                 {
@@ -45,7 +47,7 @@ namespace PartsKit
                 node.Init();
             }
 
-            Edges.RemoveAll(item =>
+            edges.RemoveAll(item =>
             {
                 if (item == null || string.IsNullOrEmpty(item.Guid))
                 {
@@ -71,14 +73,14 @@ namespace PartsKit
 
         public virtual void AddNode(BlueprintNode treeNode)
         {
-            if (treeNode == null || Nodes.Contains(treeNode))
+            if (treeNode == null || nodes.Contains(treeNode))
             {
                 Debug.LogError("Add Node Err");
                 return;
             }
 
             //先加入列表后init
-            Nodes.Add(treeNode);
+            nodes.Add(treeNode);
             treeNode.Init();
         }
 
@@ -89,31 +91,31 @@ namespace PartsKit
                 return;
             }
 
-            Nodes.Remove(treeNode);
+            nodes.Remove(treeNode);
         }
 
         public BlueprintNode GetNodeByGuid(string guid)
         {
-            return Nodes.Find(item => item != null && item.Guid == guid);
+            return nodes.Find(item => item != null && item.Guid == guid);
         }
 
         public virtual void AddEdge(BlueprintEdge edge)
         {
-            if (Edges.Contains(edge))
+            if (edges.Contains(edge))
             {
                 Debug.LogError("Add Edge Err");
                 return;
             }
 
             //先加入列表后init
-            Edges.Add(edge);
+            edges.Add(edge);
             edge.Init();
             UpdateLinkByEdge(edge, true);
         }
 
         public virtual void RemoveEdge(BlueprintEdge edge)
         {
-            Edges.Remove(edge);
+            edges.Remove(edge);
             UpdateLinkByEdge(edge, false);
         }
 
@@ -124,7 +126,7 @@ namespace PartsKit
                 return new List<BlueprintEdge>();
             }
 
-            return Edges.FindAll(item =>
+            return edges.FindAll(item =>
             {
                 switch (port.PortDirection)
                 {
@@ -136,12 +138,6 @@ namespace PartsKit
 
                 return false;
             });
-        }
-
-        public virtual void GetBlackboard(out BlueprintBlackboard blackboard, out string propertyPath)
-        {
-            blackboard = null;
-            propertyPath = String.Empty;
         }
 
         private bool GetPortByEdge(BlueprintEdge edge, out IBlueprintPort inputPort, out IBlueprintPort outputPort)

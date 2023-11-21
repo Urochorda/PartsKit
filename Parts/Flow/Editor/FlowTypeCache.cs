@@ -5,7 +5,7 @@ using UnityEditor;
 
 namespace PartsKit
 {
-    public class FlowCreateNodeInfo : Attribute
+    public class FlowCreateNodeInfo
     {
         public Type NodeType { get; set; }
         public string NodePath { get; }
@@ -26,6 +26,9 @@ namespace PartsKit
         private static Dictionary<Type, FlowCreateNodeInfo> NodeAttributePreType { get; } =
             new Dictionary<Type, FlowCreateNodeInfo>();
 
+        private static Dictionary<Type, BlueprintCreateParameterInfo> CreateParameterInfo { get; } =
+            new Dictionary<Type, BlueprintCreateParameterInfo>();
+
         static FlowTypeCache()
         {
             BuildScriptCache();
@@ -33,12 +36,23 @@ namespace PartsKit
 
         private static void BuildScriptCache()
         {
-            NodeAttributePreType.Clear();
-            TypeCache.TypeCollection typeCache = TypeCache.GetTypesDerivedFrom<BlueprintNode>();
-            AddNodeAttributeScriptAsset(typeof(BlueprintNode));
-            foreach (var nodeType in typeCache)
             {
-                AddNodeAttributeScriptAsset(nodeType);
+                NodeAttributePreType.Clear();
+                TypeCache.TypeCollection typeCache = TypeCache.GetTypesDerivedFrom<BlueprintNode>();
+                AddNodeAttributeScriptAsset(typeof(BlueprintNode));
+                foreach (var nodeType in typeCache)
+                {
+                    AddNodeAttributeScriptAsset(nodeType);
+                }
+            }
+
+            {
+                CreateParameterInfo.Clear();
+                TypeCache.TypeCollection typeCache = TypeCache.GetTypesDerivedFrom<IBlueprintParameter>();
+                foreach (var nodeType in typeCache)
+                {
+                    AddParameterAttributeScriptAsset(nodeType);
+                }
             }
         }
 
@@ -77,6 +91,35 @@ namespace PartsKit
         public static List<FlowCreateNodeInfo> GetAllNodeAttribute()
         {
             return NodeAttributePreType.Values.ToList();
+        }
+
+        private static void AddParameterAttributeScriptAsset(Type type)
+        {
+            if (type.IsAbstract)
+            {
+                return;
+            }
+
+            if (type.GetCustomAttributes(typeof(FlowCreateParameterAttribute), false) is not
+                FlowCreateParameterAttribute
+                [] attrs)
+            {
+                return;
+            }
+
+            if (attrs.Length <= 0)
+            {
+                return;
+            }
+
+            FlowCreateParameterAttribute attribute = attrs.First();
+            BlueprintCreateParameterInfo parameterInfo = new BlueprintCreateParameterInfo(attribute.CreateName, type);
+            CreateParameterInfo[type] = parameterInfo;
+        }
+
+        public static List<BlueprintCreateParameterInfo> GetAllCreateParameterInfo()
+        {
+            return CreateParameterInfo.Values.ToList();
         }
     }
 }

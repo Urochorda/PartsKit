@@ -10,12 +10,12 @@ namespace PartsKit
     public class BlueprintNodeView : Node
     {
         public BlueprintNode BlueprintNode { get; private set; }
-        private BlueprintView ownerView;
-        public SerializedObject SerializedObject => ownerView.SerializedObject;
+        public BlueprintView OwnerView { get; private set; }
+        public SerializedObject SerializedObject => OwnerView.SerializedObject;
 
         public virtual void Init(BlueprintNode blueprintNodeVal, BlueprintView ownerViewVal)
         {
-            ownerView = ownerViewVal;
+            OwnerView = ownerViewVal;
             BlueprintNode = blueprintNodeVal;
             InitPorts();
             title = blueprintNodeVal.NodeName;
@@ -44,7 +44,7 @@ namespace PartsKit
 
         public SerializedProperty FindNodeProperty(string relativePropertyPath)
         {
-            return ownerView.FindNodeProperty(BlueprintNode, relativePropertyPath);
+            return OwnerView.FindNodeProperty(BlueprintNode, relativePropertyPath);
         }
 
         public BlueprintPortView GetPortView(Direction portDirection, string portName)

@@ -26,7 +26,7 @@ namespace PartsKit
                 foreach (var paramInfo in GetCreateParameterInfo())
                 {
                     parameterType.AddItem(new GUIContent(paramInfo.CreateName), false,
-                        () => { OwnerView.AddBlackboardParameter(paramInfo); });
+                        () => { OwnerView.AddParameter(paramInfo); });
                 }
 
                 parameterType.ShowAsContext();
@@ -37,7 +37,7 @@ namespace PartsKit
         {
             foreach (IBlueprintParameter parameter in Blackboard.Parameters)
             {
-                AddBlackboardField(parameter);
+                AddField(parameter);
             }
         }
 
@@ -47,7 +47,7 @@ namespace PartsKit
             return targetInfo ?? new List<BlueprintCreateParameterInfo>();
         }
 
-        public void AddBlackboardField(IBlueprintParameter parameter)
+        public void AddField(IBlueprintParameter parameter)
         {
             Type fieldType = BlueprintTypeCache.GetParameterFieldType(parameter.GetType());
             object viewObj = Activator.CreateInstance(fieldType);
@@ -61,7 +61,7 @@ namespace PartsKit
             field.Init(OwnerView, parameter);
         }
 
-        public void RemoveBlackboardField(BlackboardField field)
+        public void RemoveField(BlueprintBlackboardField field)
         {
             Remove(field);
         }

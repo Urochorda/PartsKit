@@ -55,9 +55,9 @@ namespace PartsKit
         private bool GetConditionValue(BlueprintValuePort<bool> conditionPort)
         {
             bool state = condition;
-            if (conditionPort.GetPrePortFirst(out BlueprintValuePort<bool> targetPort))
+            if (conditionPort.GetPrePortValue(out bool prePortValue))
             {
-                targetPort.GetValue(out state);
+                state = prePortValue;
             }
 
             return state;

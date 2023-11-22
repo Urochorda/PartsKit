@@ -49,6 +49,9 @@ namespace PartsKit
             this.AddManipulator(new SelectionDragger());
             this.AddManipulator(new RectangleSelector());
             SetupZoom(0.05f, 2f); //简单控制缩放即可
+
+            RegisterCallback<DragPerformEvent>(DragPerformedCallback);
+            RegisterCallback<DragUpdatedEvent>(DragUpdatedCallback);
         }
 
         /// <summary>
@@ -62,6 +65,8 @@ namespace PartsKit
             {
                 return;
             }
+
+            Blueprint.CheckValid();
 
             SerializedObject = new SerializedObject(blueprintVal);
 
@@ -93,7 +98,7 @@ namespace PartsKit
 
             foreach (BlueprintEdge node in Blueprint.Edges)
             {
-                CreateEdge(node);
+                AddEdge(node);
             }
 
             CreateBlackboardView();
@@ -272,9 +277,9 @@ namespace PartsKit
         }
 
         /// <summary>
-        /// 创建边缘（这里是手动创建）
+        /// 添加边缘
         /// </summary>
-        private void CreateEdge(BlueprintEdge blueprintEdge)
+        private void AddEdge(BlueprintEdge blueprintEdge)
         {
             BlueprintNodeView inputNodeView = GetNodeByGuid(blueprintEdge.InputNodeGuid) as BlueprintNodeView;
             BlueprintNodeView outputNodeView = GetNodeByGuid(blueprintEdge.OutputNodeGuid) as BlueprintNodeView;
@@ -414,7 +419,7 @@ namespace PartsKit
         /// <summary>
         /// 黑板字段重命名
         /// </summary>
-        public virtual void RenameBlackboardParameter(BlueprintBlackboardField field, string newName)
+        public virtual void RenameParameter(BlueprintBlackboardField field, string newName)
         {
             newName = Blueprint.Blackboard.GetUniqueParameterName(newName);
             field.text = newName;
@@ -424,20 +429,90 @@ namespace PartsKit
         /// <summary>
         /// 添加黑板字段
         /// </summary>
-        public virtual void AddBlackboardParameter(BlueprintCreateParameterInfo createInfo)
+        public virtual void AddParameter(BlueprintCreateParameterInfo createInfo)
         {
             IBlueprintParameter parameter = IBlueprintParameter.CreateFromType(createInfo.ParameterType);
             Blueprint.Blackboard.AddParameter(parameter);
-            BlackboardView.AddBlackboardField(parameter);
+            BlackboardView.AddField(parameter);
         }
 
         /// <summary>
         /// 移除黑板字段
         /// </summary>
-        public virtual void RemoveBlackboardParameter(BlueprintBlackboardField field)
+        public virtual void RemoveParameter(BlueprintBlackboardField field)
         {
             Blueprint.Blackboard.RemoveParameter(field.Parameter);
-            BlackboardView.RemoveBlackboardField(field);
+            BlackboardView.RemoveField(field);
+        }
+
+        /// <summary>
+        /// 拖拽更新
+        /// </summary>
+        private void DragUpdatedCallback(DragUpdatedEvent e)
+        {
+            var dragData = DragAndDrop.GetGenericData("DragSelection") as List<ISelectable>;
+            bool dragging = false;
+
+            if (dragData != null)
+            {
+                // Handle drag from exposed parameter view
+                if (dragData.OfType<BlueprintBlackboardField>().Any())
+                {
+                    dragging = true;
+                }
+            }
+
+            if (dragging)
+            {
+                DragAndDrop.visualMode = DragAndDropVisualMode.Generic;
+            }
+        }
+
+        /// <summary>
+        /// 拖拽参数回调
+        /// </summary>
+        private void DragPerformedCallback(DragPerformEvent e)
+        {
+            var mousePos =
+                (e.currentTarget as VisualElement).ChangeCoordinatesTo(contentViewContainer, e.localMousePosition);
+
+            // Drag and Drop for elements inside the graph
+            if (DragAndDrop.GetGenericData("DragSelection") is List<ISelectable> dragData)
+            {
+                var parameterFields = dragData.OfType<BlueprintBlackboardField>();
+                foreach (var paramField in parameterFields)
+                {
+                    // 在鼠标位置生成一个菜单
+                    GenericMenu menu = new GenericMenu();
+                    menu.AddItem(new GUIContent("Get"), false,
+                        () => CreateGetOrSetParameterNode(true, paramField.Parameter));
+                    menu.AddItem(new GUIContent("Set"), false,
+                        () => CreateGetOrSetParameterNode(false, paramField.Parameter));
+                    menu.ShowAsContext();
+                }
+            }
+
+            void CreateGetOrSetParameterNode(bool isGet, IBlueprintParameter parameter)
+            {
+                if (isGet)
+                {
+                    BlueprintGetParameterNode paramNode = BlueprintNode.Create<BlueprintGetParameterNode>();
+                    paramNode.OnCreateParameterNode(parameter.Guid);
+                    AddNode(paramNode, mousePos, true);
+                }
+                else
+                {
+                    if (BlueprintNode.CreateFromType(parameter.SetNodeType) is BlueprintSetParameterNode paramNode)
+                    {
+                        paramNode.OnCreateParameterNode(parameter.Guid);
+                        AddNode(paramNode, mousePos, true);
+                    }
+                    else
+                    {
+                        Debug.LogError("Parameter SetNodeType Err");
+                    }
+                }
+            }
         }
     }
 }

@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using UnityEngine;
 
 namespace PartsKit
 {
@@ -22,18 +24,77 @@ namespace PartsKit
             value = onGetValue == null ? default : onGetValue.Invoke(this);
         }
 
-        public bool GetPrePortFirst(out BlueprintValuePort<T> targetPort)
+        public bool GetPrePortValue(out T value)
         {
             if (PrePorts.Count > 0)
             {
-                if (PrePorts[0] is BlueprintValuePort<T> targetPortVal)
+                return GetPortValue(PrePorts[0], out value);
+            }
+
+            value = default;
+            return false;
+        }
+
+        public bool GetAllPrePortValue(out List<T> value)
+        {
+            value = new List<T>();
+            if (PrePorts.Count > 0)
+            {
+                bool hasSuccess = false;
+                foreach (IBlueprintPort prePort in PrePorts)
                 {
-                    targetPort = targetPortVal;
+                    bool isSuccess = GetPortValue(prePort, out T valueItem);
+                    if (isSuccess)
+                    {
+                        hasSuccess = true;
+                        value.Add(valueItem);
+                    }
+                }
+
+                return hasSuccess;
+            }
+
+            return false;
+        }
+
+        private bool GetPortValue(IBlueprintPort prePort, out T value)
+        {
+            if (prePort is BlueprintValuePort<T> targetPortVal)
+            {
+                targetPortVal.GetValue(out value);
+                return true;
+            }
+
+            if (typeof(T) == typeof(object) && prePort is BlueprintValuePort<dynamic> dyPortVal)
+            {
+                dyPortVal.GetValue(out dynamic objValue);
+                value = objValue;
+                return true;
+            }
+
+            if (prePort is BlueprintValuePort<object> objPortVal)
+            {
+                objPortVal.GetValue(out object objValue);
+                if (objValue == null)
+                {
+                    value = default;
                     return true;
+                }
+
+                try
+                {
+                    value = (T)objValue;
+                    return true;
+                }
+                catch (InvalidCastException e)
+                {
+                    Debug.LogError(e);
+                    value = default;
+                    return false;
                 }
             }
 
-            targetPort = null;
+            value = default;
             return false;
         }
     }

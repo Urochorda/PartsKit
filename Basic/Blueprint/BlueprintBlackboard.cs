@@ -41,5 +41,26 @@ namespace PartsKit
         {
             parameters.Remove(parameter);
         }
+
+        public IBlueprintParameter GetParameterByGuid(string guid)
+        {
+            return parameters.Find(item => item.Guid == guid);
+        }
+
+        public IBlueprintParameter GetParameterByName(string pName)
+        {
+            return parameters.Find(item => item.ParameterName == pName);
+        }
+        
+        public T GetParameterValue<T>(string pName)
+        {
+            IBlueprintParameter parameter = GetParameterByName(pName);
+            if (parameter==null)
+            {
+                return default;
+            }
+
+            return (T)parameter.Value;
+        }
     }
 }

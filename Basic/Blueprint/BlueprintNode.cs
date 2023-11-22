@@ -44,6 +44,7 @@ namespace PartsKit
         public virtual bool Deletable => true;
         public List<IBlueprintPort> InputPorts { get; }
         public List<IBlueprintPort> OutputPorts { get; }
+        public Blueprint OwnerBlueprint { get; private set; }
 
         public BlueprintNode()
         {
@@ -56,13 +57,19 @@ namespace PartsKit
             Guid = System.Guid.NewGuid().ToString();
         }
 
-        public virtual void Init()
+        public virtual void Init(Blueprint blueprintVal)
         {
+            OwnerBlueprint = blueprintVal;
             RegisterPort();
         }
 
         protected virtual void RegisterPort()
         {
+        }
+
+        public virtual bool IsNotValid()
+        {
+            return false;
         }
 
         /// <summary>
@@ -78,25 +85,6 @@ namespace PartsKit
                     break;
                 case IBlueprintPort.Direction.Output:
                     OutputPorts.Add(treeNodePort);
-                    break;
-                default:
-                    Debug.LogError("portType错误");
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// 移除一个端口
-        /// </summary>
-        public virtual void RemovePort(IBlueprintPort.Direction portType, string portName)
-        {
-            switch (portType)
-            {
-                case IBlueprintPort.Direction.Input:
-                    InputPorts.RemoveAll(item => item.PortName == portName);
-                    break;
-                case IBlueprintPort.Direction.Output:
-                    OutputPorts.RemoveAll(item => item.PortName == portName);
                     break;
                 default:
                     Debug.LogError("portType错误");

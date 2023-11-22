@@ -94,9 +94,9 @@ namespace PartsKit
         private FlowPointState GetConditionValue(BlueprintValuePort<FlowPointState> conditionPort)
         {
             FlowPointState state = condition;
-            if (conditionPort.GetPrePortFirst(out BlueprintValuePort<FlowPointState> targetPort))
+            if (conditionPort.GetPrePortValue(out FlowPointState prePortValue))
             {
-                targetPort.GetValue(out state);
+                state = prePortValue;
             }
 
             return state;

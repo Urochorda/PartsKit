@@ -23,14 +23,12 @@ namespace PartsKit
             return node;
         }
 
-        #region 可序列化字段
-
         public string Guid { get; set; }
         public string ParameterName { get; set; }
         public string ParameterTypeName { get; }
         public object Value { get; set; }
-
-        #endregion
+        public Type ParameterType { get; }
+        public Type SetNodeType { get; }
     }
 
     [Serializable]
@@ -38,9 +36,9 @@ namespace PartsKit
     {
         #region 可序列化字段
 
-        [field: SerializeField] private string guid;
-        [field: SerializeField] private string parameterName;
-        [field: SerializeField] protected T tValue;
+        [SerializeField] private string guid;
+        [SerializeField] private string parameterName;
+        [SerializeField] protected T tValue;
 
         #endregion
 
@@ -56,12 +54,15 @@ namespace PartsKit
             set => parameterName = value;
         }
 
-        public string ParameterTypeName => typeof(T).ToString();
+        public string ParameterTypeName => ParameterType.ToString();
 
         public object Value
         {
             get => tValue;
             set => tValue = value == default ? default : (T)value;
         }
+
+        public Type ParameterType => typeof(T);
+        public virtual Type SetNodeType => typeof(BlueprintSetParameterNode);
     }
 }

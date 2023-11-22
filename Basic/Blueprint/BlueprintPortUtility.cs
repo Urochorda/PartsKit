@@ -110,7 +110,6 @@ namespace PartsKit
         public static BlueprintValuePort<T> CreateValuePort<T>(string portNameVal,
             IBlueprintPort.Orientation portOrientationVal, IBlueprintPort.Direction portDirectionVal,
             string propertyFieldNameVal, Func<BlueprintValuePort<T>, T> getValueVal)
-
         {
             IBlueprintPort.Capacity portCapacityVal = portDirectionVal == IBlueprintPort.Direction.Input
                 ? IBlueprintPort.Capacity.Single
@@ -157,7 +156,7 @@ namespace PartsKit
 
         public string PortName { get; set; } //用作名称展示，也用作唯一标识
         public string PropertyFieldName { get; set; } //PropertyField展示的名字
-        public Type PortType { get; } //端口类型，用作view层显示
+        public Type PortType { get; set; } //端口类型，用作view层显示
         public Orientation PortOrientation { get; set; } //节点方向，用作view层显示
         public Capacity PortCapacity { get; set; } //节点连接类型，用作view层显示
         public Direction PortDirection { get; set; } //节点类型，输入输出
@@ -170,7 +169,7 @@ namespace PartsKit
     {
         public string PortName { get; set; }
         public string PropertyFieldName { get; set; }
-        public Type PortType { get; }
+        public Type PortType { get; set; }
         public IBlueprintPort.Orientation PortOrientation { get; set; }
         public IBlueprintPort.Capacity PortCapacity { get; set; }
         public IBlueprintPort.Direction PortDirection { get; set; }

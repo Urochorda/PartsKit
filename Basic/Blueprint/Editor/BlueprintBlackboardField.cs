@@ -20,14 +20,14 @@ namespace PartsKit
 
             (this.Q("textField") as TextField).RegisterValueChangedCallback((e) =>
             {
-                graphView.RenameBlackboardParameter(this, e.newValue);
+                graphView.RenameParameter(this, e.newValue);
             });
         }
 
         private void BuildContextualMenu(ContextualMenuPopulateEvent evt)
         {
             evt.menu.AppendAction("Rename", (a) => OpenTextEditor(), DropdownMenuAction.AlwaysEnabled);
-            evt.menu.AppendAction("Delete", (a) => OwnerView.RemoveBlackboardParameter(this),
+            evt.menu.AppendAction("Delete", (a) => OwnerView.RemoveParameter(this),
                 DropdownMenuAction.AlwaysEnabled);
             evt.StopPropagation();
         }

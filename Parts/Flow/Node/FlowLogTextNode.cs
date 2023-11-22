@@ -17,6 +17,7 @@ namespace PartsKit
         private const string CreateName = "LogText";
         public override string NodeName => CreateName;
         public BlueprintExecutePort InputExePort { get; private set; }
+        public BlueprintExecutePort OutputExePort { get; private set; }
         public BlueprintValuePort<LogType> LogTypePort { get; private set; }
         public BlueprintValuePort<string> DebugPort { get; private set; }
 
@@ -31,6 +32,9 @@ namespace PartsKit
             InputExePort = BlueprintPortUtility.CreateExecutePort("InputExe",
                 IBlueprintPort.Orientation.Horizontal, IBlueprintPort.Direction.Input, OnExecuted);
 
+            OutputExePort = BlueprintPortUtility.CreateExecutePort("OutputExe",
+                IBlueprintPort.Orientation.Horizontal, IBlueprintPort.Direction.Output, OnOutputExecuted);
+
             DebugPort = BlueprintPortUtility.CreateValuePort<string>("Text", IBlueprintPort.Orientation.Horizontal,
                 IBlueprintPort.Direction.Input, nameof(info), GetTextInfoValue);
 
@@ -39,6 +43,7 @@ namespace PartsKit
                 IBlueprintPort.Direction.Input, nameof(logType), GetLogTypeValue);
 
             AddPort(InputExePort);
+            AddPort(OutputExePort);
             AddPort(LogTypePort);
             AddPort(DebugPort);
         }
@@ -46,9 +51,9 @@ namespace PartsKit
         private string GetTextInfoValue(BlueprintValuePort<string> arg)
         {
             string infoVal = info;
-            if (DebugPort.GetPrePortFirst(out BlueprintValuePort<string> prePortFirst))
+            if (DebugPort.GetPrePortValue(out string prePortVal))
             {
-                prePortFirst.GetValue(out infoVal);
+                infoVal = prePortVal;
             }
 
             return infoVal;
@@ -57,9 +62,9 @@ namespace PartsKit
         private LogType GetLogTypeValue(BlueprintValuePort<LogType> arg)
         {
             LogType logTypeVal = logType;
-            if (LogTypePort.GetPrePortFirst(out BlueprintValuePort<LogType> prePortFirst))
+            if (LogTypePort.GetPrePortValue(out LogType prePortVal))
             {
-                prePortFirst.GetValue(out logTypeVal);
+                logTypeVal = prePortVal;
             }
 
             return logTypeVal;
@@ -83,7 +88,15 @@ namespace PartsKit
                     break;
             }
 
-            executePortResult.NextExecute = null;
+            executePortResult.NextExecute = OutputExePort;
+            executePortResult.ExecuteState = BlueprintExecuteState.End;
+            return executePortResult;
+        }
+
+        private BlueprintExecutePortResult OnOutputExecuted(BlueprintExecutePort executePort)
+        {
+            executePort.GetNextExecute(out BlueprintExecutePort targetPort);
+            executePortResult.NextExecute = targetPort;
             executePortResult.ExecuteState = BlueprintExecuteState.End;
             return executePortResult;
         }

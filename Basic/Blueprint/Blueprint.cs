@@ -25,28 +25,67 @@ namespace PartsKit
             OnInit();
         }
 
+        public void CheckValid()
+        {
+            CheckNodeValidPre();
+            CheckNodeValid();
+            CheckEdgeValid();
+        }
+
         protected virtual void OnInit()
         {
         }
 
         private void InitData()
         {
+            //Node
+            CheckNodeValidPre();
+            foreach (BlueprintNode node in Nodes)
+            {
+                node.Init(this);
+            }
+
+            CheckNodeValid();
+
+            //Edge
+            CheckEdgeValid();
+            foreach (BlueprintEdge edge in Edges)
+            {
+                edge.Init();
+                UpdateLinkByEdge(edge, true);
+            }
+        }
+
+        private void CheckNodeValidPre()
+        {
             nodes.RemoveAll(item =>
             {
                 if (item == null || string.IsNullOrEmpty(item.Guid))
                 {
-                    Debug.LogError("Add Node Err");
+                    Debug.LogError("Node Data Err");
                     return true;
                 }
 
                 return false;
             });
+        }
 
-            foreach (BlueprintNode node in Nodes)
+        private void CheckNodeValid()
+        {
+            nodes.RemoveAll(item =>
             {
-                node.Init();
-            }
+                if (item.IsNotValid())
+                {
+                    Debug.LogError("Node IsNotValid");
+                    return true;
+                }
 
+                return false;
+            });
+        }
+
+        private void CheckEdgeValid()
+        {
             edges.RemoveAll(item =>
             {
                 if (item == null || string.IsNullOrEmpty(item.Guid))
@@ -63,12 +102,6 @@ namespace PartsKit
 
                 return false;
             });
-
-            foreach (BlueprintEdge edge in Edges)
-            {
-                edge.Init();
-                UpdateLinkByEdge(edge, true);
-            }
         }
 
         public virtual void AddNode(BlueprintNode treeNode)
@@ -81,7 +114,7 @@ namespace PartsKit
 
             //先加入列表后init
             nodes.Add(treeNode);
-            treeNode.Init();
+            treeNode.Init(this);
         }
 
         public virtual void RemoveNode(BlueprintNode treeNode)

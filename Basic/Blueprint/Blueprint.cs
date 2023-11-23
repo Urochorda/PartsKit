@@ -33,9 +33,10 @@ namespace PartsKit
 
         public void CheckValid()
         {
+            CheckParametersValidPre();
             CheckNodeValidPre();
             CheckNodeValid();
-            CheckEdgeValid();
+            CheckEdgeValidPre();
         }
 
         protected virtual void OnInit()
@@ -44,6 +45,8 @@ namespace PartsKit
 
         private void InitData()
         {
+            CheckParametersValidPre();
+
             //Node
             CheckNodeValidPre();
             foreach (BlueprintNode node in Nodes)
@@ -54,7 +57,7 @@ namespace PartsKit
             CheckNodeValid();
 
             //Edge
-            CheckEdgeValid();
+            CheckEdgeValidPre();
             foreach (BlueprintEdge edge in Edges)
             {
                 edge.Init();
@@ -90,7 +93,7 @@ namespace PartsKit
             });
         }
 
-        private void CheckEdgeValid()
+        private void CheckEdgeValidPre()
         {
             edges.RemoveAll(item =>
             {
@@ -108,6 +111,11 @@ namespace PartsKit
 
                 return false;
             });
+        }
+
+        private void CheckParametersValidPre()
+        {
+            blackboard.ClearNotValidParameters();
         }
 
         public virtual void AddNode(BlueprintNode treeNode)

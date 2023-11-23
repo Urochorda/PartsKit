@@ -51,16 +51,30 @@ namespace PartsKit
         {
             return parameters.Find(item => item.ParameterName == pName);
         }
-        
+
         public T GetParameterValue<T>(string pName)
         {
             IBlueprintParameter parameter = GetParameterByName(pName);
-            if (parameter==null)
+            if (parameter == null)
             {
                 return default;
             }
 
             return (T)parameter.Value;
+        }
+
+        public void ClearNotValidParameters()
+        {
+            parameters.RemoveAll(item =>
+            {
+                if (item == null || string.IsNullOrEmpty(item.Guid))
+                {
+                    Debug.LogError("Parameter NotValid");
+                    return true;
+                }
+
+                return false;
+            });
         }
     }
 }

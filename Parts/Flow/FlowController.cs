@@ -22,7 +22,7 @@ namespace PartsKit
 
         protected override void OnInit()
         {
-            SetData(new FlowData() { Tree = tree });
+            SetData(new FlowData() { Tree = tree.GetRunBlueprint<FlowTree>() });
         }
 
         protected override void OnDeInit()

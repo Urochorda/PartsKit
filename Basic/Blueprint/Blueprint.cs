@@ -23,6 +23,12 @@ namespace PartsKit
         {
             InitData();
             OnInit();
+            EditorEnable();
+        }
+
+        protected virtual void OnDisable()
+        {
+            EditorDisable();
         }
 
         public void CheckValid()
@@ -296,5 +302,86 @@ namespace PartsKit
         }
 
         #endregion
+
+        public T GetRunBlueprint<T>() where T : Blueprint
+        {
+#if UNITY_EDITOR
+            EditorRecordData();
+            return editorBlueprint as T;
+#else
+            return this as T;
+#endif
+        }
+
+        private void EditorEnable()
+        {
+#if UNITY_EDITOR
+            if (!IsEditorTemp)
+            {
+                UnityEditor.EditorApplication.playModeStateChanged += OnEditorPlayModeStateChanged;
+            }
+#endif
+        }
+
+        private void EditorDisable()
+        {
+#if UNITY_EDITOR
+            UnityEditor.EditorApplication.playModeStateChanged -= OnEditorPlayModeStateChanged;
+#endif
+        }
+
+#if UNITY_EDITOR
+
+        private Blueprint editorBlueprint;
+        public bool IsEditorTemp { get; private set; }
+
+        private void OnEditorPlayModeStateChanged(UnityEditor.PlayModeStateChange state)
+        {
+            if (state == UnityEditor.PlayModeStateChange.EnteredPlayMode)
+            {
+                EditorRecordData();
+            }
+            else if (state == UnityEditor.PlayModeStateChange.ExitingPlayMode)
+            {
+                EditorResetData();
+            }
+        }
+
+        private void EditorRecordData()
+        {
+            if (editorBlueprint != null)
+            {
+                return;
+            }
+
+            string editorOriginalData = JsonUtility.ToJson(this);
+            editorBlueprint = CreateInstance(GetType()) as Blueprint;
+            if (editorBlueprint == null)
+            {
+                return;
+            }
+
+            editorBlueprint.name = "EditorTemp";
+            JsonUtility.FromJsonOverwrite(editorOriginalData, editorBlueprint);
+            editorBlueprint.IsEditorTemp = true;
+            editorBlueprint.OnDisable();
+            editorBlueprint.OnEnable();
+            UnityEditor.AssetDatabase.AddObjectToAsset(editorBlueprint, this);
+            UnityEditor.AssetDatabase.SaveAssets();
+        }
+
+        private void EditorResetData()
+        {
+            if (editorBlueprint == null)
+            {
+                return;
+            }
+
+            UnityEditor.AssetDatabase.RemoveObjectFromAsset(editorBlueprint);
+            UnityEditor.AssetDatabase.SaveAssets();
+            editorBlueprint = null;
+        }
+
+#endif
     }
 }

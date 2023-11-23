@@ -4,48 +4,28 @@ namespace PartsKit
 {
     public abstract class PartsKitBehaviour : MonoBehaviour
     {
-        [SerializeField] protected bool autoInit;
-
-        private bool isInit;
-
-        private void Awake()
-        {
-            if (autoInit)
-            {
-                Init();
-            }
-        }
-
-        private void OnDestroy()
-        {
-            DeInit();
-        }
+        public bool IsInit { get; private set; }
 
         public void Init()
         {
-            if (isInit || !OnInitPre())
+            if (IsInit)
             {
                 return;
             }
 
-            isInit = true;
+            IsInit = true;
             OnInit();
         }
 
         public void DeInit()
         {
-            if (!isInit)
+            if (!IsInit)
             {
                 return;
             }
 
-            isInit = false;
+            IsInit = false;
             OnDeInit();
-        }
-
-        protected virtual bool OnInitPre()
-        {
-            return true;
         }
 
         protected abstract void OnInit();

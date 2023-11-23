@@ -3,34 +3,15 @@ using UnityEngine;
 
 namespace PartsKit
 {
-    public class BlueprintSetParameterNode : BlueprintNode
+    public class BlueprintSetParameterNode : BlueprintParameterNodeBase
     {
-        [field: SerializeField] public string ParameterGuid { get; private set; }
-
-        public override string NodeName => parameter == null ? "Null" : $"Set ({parameter.ParameterName})";
+        public override string NodeName => Parameter == null ? "Null" : $"Set ({Parameter.ParameterName})";
 
         public BlueprintValuePort<object> ValuePort { get; private set; }
         public BlueprintExecutePort InputExePort { get; private set; }
         public BlueprintExecutePort OutputExePort { get; private set; }
 
-        private IBlueprintParameter parameter;
         private BlueprintExecutePortResult executePortResult;
-
-        public void OnCreateParameterNode(string pGuid)
-        {
-            ParameterGuid = pGuid;
-        }
-
-        public override void Init(Blueprint blueprintVal)
-        {
-            parameter = blueprintVal.Blackboard.GetParameterByGuid(ParameterGuid);
-            base.Init(blueprintVal);
-        }
-
-        public override bool IsNotValid()
-        {
-            return OwnerBlueprint == null || OwnerBlueprint.Blackboard.GetParameterByGuid(ParameterGuid) == null;
-        }
 
         protected override void RegisterPort()
         {
@@ -46,9 +27,9 @@ namespace PartsKit
             OutputExePort = BlueprintPortUtility.CreateExecutePort("OutputExe",
                 IBlueprintPort.Orientation.Horizontal, IBlueprintPort.Direction.Output, OnOutputExecuted);
 
-            if (parameter != null)
+            if (Parameter != null)
             {
-                ValuePort.PortType = parameter.ParameterType; //覆盖为参数的type
+                ValuePort.PortType = Parameter.ParameterType; //覆盖为参数的type
             }
 
             AddPort(InputExePort);
@@ -70,7 +51,7 @@ namespace PartsKit
         private BlueprintExecutePortResult OnInputExecuted(BlueprintExecutePort executePort)
         {
             ValuePort.GetValue(out object value);
-            parameter.Value = value;
+            Parameter.Value = value;
             executePortResult.NextExecute = OutputExePort;
             executePortResult.ExecuteState = BlueprintExecuteState.End;
             return executePortResult;

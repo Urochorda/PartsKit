@@ -73,6 +73,11 @@ namespace PartsKit
             return port;
         }
 
+        public void RefreshName()
+        {
+            title = BlueprintNode.NodeName;
+        }
+
         protected virtual void SetColor(Color color)
         {
             if (color == Color.clear)

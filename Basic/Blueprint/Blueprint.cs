@@ -138,6 +138,25 @@ namespace PartsKit
             return nodes.Find(item => item != null && item.Guid == guid);
         }
 
+        public List<BlueprintParameterNodeBase> GetParameterNode(IBlueprintParameter parameter)
+        {
+            List<BlueprintParameterNodeBase> pNodes = new List<BlueprintParameterNodeBase>();
+            if (parameter == null)
+            {
+                return pNodes;
+            }
+
+            foreach (BlueprintNode node in nodes)
+            {
+                if (node is BlueprintParameterNodeBase pItem && pItem.ParameterGuid == parameter.Guid)
+                {
+                    pNodes.Add(pItem);
+                }
+            }
+
+            return pNodes;
+        }
+
         public virtual void AddEdge(BlueprintEdge edge)
         {
             if (edges.Contains(edge))

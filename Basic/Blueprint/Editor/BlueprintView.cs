@@ -144,7 +144,7 @@ namespace PartsKit
         }
 
         /// <summary>
-        /// view中任意变化后处理数据
+        /// view中发生部分变化后处理数据（这边是视图已经创建，然后更新数据）
         /// </summary>
         /// <param name="changes"></param>
         /// <returns></returns>
@@ -424,6 +424,14 @@ namespace PartsKit
             newName = Blueprint.Blackboard.GetUniqueParameterName(newName);
             field.text = newName;
             field.Parameter.ParameterName = newName;
+            List<BlueprintParameterNodeBase> pNode = Blueprint.GetParameterNode(field.Parameter);
+            foreach (BlueprintParameterNodeBase parameterNode in pNode)
+            {
+                if (GetNodeByGuid(parameterNode.Guid) is BlueprintNodeView nodeView)
+                {
+                    nodeView.RefreshName();
+                }
+            }
         }
 
         /// <summary>
@@ -443,6 +451,18 @@ namespace PartsKit
         {
             Blueprint.Blackboard.RemoveParameter(field.Parameter);
             BlackboardView.RemoveField(field);
+            List<BlueprintParameterNodeBase> pNode = Blueprint.GetParameterNode(field.Parameter);
+            List<Node> deleteNodes = new List<Node>();
+            foreach (BlueprintParameterNodeBase parameterNode in pNode)
+            {
+                Node nodeView = GetNodeByGuid(parameterNode.Guid);
+                if (nodeView != null)
+                {
+                    deleteNodes.Add(nodeView);
+                }
+            }
+
+            DeleteElements(deleteNodes);
         }
 
         /// <summary>

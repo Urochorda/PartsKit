@@ -80,7 +80,7 @@ namespace PartsKit
             Blueprint.OnExecutedChange += DrawExecuteLine;
         }
 
-        public virtual void Dispose()
+        public virtual void DeInit()
         {
             SaveBlueprintData();
             if (Blueprint != null)

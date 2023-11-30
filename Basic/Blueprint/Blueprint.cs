@@ -23,12 +23,11 @@ namespace PartsKit
         {
             InitData();
             OnInit();
-            EditorEnable();
         }
 
         protected virtual void OnDisable()
         {
-            EditorDisable();
+            OnDeInit();
         }
 
         public void CheckValid()
@@ -40,6 +39,10 @@ namespace PartsKit
         }
 
         protected virtual void OnInit()
+        {
+        }
+
+        protected virtual void OnDeInit()
         {
         }
 
@@ -103,7 +106,7 @@ namespace PartsKit
                     return true;
                 }
 
-                if (!GetPortByEdge(item, out IBlueprintPort inputPort, out IBlueprintPort outputPort))
+                if (!GetPortByEdge(item, out _, out _))
                 {
                     Debug.LogError("Edge Port Err");
                     return true;
@@ -332,43 +335,33 @@ namespace PartsKit
 
         public T GetRunBlueprint<T>() where T : Blueprint
         {
+            return GetRunBlueprint<T>(true);
+        }
+
+        public T GetRunBlueprint<T>(bool autoLoad) where T : Blueprint
+        {
 #if UNITY_EDITOR
-            EditorRecordData();
-            return editorBlueprint as T;
+            if (autoLoad)
+            {
+                EditorRecordData();
+            }
+
+            return EditorBlueprint as T;
 #else
             return this as T;
 #endif
         }
 
-        private void EditorEnable()
-        {
-#if UNITY_EDITOR
-            if (!IsEditorTemp)
-            {
-                UnityEditor.EditorApplication.playModeStateChanged += OnEditorPlayModeStateChanged;
-            }
-#endif
-        }
-
-        private void EditorDisable()
-        {
-#if UNITY_EDITOR
-            UnityEditor.EditorApplication.playModeStateChanged -= OnEditorPlayModeStateChanged;
-#endif
-        }
-
 #if UNITY_EDITOR
 
-        private Blueprint editorBlueprint;
+        public Blueprint EditorBlueprint { get; private set; }
         public bool IsEditorTemp { get; private set; }
+
+        public event Action OnEditorReset;
 
         private void OnEditorPlayModeStateChanged(UnityEditor.PlayModeStateChange state)
         {
-            if (state == UnityEditor.PlayModeStateChange.EnteredPlayMode)
-            {
-                EditorRecordData();
-            }
-            else if (state == UnityEditor.PlayModeStateChange.ExitingPlayMode)
+            if (state == UnityEditor.PlayModeStateChange.ExitingPlayMode)
             {
                 EditorResetData();
             }
@@ -376,37 +369,38 @@ namespace PartsKit
 
         private void EditorRecordData()
         {
-            if (editorBlueprint != null)
+            if (EditorBlueprint != null)
             {
                 return;
             }
 
             string editorOriginalData = JsonUtility.ToJson(this);
-            editorBlueprint = CreateInstance(GetType()) as Blueprint;
-            if (editorBlueprint == null)
+            EditorBlueprint = CreateInstance(GetType()) as Blueprint;
+            if (EditorBlueprint == null)
             {
                 return;
             }
 
-            editorBlueprint.name = "EditorTemp";
-            JsonUtility.FromJsonOverwrite(editorOriginalData, editorBlueprint);
-            editorBlueprint.IsEditorTemp = true;
-            editorBlueprint.OnDisable();
-            editorBlueprint.OnEnable();
-            UnityEditor.AssetDatabase.AddObjectToAsset(editorBlueprint, this);
-            UnityEditor.AssetDatabase.SaveAssets();
+            EditorBlueprint.name = "EditorTemp";
+            JsonUtility.FromJsonOverwrite(editorOriginalData, EditorBlueprint);
+            EditorBlueprint.IsEditorTemp = true;
+            EditorBlueprint.OnDisable();
+            EditorBlueprint.OnEnable();
+            UnityEditor.EditorApplication.playModeStateChanged -= OnEditorPlayModeStateChanged;
+            UnityEditor.EditorApplication.playModeStateChanged += OnEditorPlayModeStateChanged;
         }
 
         private void EditorResetData()
         {
-            if (editorBlueprint == null)
+            if (EditorBlueprint == null)
             {
                 return;
             }
 
-            UnityEditor.AssetDatabase.RemoveObjectFromAsset(editorBlueprint);
-            UnityEditor.AssetDatabase.SaveAssets();
-            editorBlueprint = null;
+            UnityEditor.EditorApplication.playModeStateChanged -= OnEditorPlayModeStateChanged;
+            EditorBlueprint.OnEditorReset?.Invoke();
+            EditorBlueprint.OnEditorReset = null;
+            EditorBlueprint = null;
         }
 
 #endif

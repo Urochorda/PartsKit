@@ -10,7 +10,7 @@ namespace PartsKit
 
         protected virtual void OnDestroy()
         {
-            DisposeBlueprintView();
+            DeInitBlueprintView();
         }
 
         #region Window
@@ -34,7 +34,7 @@ namespace PartsKit
         {
             if (blueprintView != null)
             {
-                DisposeBlueprintView();
+                DeInitBlueprintView();
             }
 
             blueprintView = OnCreateBlueprintView();
@@ -43,19 +43,25 @@ namespace PartsKit
                 Debug.LogError("GraphView is Null!");
                 return;
             }
-
+#if UNITY_EDITOR
+            blueprintVal.OnEditorReset += DeInitBlueprintView;
+#endif
             OnInitBlueprintView(blueprintView, blueprintVal);
         }
 
-        private void DisposeBlueprintView()
+        private void DeInitBlueprintView()
         {
             if (blueprintView == null)
             {
                 return;
             }
 
-            blueprintView.Dispose();
+#if UNITY_EDITOR
+            blueprintView.Blueprint.OnEditorReset -= DeInitBlueprintView;
+#endif
+            blueprintView.DeInit();
             blueprintView.parent.Remove(blueprintView);
+            blueprintView = null;
         }
 
         /// <summary>

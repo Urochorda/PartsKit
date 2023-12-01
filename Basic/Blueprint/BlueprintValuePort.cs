@@ -88,7 +88,7 @@ namespace PartsKit
                 }
                 catch (InvalidCastException e)
                 {
-                    Debug.LogError(e);
+                    CustomLog.LogError(e);
                     value = default;
                     return false;
                 }

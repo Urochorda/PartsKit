@@ -333,31 +333,50 @@ namespace PartsKit
 
         #endregion
 
-        public T GetRunBlueprint<T>() where T : Blueprint
+        /// <summary>
+        /// 克隆自己
+        /// </summary>
+        private Blueprint CloneSelf()
         {
-            return GetRunBlueprint<T>(true);
-        }
-
-        public T GetRunBlueprint<T>(bool autoLoad) where T : Blueprint
-        {
-#if UNITY_EDITOR
-            if (autoLoad)
+            string selfJson = JsonUtility.ToJson(this);
+            Blueprint cloneObj = CreateInstance(GetType()) as Blueprint;
+            if (cloneObj == null)
             {
-                EditorRecordData();
+                return null;
             }
 
-            return EditorBlueprint as T;
-#else
-            return this as T;
+            cloneObj.name = "Temp";
+            JsonUtility.FromJsonOverwrite(selfJson, cloneObj);
+            cloneObj.OnDisable();
+            cloneObj.OnEnable();
+            return cloneObj;
+        }
+
+        public T GetRunBlueprint<T>(string runName) where T : Blueprint
+        {
+            T runB = CloneSelf() as T;
+
+            if (runB != null)
+            {
+                runB.name = runName;
+            }
+
+#if UNITY_EDITOR
+            UnityEditor.EditorApplication.playModeStateChanged -= OnEditorPlayModeStateChanged;
+            UnityEditor.EditorApplication.playModeStateChanged += OnEditorPlayModeStateChanged;
+            if (runB != null)
+            {
+                runBlueprints.Add(runB);
+            }
 #endif
+            return runB;
         }
 
 #if UNITY_EDITOR
 
-        public Blueprint EditorBlueprint { get; private set; }
-        public bool IsEditorTemp { get; private set; }
-
         public event Action OnEditorReset;
+        private readonly List<Blueprint> runBlueprints = new List<Blueprint>();
+        public IReadOnlyList<Blueprint> RunBlueprints => runBlueprints;
 
         private void OnEditorPlayModeStateChanged(UnityEditor.PlayModeStateChange state)
         {
@@ -367,40 +386,16 @@ namespace PartsKit
             }
         }
 
-        private void EditorRecordData()
-        {
-            if (EditorBlueprint != null)
-            {
-                return;
-            }
-
-            string editorOriginalData = JsonUtility.ToJson(this);
-            EditorBlueprint = CreateInstance(GetType()) as Blueprint;
-            if (EditorBlueprint == null)
-            {
-                return;
-            }
-
-            EditorBlueprint.name = "EditorTemp";
-            JsonUtility.FromJsonOverwrite(editorOriginalData, EditorBlueprint);
-            EditorBlueprint.IsEditorTemp = true;
-            EditorBlueprint.OnDisable();
-            EditorBlueprint.OnEnable();
-            UnityEditor.EditorApplication.playModeStateChanged -= OnEditorPlayModeStateChanged;
-            UnityEditor.EditorApplication.playModeStateChanged += OnEditorPlayModeStateChanged;
-        }
-
         private void EditorResetData()
         {
-            if (EditorBlueprint == null)
+            UnityEditor.EditorApplication.playModeStateChanged -= OnEditorPlayModeStateChanged;
+            foreach (Blueprint runBlueprint in runBlueprints)
             {
-                return;
+                runBlueprint.OnEditorReset?.Invoke();
+                runBlueprint.OnEditorReset = null;
             }
 
-            UnityEditor.EditorApplication.playModeStateChanged -= OnEditorPlayModeStateChanged;
-            EditorBlueprint.OnEditorReset?.Invoke();
-            EditorBlueprint.OnEditorReset = null;
-            EditorBlueprint = null;
+            runBlueprints.Clear();
         }
 
 #endif

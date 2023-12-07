@@ -56,13 +56,48 @@ namespace PartsKit
 
         public string ParameterTypeName => ParameterType.ToString();
 
+        private object oValue;
+
         public object Value
         {
-            get => tValue;
-            set => tValue = value == default ? default : (T)value;
+            get => oValue;
+            set
+            {
+                oValue = value;
+                SetTValue();
+            }
         }
 
         public Type ParameterType => typeof(T);
         public virtual Type SetNodeType => typeof(BlueprintSetParameterNode);
+
+        private void SetTValue()
+        {
+            if (oValue == null)
+            {
+                tValue = default;
+                return;
+            }
+
+            Type tType = typeof(T);
+            if (oValue.GetType() == tType)
+            {
+                tValue = (T)oValue;
+            }
+            else
+            {
+                if (tType.IsEnum)
+                {
+                    tValue = (T)Enum.ToObject(typeof(T), oValue);
+                }
+                else
+                {
+                    tValue = (T)Convert.ChangeType(oValue, typeof(T));
+                }
+
+                //发生类型转化，更新oValue
+                oValue = tValue;
+            }
+        }
     }
 }

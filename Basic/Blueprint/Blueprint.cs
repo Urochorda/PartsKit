@@ -16,6 +16,7 @@ namespace PartsKit
         public BlueprintBlackboard Blackboard => blackboard;
         public Stack<BlueprintExecutePort> ExecutePortStack { get; } = new Stack<BlueprintExecutePort>();
         public Stack<BlueprintExecutePort> AllExecutePortStack { get; } = new Stack<BlueprintExecutePort>();
+        public GameObject OwnerObject { get; private set; }
 
         public event Action OnExecutedChange;
 
@@ -332,6 +333,11 @@ namespace PartsKit
         }
 
         #endregion
+
+        public void SetOwnerObject(GameObject ownerObjectVal)
+        {
+            OwnerObject = ownerObjectVal;
+        }
 
         /// <summary>
         /// 克隆自己

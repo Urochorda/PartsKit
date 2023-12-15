@@ -19,6 +19,8 @@ namespace PartsKit
         [SerializeField] private float charDuration = 0.2f;
         [SerializeField] private float advanceTimeScale = 5f;
 
+        public event Action OnPlay;
+        public event Action OnStop;
         private DialogueNodeConfig curNode;
         private IDialogueShowPanel curShowPanel;
         private int curGroupIndex;
@@ -33,6 +35,9 @@ namespace PartsKit
 
         protected override void OnDeInit()
         {
+            StopDialogue();
+            OnPlay = null;
+            OnStop = null;
         }
 
         /// <summary>
@@ -52,6 +57,7 @@ namespace PartsKit
             curOnComplete = onComplete;
             curShowPanel.Show();
             IsPlayingDialogue = true;
+            OnPlay?.Invoke();
             return DoPlayNode(curGroupIndex);
         }
 
@@ -70,6 +76,7 @@ namespace PartsKit
             curShowPanel.Hide();
             curOnComplete?.Invoke();
             curOnComplete = null;
+            OnStop?.Invoke();
         }
 
         /// <summary>

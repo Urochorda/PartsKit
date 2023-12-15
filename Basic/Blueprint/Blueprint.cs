@@ -253,6 +253,11 @@ namespace PartsKit
 
         #region Executed
 
+        public bool IsExecuting()
+        {
+            return ExecutePortStack.Count > 0;
+        }
+
         public void BeginExecuted(BlueprintExecutePort targetPort)
         {
             DoExecuted(targetPort);

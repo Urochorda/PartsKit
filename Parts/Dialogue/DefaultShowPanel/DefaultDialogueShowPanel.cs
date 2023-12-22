@@ -15,6 +15,15 @@ namespace PartsKit
         public void Show()
         {
             gameObject.SetActive(true);
+        }
+
+        public void Hide()
+        {
+            gameObject.SetActive(false);
+        }
+
+        public void BeginPlay()
+        {
             contentText.text = string.Empty;
             foreach (DefaultDialogueShowCharacter showCharacter in showCharacters)
             {
@@ -22,9 +31,8 @@ namespace PartsKit
             }
         }
 
-        public void Hide()
+        public void EndPlay()
         {
-            gameObject.SetActive(false);
         }
 
         public void SetCharacters(List<DialogueCharacter> characters)

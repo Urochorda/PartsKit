@@ -93,6 +93,25 @@ namespace PartsKit
         }
 
         /// <summary>
+        /// 移除一个端口
+        /// </summary>
+        public virtual void RemovePort(IBlueprintPort.Direction portType, string portName)
+        {
+            switch (portType)
+            {
+                case IBlueprintPort.Direction.Input:
+                    InputPorts.RemoveAll(item => item.PortName == portName);
+                    break;
+                case IBlueprintPort.Direction.Output:
+                    OutputPorts.RemoveAll(item => item.PortName == portName);
+                    break;
+                default:
+                    Debug.LogError("portType错误");
+                    break;
+            }
+        }
+
+        /// <summary>
         /// 获取一个port
         /// </summary>
         public IBlueprintPort GetPort(IBlueprintPort.Direction portType, string portName)

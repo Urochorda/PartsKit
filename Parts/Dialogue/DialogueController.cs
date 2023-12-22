@@ -18,19 +18,22 @@ namespace PartsKit
         [SerializeField] private LoadDialogueFun loadDialogueFun;
         [SerializeField] private float charDuration = 0.2f;
         [SerializeField] private float advanceTimeScale = 5f;
+        [SerializeField] private bool defaultHideInEnd = true;
 
         public event Action OnPlay;
         public event Action OnStop;
         private DialogueNodeConfig curNode;
-        private IDialogueShowPanel curShowPanel;
+        public IDialogueShowPanel CurShowPanel { get; private set; }
         private int curGroupIndex;
         private Action curOnComplete;
         private Tweener curPlayNodeAnim;
         public bool IsPlayingDialogue { get; private set; }
         public bool IsPlayingNode { get; private set; }
+        public bool CurHideInEnd { get; private set; }
 
         protected override void OnInit()
         {
+            CurHideInEnd = defaultHideInEnd;
         }
 
         protected override void OnDeInit()
@@ -43,7 +46,7 @@ namespace PartsKit
         /// <summary>
         /// 播放对话
         /// </summary>
-        public bool TryPlayDialogue(int nodeConfigKey, bool isForce, Action onComplete)
+        public bool TryPlayDialogue(int nodeConfigKey, bool isForce, Action onComplete, Action onBeginPlay)
         {
             if (IsPlayingDialogue && !isForce) //正在播放对话&&非强制更新
             {
@@ -52,11 +55,13 @@ namespace PartsKit
 
             StopDialogue(); //结束上次对话
             curNode = loadDialogueFun.LoadNodeConfig(nodeConfigKey);
-            curShowPanel = loadDialogueFun.LoadShowPanel();
+            CurShowPanel = loadDialogueFun.LoadShowPanel();
             curGroupIndex = 0;
             curOnComplete = onComplete;
-            curShowPanel.Show();
+            CurShowPanel.Show();
+            CurShowPanel.BeginPlay();
             IsPlayingDialogue = true;
+            onBeginPlay?.Invoke();
             OnPlay?.Invoke();
             return DoPlayNode(curGroupIndex);
         }
@@ -73,7 +78,13 @@ namespace PartsKit
 
             IsPlayingDialogue = false;
             StopCurNode();
-            curShowPanel.Hide();
+            CurShowPanel.EndPlay();
+            if (CurHideInEnd)
+            {
+                CurShowPanel.Hide();
+            }
+
+            CurHideInEnd = defaultHideInEnd;
             curOnComplete?.Invoke();
             curOnComplete = null;
             OnStop?.Invoke();
@@ -126,14 +137,14 @@ namespace PartsKit
 
         private bool DoPlayNode(int index)
         {
-            if (curShowPanel == null || curNode == null || index >= curNode.NodeGroups.Count)
+            if (CurShowPanel == null || curNode == null || index >= curNode.NodeGroups.Count)
             {
                 StopDialogue(); //结束对话
                 return false;
             }
 
             DialogNodeGroup group = curNode.NodeGroups[index];
-            curShowPanel.SetCharacters(group.Characters);
+            CurShowPanel.SetCharacters(group.Characters);
 
             IsPlayingNode = true;
             string targetString = group.ContentKey.GetLocalizedString();
@@ -143,13 +154,35 @@ namespace PartsKit
             curPlayNodeAnim = DOTween.To(() => 0, newIndex =>
             {
                 string content = targetString.Substring(0, newIndex + 1);
-                curShowPanel.SetContent(content);
+                CurShowPanel.SetContent(content);
             }, endIndex, duration).OnKill(() =>
             {
                 IsPlayingNode = false;
                 curPlayNodeAnim = null;
             });
             return true;
+        }
+
+        /// <summary>
+        /// 临时设置是否在对话结束时隐藏表现（）
+        /// </summary>
+        public void SetTempHideInEnd(bool hideInEnd)
+        {
+            if (!IsPlayingDialogue)
+            {
+                return;
+            }
+
+            CurHideInEnd = hideInEnd;
+        }
+
+        /// <summary>
+        /// 设置是否在对话结束时隐藏表现
+        /// </summary>
+        public void SetHideInEnd(bool hideInEnd)
+        {
+            defaultHideInEnd = hideInEnd;
+            CurHideInEnd = defaultHideInEnd;
         }
     }
 }

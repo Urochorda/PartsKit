@@ -40,9 +40,9 @@ namespace PartsKit
             }
 
             {
-                NodeViewPerType.Clear();
+                ParameterFieldPerType.Clear();
                 TypeCache.TypeCollection typeCollection = TypeCache.GetTypesDerivedFrom<BlueprintBlackboardField>();
-                AddNodeViewScriptAsset(typeof(BlueprintBlackboardField));
+                AddParameterFieldScriptAsset(typeof(BlueprintBlackboardField));
                 foreach (var nodeViewType in typeCollection)
                 {
                     AddParameterFieldScriptAsset(nodeViewType);

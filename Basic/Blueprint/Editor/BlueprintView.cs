@@ -136,8 +136,21 @@ namespace PartsKit
                 }
             }
 
+            string[] pathParam = relativePropertyPath.Split(',');
+            string targetPath = pathParam[0];
             SerializedProperty serializedProperty = SerializedObject.FindProperty("nodes").GetArrayElementAtIndex(index)
-                .FindPropertyRelative(relativePropertyPath);
+                .FindPropertyRelative(targetPath);
+            for (var i = 1; i < pathParam.Length; i++)
+            {
+                if (!int.TryParse(pathParam[i], out int targetIndex))
+                {
+                    CustomLog.LogError($"{nameof(relativePropertyPath)} param err");
+                    continue;
+                }
+
+                serializedProperty = serializedProperty.GetArrayElementAtIndex(targetIndex);
+            }
+
             SerializedObject.ApplyModifiedProperties();
 
             return serializedProperty;
@@ -161,6 +174,16 @@ namespace PartsKit
                             break;
                         case BlueprintEdgeView blueprintEdgeView:
                             Blueprint.RemoveEdge(blueprintEdgeView.BlueprintEdge);
+                            break;
+                        case BlueprintPortView blueprintPortView:
+                            BlueprintNode targetNode =
+                                Blueprint.GetNodeByGuid(blueprintPortView.BlueprintPort.OwnerNode.Guid);
+                            if (targetNode != null)
+                            {
+                                targetNode.RemovePort(blueprintPortView.BlueprintPort.PortDirection,
+                                    blueprintPortView.BlueprintPort.PortName);
+                            }
+
                             break;
                     }
                 }

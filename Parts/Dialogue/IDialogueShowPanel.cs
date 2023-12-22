@@ -6,6 +6,8 @@ namespace PartsKit
     {
         public void Show();
         public void Hide();
+        public void BeginPlay();
+        public void EndPlay();
         public void SetCharacters(List<DialogueCharacter> characters);
         public void SetContent(string content);
     }

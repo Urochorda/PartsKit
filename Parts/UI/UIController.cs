@@ -44,6 +44,7 @@ namespace PartsKit
         {
             if (!GetPanelLevel(levelKey, out Transform levelObj))
             {
+                CustomLog.LogError($"{nameof(OpenPanelAsync)} {levelKey} err");
                 panel = null;
                 return false;
             }
@@ -75,6 +76,7 @@ namespace PartsKit
         {
             if (!GetPanelLevel(levelKey, out Transform levelObj))
             {
+                CustomLog.LogError($"{nameof(OpenPanelAsync)} {levelKey} err");
                 return;
             }
 
@@ -168,6 +170,12 @@ namespace PartsKit
             {
                 CustomLoadPanelFun.LoadAsync<T>(panelKey, (panelPrefab) =>
                 {
+                    if (panelPrefab == null)
+                    {
+                        CustomLog.LogError($"{nameof(CreateUIPanelAsync)} {panelKey} err");
+                        return;
+                    }
+
                     T uiPanel = InstantiateUIPanel(panelPrefab, levelObj);
                     onPanelLoad?.Invoke(uiPanel);
                 });

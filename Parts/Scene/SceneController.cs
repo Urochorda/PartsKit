@@ -37,6 +37,18 @@ namespace PartsKit
         {
         }
 
+        public bool IsInScene(string sceneName)
+        {
+            Scene currentScene = GetActiveScene();
+            return currentScene.name == sceneName;
+        }
+
+        public Scene GetActiveScene()
+        {
+            Scene currentScene = SceneManager.GetActiveScene();
+            return currentScene;
+        }
+
         public AsyncOperationHandle<SceneInstance> LoadSceneAsync(object key, string loadingEffectKey = "",
             LoadSceneMode loadMode = LoadSceneMode.Single, bool activateOnLoad = true,
             int priority = 100)

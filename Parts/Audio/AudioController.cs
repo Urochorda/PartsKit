@@ -44,6 +44,18 @@ namespace PartsKit
 
         private readonly List<AudioSource> curMusicSourceList = new List<AudioSource>();
 
+        public int MinVolume
+        {
+            get => minVolume;
+            set => minVolume = value;
+        }
+
+        public int MaxVolume
+        {
+            get => maxVolume;
+            set => maxVolume = value;
+        }
+
         protected override void OnInit()
         {
         }

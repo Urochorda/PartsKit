@@ -199,6 +199,12 @@ namespace PartsKit
         private T InstantiateUIPanel<T>(T prefab, Transform levelObj) where T : UIPanel
         {
             T uiPanel = Instantiate(prefab, levelObj);
+
+            if (uiPanel != null)
+            {
+                UIPanel.SetCreate(uiPanel);
+            }
+
             return uiPanel;
         }
 

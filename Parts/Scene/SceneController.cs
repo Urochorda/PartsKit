@@ -13,7 +13,7 @@ namespace PartsKit
     {
         public abstract void OnBegin();
         public abstract void OnProgress(float percentComplete);
-        public abstract void OnSucceeded();
+        public abstract IEnumerator OnSucceeded();
         public abstract void OnFailed();
     }
 
@@ -51,7 +51,7 @@ namespace PartsKit
 
         public AsyncOperationHandle<SceneInstance> LoadSceneAsync(object key, string loadingEffectKey = "",
             LoadSceneMode loadMode = LoadSceneMode.Single, bool activateOnLoad = true,
-            int priority = 100)
+            int priority = 100, Action onEffectEnd = null)
         {
             LoadingSceneEffectPool effectItem = loadingEffectPool.Find(item => item.EffectKey == loadingEffectKey);
             LoadingSceneEffect targetEffect =
@@ -60,12 +60,12 @@ namespace PartsKit
             targetEffect.OnBegin();
             AsyncOperationHandle<SceneInstance> loadOperation =
                 Addressables.LoadSceneAsync(key, loadMode, activateOnLoad, priority);
-            StartCoroutine(OnSetLoadingEffect(loadOperation, targetEffect));
+            StartCoroutine(OnSetLoadingEffect(loadOperation, targetEffect, onEffectEnd));
             return loadOperation;
         }
 
         private IEnumerator OnSetLoadingEffect(AsyncOperationHandle<SceneInstance> loadOperation,
-            LoadingSceneEffect loadingEffect)
+            LoadingSceneEffect loadingEffect, Action onEffectEnd)
         {
             while (!loadOperation.IsDone)
             {
@@ -78,7 +78,8 @@ namespace PartsKit
             {
                 case AsyncOperationStatus.Succeeded:
                     loadingEffect.OnProgress(1);
-                    loadingEffect.OnSucceeded();
+                    yield return loadingEffect.OnSucceeded();
+                    onEffectEnd?.Invoke();
                     break;
                 default:
                     loadingEffect.OnFailed();

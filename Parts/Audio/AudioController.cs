@@ -16,7 +16,7 @@ namespace PartsKit
     public class AudioController : PartsKitBehaviour
     {
         private const int AudioMixerMinVolume = -80;
-        private const int AudioMixerMaxVolume = 20;
+        private const int AudioMixerMaxVolume = 0;
         [SerializeField] private LoadAudioAssetFun customLoadAudioAssetFun;
         [SerializeField] private int minVolume = 0;
         [SerializeField] private int maxVolume = 100;

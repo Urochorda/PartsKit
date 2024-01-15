@@ -56,8 +56,18 @@ namespace PartsKit
             set => maxVolume = value;
         }
 
+        public bool masterOn = true;
+        public bool musicOn = true;
+        public bool soundOn = true;
+        public float masterVolume;
+        public float musicVolume;
+        public float soundVolume;
+
         protected override void OnInit()
         {
+            masterVolume = GetMixerMasterVolume();
+            musicVolume = GetMixerMusicVolume();
+            soundVolume = GetMixerSoundVolume();
         }
 
         protected override void OnDeInit()
@@ -184,37 +194,116 @@ namespace PartsKit
 
         #region Get/Set Volume
 
+        public void SetMasterOn(bool value)
+        {
+            masterOn = value;
+            SetMixerMasterVolume(GetMasterOn() ? GetMasterVolume() : 0);
+        }
+
+        public void SetMusicOn(bool value)
+        {
+            musicOn = value;
+            SetMixerMusicVolume(GetMusicOn() ? GetMusicVolume() : 0);
+        }
+
+        public void SetSoundOn(bool value)
+        {
+            soundOn = value;
+            SetMixerSoundVolume(GetSoundOn() ? GetSoundVolume() : 0);
+        }
+
         public void SetMasterVolume(float volume)
         {
-            SetVolume(MasterMixerVolume, volume);
+            masterVolume = volume;
+            if (GetMasterOn())
+            {
+                SetMixerMasterVolume(GetMasterVolume());
+            }
         }
 
         public void SetSoundVolume(float volume)
         {
-            SetVolume(SoundMixerVolume, volume);
+            soundVolume = volume;
+            if (GetSoundOn())
+            {
+                SetMixerMusicVolume(GetSoundVolume());
+            }
         }
 
         public void SetMusicVolume(float volume)
         {
-            SetVolume(MusicMixerVolume, volume);
+            musicVolume = volume;
+            if (GetMusicOn())
+            {
+                SetMixerMusicVolume(GetMusicVolume());
+            }
+        }
+
+        public bool GetMasterOn()
+        {
+            return masterOn;
+        }
+
+        public bool GetMusicOn()
+        {
+            return musicOn;
+        }
+
+        public bool GetSoundOn()
+        {
+            return soundOn;
         }
 
         public float GetMasterVolume()
         {
-            return GetVolume(MasterMixerVolume);
+            return masterVolume;
         }
 
         public float GetSoundVolume()
         {
-            return GetVolume(SoundMixerVolume);
+            return soundVolume;
         }
 
         public float GetMusicVolume()
         {
-            return GetVolume(MusicMixerVolume);
+            return musicVolume;
         }
 
-        private void SetVolume(string nameKey, float volume)
+        #endregion
+
+        #region Mixer Set/Get
+
+        private void SetMixerMasterVolume(float volume)
+        {
+            SetMixerVolume(MasterMixerVolume, volume);
+        }
+
+        private void SetMixerSoundVolume(float volume)
+        {
+            SetMixerVolume(SoundMixerVolume, volume);
+        }
+
+        private void SetMixerMusicVolume(float volume)
+        {
+            SetMixerVolume(MusicMixerVolume, volume);
+        }
+
+        private float GetMixerMasterVolume()
+        {
+            return GetMixerVolume(MasterMixerVolume);
+        }
+
+        private float GetMixerSoundVolume()
+        {
+            return GetMixerVolume(SoundMixerVolume);
+        }
+
+        private float GetMixerMusicVolume()
+        {
+            return GetMixerVolume(MusicMixerVolume);
+        }
+
+        private void SetMixerVolume(string nameKey, float volume)
         {
             float volumeN = volume / (maxVolume - minVolume);
             float targetVolume =
@@ -224,7 +313,7 @@ namespace PartsKit
             AudioMixer.SetFloat(nameKey, targetVolume);
         }
 
-        private float GetVolume(string nameKey)
+        private float GetMixerVolume(string nameKey)
         {
             if (!AudioMixer.GetFloat(nameKey, out float volume))
             {

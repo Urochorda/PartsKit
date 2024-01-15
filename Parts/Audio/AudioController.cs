@@ -226,7 +226,7 @@ namespace PartsKit
             soundVolume = volume;
             if (GetSoundOn())
             {
-                SetMixerMusicVolume(GetSoundVolume());
+                SetMixerSoundVolume(GetSoundVolume());
             }
         }
 

@@ -8,11 +8,12 @@ namespace PartsKit
     {
         [SerializeField] private CheckNullProperty<Transform> rootPoint;
         private Sequence animSequence;
-        private Transform SafePoint => rootPoint.GetValue(out Transform rootPointValue) ? transform : rootPointValue;
+        private Transform SafePoint => rootPoint.GetValue(out Transform rootPointValue) ? rootPointValue : transform;
 
         public void OnPointerDown(PointerEventData eventData)
         {
             animSequence?.Kill();
+            animSequence = DOTween.Sequence();
             animSequence.Append(SafePoint.DOScale(new Vector3(0.9f, 0.9f, 1), 0.15f));
             animSequence.OnKill(() => { animSequence = null; });
         }
@@ -20,6 +21,7 @@ namespace PartsKit
         public void OnPointerUp(PointerEventData eventData)
         {
             animSequence?.Kill();
+            animSequence = DOTween.Sequence();
             animSequence.Append(SafePoint.DOScale(Vector3.one, 0.15f));
             animSequence.OnKill(() => { animSequence = null; });
         }

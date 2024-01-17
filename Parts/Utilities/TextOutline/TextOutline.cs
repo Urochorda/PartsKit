@@ -33,7 +33,7 @@ namespace PartsKit
             {
                 useTextGradient = value;
                 if (graphic != null)
-                    _Refresh();
+                    Refresh();
             }
         }
 
@@ -44,7 +44,7 @@ namespace PartsKit
             {
                 textGradient = value;
                 if (graphic != null)
-                    _Refresh();
+                    Refresh();
             }
         }
 
@@ -55,7 +55,7 @@ namespace PartsKit
             {
                 outlineColor = value;
                 if (graphic != null)
-                    _Refresh();
+                    Refresh();
             }
         }
 
@@ -66,7 +66,7 @@ namespace PartsKit
             {
                 outlineWidth = value;
                 if (graphic != null)
-                    _Refresh();
+                    Refresh();
             }
         }
 
@@ -77,7 +77,7 @@ namespace PartsKit
             {
                 useShadow = value;
                 if (graphic != null)
-                    _Refresh();
+                    Refresh();
             }
         }
 
@@ -88,7 +88,7 @@ namespace PartsKit
             {
                 shadowAlphaStand = value;
                 if (graphic != null)
-                    _Refresh();
+                    Refresh();
             }
         }
 
@@ -99,7 +99,7 @@ namespace PartsKit
             {
                 useShadowGradient = value;
                 if (graphic != null)
-                    _Refresh();
+                    Refresh();
             }
         }
 
@@ -110,7 +110,7 @@ namespace PartsKit
             {
                 shadowGradient = value;
                 if (graphic != null)
-                    _Refresh();
+                    Refresh();
             }
         }
 
@@ -121,7 +121,7 @@ namespace PartsKit
             {
                 shadowOutlineColor = value;
                 if (graphic != null)
-                    _Refresh();
+                    Refresh();
             }
         }
 
@@ -132,7 +132,7 @@ namespace PartsKit
             {
                 shadowOutlineOffset = value;
                 if (graphic != null)
-                    _Refresh();
+                    Refresh();
             }
         }
 
@@ -143,7 +143,7 @@ namespace PartsKit
             {
                 shadowOutlineWidth = value;
                 if (graphic != null)
-                    _Refresh();
+                    Refresh();
             }
         }
 
@@ -174,7 +174,7 @@ namespace PartsKit
             {
                 SetShaderChannels();
                 SetShaderParams();
-                _Refresh();
+                Refresh();
             }
         }
 
@@ -239,9 +239,9 @@ namespace PartsKit
                 }
             }
         }
-#pragma warning disable 0114
-        // #if UNITY_EDITOR || UNITY_STANDALONE_WIN
-        protected void OnValidate()
+
+#if UNITY_EDITOR
+        protected override void OnValidate()
         {
             if (!bSetPreviewCanvas && Application.isEditor && gameObject.activeInHierarchy)
             {
@@ -270,11 +270,11 @@ namespace PartsKit
                 }
             }
 
-            Invoke("OnValidate", 0);
+            base.OnValidate();
             if (CheckShader())
             {
                 SetShaderParams();
-                _Refresh();
+                Refresh();
             }
 
             if (graphic.material.GetHashCode() != iMatHash)
@@ -284,30 +284,28 @@ namespace PartsKit
             }
         }
 
-        protected void Reset()
+        protected override void Reset()
         {
-            // base.Reset();
-            Invoke("Reset", 0);
+            base.Reset();
             if (graphic.material.shader.name != OutlineShader)
             {
                 graphic.material = new Material(Shader.Find(OutlineShader));
                 iMatHash = graphic.material.GetHashCode();
             }
         }
-
-#pragma warning restore 0114
+#endif
 
         public override void ModifyMesh(VertexHelper vh)
         {
             var lVetexList = new List<UIVertex>();
             vh.GetUIVertexStream(lVetexList);
-            _ProcessVertices(lVetexList, OutlineWidth);
+            ProcessVertices(lVetexList, OutlineWidth);
 
             List<UIVertex> lShadowVerts = new List<UIVertex>();
             if (useShadow)
             {
                 vh.GetUIVertexStream(lShadowVerts);
-                _ProcessVertices(lShadowVerts, ShadowOutlineWidth);
+                ProcessVertices(lShadowVerts, ShadowOutlineWidth);
 
                 ApplyShadow(lShadowVerts, shadowGradient.colorKeys[0].color);
                 if (useShadowGradient)
@@ -368,7 +366,7 @@ namespace PartsKit
         }
 
         // 添加描边后，为防止描边被网格边框裁切，需要将顶点外扩，同时保持UV不变
-        private void _ProcessVertices(List<UIVertex> lVerts, float outlineWidthVal)
+        private void ProcessVertices(List<UIVertex> lVerts, float outlineWidthVal)
         {
             for (int i = 0, count = lVerts.Count - 3; i <= count; i += 3)
             {
@@ -377,10 +375,10 @@ namespace PartsKit
                 var v3 = lVerts[i + 2];
                 // 计算原顶点坐标中心点
                 //
-                var minX = _Min(v1.position.x, v2.position.x, v3.position.x);
-                var minY = _Min(v1.position.y, v2.position.y, v3.position.y);
-                var maxX = _Max(v1.position.x, v2.position.x, v3.position.x);
-                var maxY = _Max(v1.position.y, v2.position.y, v3.position.y);
+                var minX = Min(v1.position.x, v2.position.x, v3.position.x);
+                var minY = Min(v1.position.y, v2.position.y, v3.position.y);
+                var maxX = Max(v1.position.x, v2.position.x, v3.position.x);
+                var maxY = Max(v1.position.y, v2.position.y, v3.position.y);
                 var posCenter = new Vector2(minX + maxX, minY + maxY) * 0.5f;
                 // 计算原始顶点坐标和UV的方向
                 //
@@ -405,15 +403,15 @@ namespace PartsKit
                 }
 
                 // 计算原始UV框
-                var uvMin = _Min(v1.uv0, v2.uv0, v3.uv0);
-                var uvMax = _Max(v1.uv0, v2.uv0, v3.uv0);
+                var uvMin = Min(v1.uv0, v2.uv0, v3.uv0);
+                var uvMax = Max(v1.uv0, v2.uv0, v3.uv0);
 
                 // 为每个顶点设置新的Position和UV，并传入原始UV框
-                v1 = _SetNewPosAndUV(v1, outlineWidthVal, posCenter, triX, triY, uvX, uvY, uvMin, uvMax,
+                v1 = SetNewPosAndUV(v1, outlineWidthVal, posCenter, triX, triY, uvX, uvY, uvMin, uvMax,
                     ShadowOutlineOffset);
-                v2 = _SetNewPosAndUV(v2, outlineWidthVal, posCenter, triX, triY, uvX, uvY, uvMin, uvMax,
+                v2 = SetNewPosAndUV(v2, outlineWidthVal, posCenter, triX, triY, uvX, uvY, uvMin, uvMax,
                     ShadowOutlineOffset);
-                v3 = _SetNewPosAndUV(v3, outlineWidthVal, posCenter, triX, triY, uvX, uvY, uvMin, uvMax,
+                v3 = SetNewPosAndUV(v3, outlineWidthVal, posCenter, triX, triY, uvX, uvY, uvMin, uvMax,
                     ShadowOutlineOffset);
 
                 // 应用设置后的UIVertex
@@ -425,7 +423,7 @@ namespace PartsKit
         }
 
 
-        private static UIVertex _SetNewPosAndUV(UIVertex pVertex, float pOutLineWidth,
+        private static UIVertex SetNewPosAndUV(UIVertex pVertex, float pOutLineWidth,
             Vector2 pPosCenter,
             Vector2 pTriangleX, Vector2 pTriangleY,
             Vector2 pUvx, Vector2 pUvy,
@@ -454,33 +452,33 @@ namespace PartsKit
             return pVertex;
         }
 
-        private void _Refresh()
+        private void Refresh()
         {
             SetShaderParams();
             graphic.SetVerticesDirty();
         }
 
-        private static float _Min(float pA, float pB, float pC)
+        private static float Min(float pA, float pB, float pC)
         {
             return Mathf.Min(Mathf.Min(pA, pB), pC);
         }
 
 
-        private static float _Max(float pA, float pB, float pC)
+        private static float Max(float pA, float pB, float pC)
         {
             return Mathf.Max(Mathf.Max(pA, pB), pC);
         }
 
 
-        private static Vector2 _Min(Vector2 pA, Vector2 pB, Vector2 pC)
+        private static Vector2 Min(Vector2 pA, Vector2 pB, Vector2 pC)
         {
-            return new Vector2(_Min(pA.x, pB.x, pC.x), _Min(pA.y, pB.y, pC.y));
+            return new Vector2(Min(pA.x, pB.x, pC.x), Min(pA.y, pB.y, pC.y));
         }
 
 
-        private static Vector2 _Max(Vector2 pA, Vector2 pB, Vector2 pC)
+        private static Vector2 Max(Vector2 pA, Vector2 pB, Vector2 pC)
         {
-            return new Vector2(_Max(pA.x, pB.x, pC.x), _Max(pA.y, pB.y, pC.y));
+            return new Vector2(Max(pA.x, pB.x, pC.x), Max(pA.y, pB.y, pC.y));
         }
     }
 }

@@ -5,17 +5,16 @@ using Random = UnityEngine.Random;
 
 namespace PartsKit
 {
-    public enum PlayMode
-    {
-        Random,
-        NoRepeatRandom,
-        Sequence,
-    }
-
-
     [Serializable]
     public class AudioClipGroup
     {
+        public enum PlayMode
+        {
+            Random,
+            NoRepeatRandom,
+            Sequence,
+        }
+
         [field: SerializeField] public string GroupName { get; private set; }
 
         [field: SerializeField] public CheckNullProperty<AudioSource> SourcePrefab { get; private set; } //音效source预设

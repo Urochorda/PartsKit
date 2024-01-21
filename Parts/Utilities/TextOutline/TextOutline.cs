@@ -19,6 +19,7 @@ namespace PartsKit
         [SerializeField, Range(0, 8)] private float shadowOutlineWidth;
         [SerializeField] private Vector2 shadowOutlineOffset;
         [SerializeField] private Color shadowOutlineColor = Color.white;
+        [SerializeField] private Color shadowColor = Color.white;
         [SerializeField] private bool shadowAlphaStand;
 
         [Header("渐变颜色")] [SerializeField] private bool useTextGradient;
@@ -307,9 +308,11 @@ namespace PartsKit
                 vh.GetUIVertexStream(lShadowVerts);
                 ProcessVertices(lShadowVerts, ShadowOutlineWidth);
 
-                ApplyShadow(lShadowVerts, shadowGradient.colorKeys[0].color);
+                ApplyShadow(lShadowVerts, shadowColor);
                 if (useShadowGradient)
+                {
                     ApplyGradient(lShadowVerts, shadowGradient);
+                }
             }
 
             if (useTextGradient)

@@ -21,7 +21,7 @@ namespace PartsKit
             effectItem.OnRecycle();
         }
 
-        [SerializeField] private float playTime;
+        [SerializeField] private float playTime = 2;
 
         private EffectController controller;
         private ParticleSystem particle;

@@ -4,7 +4,7 @@ namespace PartsKit
 {
     public abstract class LoadEffectAssetFun : MonoBehaviour
     {
-        public abstract EffectConfig LoadEffectConfig(int effectId);
+        public abstract EffectConfig LoadEffectConfig(string effectId);
     }
 
     public class EffectController : PartsKitBehaviour
@@ -20,7 +20,7 @@ namespace PartsKit
         {
         }
 
-        public EffectItem PlayEffect(int effectId, Vector3 pos)
+        public EffectItem PlayEffect(string effectId, Vector3 pos)
         {
             EffectItem ge = GetEffect(effectId);
             if (ge == null)
@@ -33,7 +33,7 @@ namespace PartsKit
             return ge;
         }
 
-        public EffectItem PlayEffect(int effectId, Transform parent)
+        public EffectItem PlayEffect(string effectId, Transform parent)
         {
             EffectItem ge = GetEffect(effectId);
             if (ge == null)
@@ -57,7 +57,7 @@ namespace PartsKit
             gameObjectPool.Release(effectItem.gameObject);
         }
 
-        private EffectItem GetEffect(int effectId)
+        private EffectItem GetEffect(string effectId)
         {
             EffectConfig effectConfig = customLoadEffectAssetFun.LoadEffectConfig(effectId);
             if (effectConfig == null)

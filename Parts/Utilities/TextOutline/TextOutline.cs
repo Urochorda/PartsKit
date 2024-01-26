@@ -148,8 +148,8 @@ namespace PartsKit
             }
         }
 
-        int iMatHash;
-        bool bSetPreviewCanvas;
+        private int iMatHash;
+        private bool bSetPreviewCanvas;
 
         private static readonly int OutlineColorKey = Shader.PropertyToID("_OutlineColor");
 
@@ -162,21 +162,7 @@ namespace PartsKit
         protected override void Awake()
         {
             base.Awake();
-            if (Application.isPlaying)
-            {
-                if (graphic.material.GetHashCode() != iMatHash)
-                {
-                    graphic.material = new Material(Shader.Find(OutlineShader));
-                    iMatHash = graphic.material.GetHashCode();
-                }
-            }
-
-            if (CheckShader())
-            {
-                SetShaderChannels();
-                SetShaderParams();
-                Refresh();
-            }
+            DoValidate(); //初始化刷新一下
         }
 
         protected override void OnDestroy()
@@ -185,8 +171,22 @@ namespace PartsKit
             graphic.material = null;
         }
 
+        protected override void OnTransformParentChanged()
+        {
+            base.OnCanvasHierarchyChanged();
+            DoValidate(); //父物体变化，刷新一下
+        }
 
-        bool CheckShader()
+        private void SetMaterial()
+        {
+            if (graphic.material.GetHashCode() != iMatHash)
+            {
+                graphic.material = new Material(Shader.Find(OutlineShader));
+                iMatHash = graphic.material.GetHashCode();
+            }
+        }
+
+        private bool CheckShader()
         {
             if (graphic == null)
             {
@@ -203,7 +203,7 @@ namespace PartsKit
             return true;
         }
 
-        void SetShaderParams()
+        private void SetShaderParams()
         {
             if (graphic.material != null)
             {
@@ -216,7 +216,7 @@ namespace PartsKit
             }
         }
 
-        void SetShaderChannels()
+        private void SetShaderChannels()
         {
             if (graphic.canvas)
             {
@@ -244,6 +244,40 @@ namespace PartsKit
 #if UNITY_EDITOR
         protected override void OnValidate()
         {
+            base.OnValidate();
+            DoValidate();
+        }
+
+        protected override void Reset()
+        {
+            base.Reset();
+            DoReset();
+        }
+
+#else
+
+        private void OnValidate()
+        {
+            DoValidate();
+        }
+
+        private void Reset()
+        {
+            DoReset();
+        }
+
+#endif
+
+        private void DoValidate()
+        {
+            SetMaterial();
+            if (CheckShader())
+            {
+                SetShaderParams();
+                SetShaderChannels();
+                Refresh();
+            }
+
             if (!bSetPreviewCanvas && Application.isEditor && gameObject.activeInHierarchy)
             {
                 var can = GetComponentInParent<Canvas>();
@@ -270,31 +304,12 @@ namespace PartsKit
                     bSetPreviewCanvas = true;
                 }
             }
-
-            base.OnValidate();
-            if (CheckShader())
-            {
-                SetShaderParams();
-                Refresh();
-            }
-
-            if (graphic.material.GetHashCode() != iMatHash)
-            {
-                graphic.material = new Material(Shader.Find(OutlineShader));
-                iMatHash = graphic.material.GetHashCode();
-            }
         }
 
-        protected override void Reset()
+        private void DoReset()
         {
-            base.Reset();
-            if (graphic.material.shader.name != OutlineShader)
-            {
-                graphic.material = new Material(Shader.Find(OutlineShader));
-                iMatHash = graphic.material.GetHashCode();
-            }
+            SetMaterial();
         }
-#endif
 
         public override void ModifyMesh(VertexHelper vh)
         {

@@ -148,8 +148,8 @@ namespace PartsKit
             }
         }
 
-        int iMatHash;
-        bool bSetPreviewCanvas;
+        private int iMatHash;
+        private bool bSetPreviewCanvas;
 
         private static readonly int OutlineColorKey = Shader.PropertyToID("_OutlineColor");
 
@@ -162,21 +162,7 @@ namespace PartsKit
         protected override void Awake()
         {
             base.Awake();
-            if (Application.isPlaying)
-            {
-                if (graphic.material.GetHashCode() != iMatHash)
-                {
-                    graphic.material = new Material(Shader.Find(OutlineShader));
-                    iMatHash = graphic.material.GetHashCode();
-                }
-            }
-
-            if (CheckShader())
-            {
-                SetShaderChannels();
-                SetShaderParams();
-                Refresh();
-            }
+            RefreshAll(); //初始化刷新一下
         }
 
         protected override void OnDestroy()
@@ -185,8 +171,22 @@ namespace PartsKit
             graphic.material = null;
         }
 
+        protected override void OnTransformParentChanged()
+        {
+            base.OnCanvasHierarchyChanged();
+            RefreshAll(); //父物体变化，刷新一下
+        }
 
-        bool CheckShader()
+        private void SetMaterial()
+        {
+            if (graphic.material.GetHashCode() != iMatHash)
+            {
+                graphic.material = new Material(Shader.Find(OutlineShader));
+                iMatHash = graphic.material.GetHashCode();
+            }
+        }
+
+        private bool CheckShader()
         {
             if (graphic == null)
             {
@@ -203,7 +203,7 @@ namespace PartsKit
             return true;
         }
 
-        void SetShaderParams()
+        private void SetShaderParams()
         {
             if (graphic.material != null)
             {
@@ -216,7 +216,7 @@ namespace PartsKit
             }
         }
 
-        void SetShaderChannels()
+        private void SetShaderChannels()
         {
             if (graphic.canvas)
             {
@@ -239,62 +239,75 @@ namespace PartsKit
                     graphic.canvas.additionalShaderChannels |= v2;
                 }
             }
+            else
+            {
+                if (!bSetPreviewCanvas && Application.isEditor && !Application.isPlaying &&
+                    gameObject.activeInHierarchy)
+                {
+                    var can = GetComponentInParent<Canvas>();
+                    if (can != null)
+                    {
+                        if ((can.additionalShaderChannels & AdditionalCanvasShaderChannels.TexCoord1) == 0 ||
+                            (can.additionalShaderChannels & AdditionalCanvasShaderChannels.TexCoord2) == 0)
+                        {
+                            if (can.name.Contains("(Environment)"))
+                            {
+                                // 处于Prefab预览场景中(需要打开TexCoord1,2,3通道，否则Scene场景上会有显示问题(因为我们有用到uv1,uv2.uv3))
+                                can.additionalShaderChannels |= AdditionalCanvasShaderChannels.TexCoord1 |
+                                                                AdditionalCanvasShaderChannels.TexCoord2 |
+                                                                AdditionalCanvasShaderChannels.TexCoord3;
+                            }
+                            else
+                            {
+                                // 不是处于Prefab预览场景中，但父级Canvas的TexCoord1和TexCoord2通道没打开
+                                CustomLog.LogWarning(
+                                    "Text2DOutline may display incorrect if TexCoord1, TexCoord2 and TexCoord3 Channels are not open at Canvas where Text2DOutline object in.");
+                            }
+                        }
+
+                        bSetPreviewCanvas = true;
+                    }
+                }
+            }
         }
 
 #if UNITY_EDITOR
         protected override void OnValidate()
         {
-            if (!bSetPreviewCanvas && Application.isEditor && gameObject.activeInHierarchy)
-            {
-                var can = GetComponentInParent<Canvas>();
-                if (can != null)
-                {
-                    if ((can.additionalShaderChannels & AdditionalCanvasShaderChannels.TexCoord1) == 0 ||
-                        (can.additionalShaderChannels & AdditionalCanvasShaderChannels.TexCoord2) == 0)
-                    {
-                        if (can.name.Contains("(Environment)"))
-                        {
-                            // 处于Prefab预览场景中(需要打开TexCoord1,2,3通道，否则Scene场景上会有显示问题(因为我们有用到uv1,uv2.uv3))
-                            can.additionalShaderChannels |= AdditionalCanvasShaderChannels.TexCoord1 |
-                                                            AdditionalCanvasShaderChannels.TexCoord2 |
-                                                            AdditionalCanvasShaderChannels.TexCoord3;
-                        }
-                        else
-                        {
-                            // 不是处于Prefab预览场景中，但父级Canvas的TexCoord1和TexCoord2通道没打开
-                            CustomLog.LogWarning(
-                                "Text2DOutline may display incorrect if TexCoord1, TexCoord2 and TexCoord3 Channels are not open at Canvas where Text2DOutline object in.");
-                        }
-                    }
-
-                    bSetPreviewCanvas = true;
-                }
-            }
-
             base.OnValidate();
-            if (CheckShader())
-            {
-                SetShaderParams();
-                Refresh();
-            }
-
-            if (graphic.material.GetHashCode() != iMatHash)
-            {
-                graphic.material = new Material(Shader.Find(OutlineShader));
-                iMatHash = graphic.material.GetHashCode();
-            }
+            RefreshAll();
         }
 
         protected override void Reset()
         {
             base.Reset();
-            if (graphic.material.shader.name != OutlineShader)
+            RefreshAll();
+        }
+
+#else
+
+        private void OnValidate()
+        {
+            RefreshAll();
+        }
+
+        private void Reset()
+        {
+            RefreshAll();
+        }
+
+#endif
+
+        private void RefreshAll()
+        {
+            SetMaterial();
+            if (CheckShader())
             {
-                graphic.material = new Material(Shader.Find(OutlineShader));
-                iMatHash = graphic.material.GetHashCode();
+                SetShaderParams();
+                SetShaderChannels();
+                Refresh();
             }
         }
-#endif
 
         public override void ModifyMesh(VertexHelper vh)
         {

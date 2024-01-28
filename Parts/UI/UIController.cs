@@ -38,6 +38,19 @@ namespace PartsKit
         }
 
         /// <summary>
+        /// 预加载Panel
+        /// </summary>
+        public void PreLoadPanel<T>(string panelKey, Action<T> onPanelLoad) where T : UIPanel
+        {
+            LoadUIPanelAsync(panelKey, onPanelLoad);
+        }
+
+        public void PreLoadPanel(string panelKey)
+        {
+            LoadUIPanelAsync<UIPanel>(panelKey, null);
+        }
+
+        /// <summary>
         /// 打开面板，输出打开的面板对象
         /// </summary>
         public bool OpenPanel<T>(string panelKey, string levelKey, out T panel) where T : UIPanel
@@ -166,34 +179,38 @@ namespace PartsKit
 
         private void CreateUIPanelAsync<T>(string panelKey, Transform levelObj, Action<T> onPanelLoad) where T : UIPanel
         {
+            LoadUIPanelAsync<T>(panelKey, (panelPrefab) =>
+            {
+                T uiPanel = InstantiateUIPanel(panelPrefab, levelObj);
+                onPanelLoad?.Invoke(uiPanel);
+            });
+        }
+
+        private string GetResourcesPath(string panelKey)
+        {
+            return $"{resourcesPath}/{panelKey}";
+        }
+
+        private void LoadUIPanelAsync<T>(string panelKey, Action<T> onPanelLoad) where T : UIPanel
+        {
             if (CustomLoadPanelFun != null)
             {
                 CustomLoadPanelFun.LoadAsync<T>(panelKey, (panelPrefab) =>
                 {
                     if (panelPrefab == null)
                     {
-                        CustomLog.LogError($"{nameof(CreateUIPanelAsync)} {panelKey} err");
+                        CustomLog.LogError($"{nameof(LoadUIPanelAsync)} {panelKey} err");
                         return;
                     }
 
-                    T uiPanel = InstantiateUIPanel(panelPrefab, levelObj);
-                    onPanelLoad?.Invoke(uiPanel);
+                    onPanelLoad?.Invoke(panelPrefab);
                 });
             }
             else
             {
                 ResourceRequest request = Resources.LoadAsync<T>(GetResourcesPath(panelKey));
-                request.completed += (operation) =>
-                {
-                    T uiPanel = InstantiateUIPanel(request.asset as T, levelObj);
-                    onPanelLoad?.Invoke(uiPanel);
-                };
+                request.completed += (operation) => { onPanelLoad?.Invoke(request.asset as T); };
             }
-        }
-
-        private string GetResourcesPath(string panelKey)
-        {
-            return $"{resourcesPath}/{panelKey}";
         }
 
         private T InstantiateUIPanel<T>(T prefab, Transform levelObj) where T : UIPanel

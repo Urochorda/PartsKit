@@ -56,6 +56,15 @@ namespace PartsKit
             set => maxVolume = value;
         }
 
+        private int maxLogVolume = 1000;
+        private const int MinLogVolume = 1;
+
+        public int MaxLogVolume
+        {
+            get => maxLogVolume;
+            set => maxLogVolume = Mathf.Max(MinLogVolume, value);
+        }
+
         public bool masterOn = true;
         public bool musicOn = true;
         public bool soundOn = true;
@@ -305,11 +314,17 @@ namespace PartsKit
 
         private void SetMixerVolume(string nameKey, float volume)
         {
-            float volumeN = volume / (maxVolume - minVolume);
-            float targetVolume =
-                (AudioMixerMaxVolume - AudioMixerMinVolume) * volumeN +
-                AudioMixerMinVolume; //根据audioMixer的volume返回折算，这样写表示计算公式
-            targetVolume = Mathf.Clamp(targetVolume, AudioMixerMinVolume, AudioMixerMaxVolume);
+            volume = Mathf.Clamp(volume, minVolume, maxVolume);
+            float volumeN = (volume - minVolume) / (maxVolume - minVolume);
+
+            // 将输入范围映射到对数范围
+            float maxLogValue = Mathf.Log(MaxLogVolume);
+            float minLogValue = Mathf.Log(MinLogVolume);
+            float curLogValue =
+                Mathf.Log(MinLogVolume + (MaxLogVolume - MinLogVolume) * volumeN);
+            float logValueN = (curLogValue - minLogValue) / (maxLogValue - minLogValue);
+
+            float targetVolume = (AudioMixerMaxVolume - AudioMixerMinVolume) * logValueN + AudioMixerMinVolume;
             AudioMixer.SetFloat(nameKey, targetVolume);
         }
 
@@ -320,8 +335,13 @@ namespace PartsKit
                 return minVolume;
             }
 
-            float volumeN = volume / (AudioMixerMaxVolume - AudioMixerMinVolume);
-            float targetVolume = (maxVolume - minVolume) * volumeN + minVolume; //根据audioMixer的volume返回折算，这样写表示计算公式
+            // 将对数范围映射到线性范围
+            float maxLogValue = Mathf.Log(MaxLogVolume);
+            float minLogValue = Mathf.Log(MinLogVolume);
+            float logValue = (volume - AudioMixerMinVolume) / (AudioMixerMaxVolume - AudioMixerMinVolume) *
+                (maxLogValue - minLogValue) + minLogValue;
+            float targetVolumeN = (Mathf.Exp(logValue) - minLogValue) / (MaxLogVolume - MinLogVolume);
+            float targetVolume = targetVolumeN * (maxVolume - minVolume) + minVolume;
             return targetVolume;
         }
 

@@ -27,6 +27,11 @@ namespace PartsKit
             return true;
         }
 
+        public void Delete(string name)
+        {
+            PlayerPrefs.DeleteKey(name);
+        }
+
         public void Save()
         {
             SaveEvent?.Trigger();

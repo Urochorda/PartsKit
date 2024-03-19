@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using Newtonsoft.Json;
 
@@ -16,14 +17,29 @@ namespace PartsKit
 
         public bool Get<T>(string name, out T data)
         {
+            return Get(name, null, out data);
+        }
+
+        public bool Get<T>(string name, Func<T> getDefault, out T data)
+        {
             if (!PlayerPrefs.HasKey(name))
             {
-                data = default;
+                data = getDefault == null ? default : getDefault.Invoke();
                 return false;
             }
 
             string dataStr = PlayerPrefs.GetString(name);
-            data = JsonConvert.DeserializeObject<T>(dataStr);
+            try
+            {
+                data = JsonConvert.DeserializeObject<T>(dataStr);
+            }
+            catch (Exception e)
+            {
+                CustomLog.LogError(e);
+                data = getDefault == null ? default : getDefault.Invoke();
+                return false;
+            }
+
             return true;
         }
 

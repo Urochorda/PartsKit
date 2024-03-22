@@ -114,7 +114,7 @@ namespace PartsKit
                 return;
             }
 
-            EditorUtility.SetDirty(Blueprint);
+            Blueprint.SetDirtySelf();
             AssetDatabase.SaveAssets();
         }
 
@@ -455,6 +455,7 @@ namespace PartsKit
                     nodeView.RefreshName();
                 }
             }
+            Blueprint.Blackboard.OnParameterRename();
         }
 
         /// <summary>

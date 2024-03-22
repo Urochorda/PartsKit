@@ -87,7 +87,7 @@ namespace PartsKit
                     OutputPorts.Add(treeNodePort);
                     break;
                 default:
-                    Debug.LogError("portType错误");
+                    CustomLog.LogError("portType错误");
                     break;
             }
         }
@@ -106,7 +106,7 @@ namespace PartsKit
                     OutputPorts.RemoveAll(item => item.PortName == portName);
                     break;
                 default:
-                    Debug.LogError("portType错误");
+                    CustomLog.LogError("portType错误");
                     break;
             }
         }
@@ -123,7 +123,7 @@ namespace PartsKit
                 case IBlueprintPort.Direction.Output:
                     return OutputPorts.Find(item => item.PortName == portName);
                 default:
-                    Debug.LogError("portType错误");
+                    CustomLog.LogError("portType错误");
                     break;
             }
 

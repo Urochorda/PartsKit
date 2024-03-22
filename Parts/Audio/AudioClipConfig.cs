@@ -33,7 +33,7 @@ namespace PartsKit
         {
             if (audioClips.Length <= 0)
             {
-                Debug.LogError("AudioClipGroupConfig的" + GroupName + "的AudioClip为空");
+                CustomLog.LogError("AudioClipGroupConfig的" + GroupName + "的AudioClip为空");
                 return null;
             }
 

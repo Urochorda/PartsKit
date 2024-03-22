@@ -12,6 +12,13 @@ namespace PartsKit
 
         public IReadOnlyList<IBlueprintParameter> Parameters => parameters;
 
+        public Blueprint OwnerBlueprint { get; private set; }
+
+        public void Init(Blueprint blueprintVal)
+        {
+            OwnerBlueprint = blueprintVal;
+        }
+
         public string GetUniqueParameterName(string name)
         {
             string uniqueName = name;
@@ -29,17 +36,19 @@ namespace PartsKit
             if (parameter == null || Parameters.Contains(parameter) ||
                 string.IsNullOrWhiteSpace(parameter.ParameterName))
             {
-                Debug.LogError("Add Parameter Err");
+                CustomLog.LogError("Add Parameter Err");
                 return;
             }
 
             parameter.ParameterName = GetUniqueParameterName(parameter.ParameterName);
             parameters.Add(parameter);
+            OwnerBlueprint.SetDirtySelf();
         }
 
         public virtual void RemoveParameter(IBlueprintParameter parameter)
         {
             parameters.Remove(parameter);
+            OwnerBlueprint.SetDirtySelf();
         }
 
         public IBlueprintParameter GetParameterByGuid(string guid)
@@ -69,12 +78,18 @@ namespace PartsKit
             {
                 if (item == null || string.IsNullOrEmpty(item.Guid))
                 {
-                    Debug.LogError("Parameter NotValid");
+                    CustomLog.LogError("Parameter NotValid");
+                    OwnerBlueprint.SetDirtySelf();
                     return true;
                 }
 
                 return false;
             });
+        }
+
+        public void OnParameterRename()
+        {
+            OwnerBlueprint.SetDirtySelf();
         }
     }
 }

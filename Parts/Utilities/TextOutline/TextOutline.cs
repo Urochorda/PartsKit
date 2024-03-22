@@ -190,13 +190,13 @@ namespace PartsKit
         {
             if (graphic == null)
             {
-                Debug.LogError("No Graphic Component !");
+                CustomLog.LogError("No Graphic Component !");
                 return false;
             }
 
             if (graphic.material == null)
             {
-                Debug.LogError("No Material !");
+                CustomLog.LogError("No Material !");
                 return false;
             }
 

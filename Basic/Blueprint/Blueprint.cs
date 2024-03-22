@@ -33,7 +33,7 @@ namespace PartsKit
 
         public void CheckValid()
         {
-            CheckParametersValidPre();
+            CheckParametersValid();
             CheckNodeValidPre();
             CheckNodeValid();
             CheckEdgeValidPre();
@@ -49,7 +49,8 @@ namespace PartsKit
 
         private void InitData()
         {
-            CheckParametersValidPre();
+            blackboard.Init(this);
+            CheckParametersValid();
 
             //Node
             CheckNodeValidPre();
@@ -69,13 +70,21 @@ namespace PartsKit
             }
         }
 
+        public void SetDirtySelf()
+        {
+#if UNITY_EDITOR
+            UnityEditor.EditorUtility.SetDirty(this);
+#endif
+        }
+
         private void CheckNodeValidPre()
         {
             nodes.RemoveAll(item =>
             {
                 if (item == null || string.IsNullOrEmpty(item.Guid))
                 {
-                    Debug.LogError("Node Data Err");
+                    CustomLog.LogError("Node Data Err");
+                    SetDirtySelf();
                     return true;
                 }
 
@@ -89,7 +98,8 @@ namespace PartsKit
             {
                 if (item.IsNotValid())
                 {
-                    Debug.LogError("Node IsNotValid");
+                    CustomLog.LogError("Node IsNotValid");
+                    SetDirtySelf();
                     return true;
                 }
 
@@ -103,13 +113,15 @@ namespace PartsKit
             {
                 if (item == null || string.IsNullOrEmpty(item.Guid))
                 {
-                    Debug.LogError("Edge Guid Err");
+                    CustomLog.LogError("Edge Guid Err");
+                    SetDirtySelf();
                     return true;
                 }
 
                 if (!GetPortByEdge(item, out _, out _))
                 {
-                    Debug.LogError("Edge Port Err");
+                    CustomLog.LogError("Edge Port Err");
+                    SetDirtySelf();
                     return true;
                 }
 
@@ -117,7 +129,7 @@ namespace PartsKit
             });
         }
 
-        private void CheckParametersValidPre()
+        private void CheckParametersValid()
         {
             blackboard.ClearNotValidParameters();
         }
@@ -126,13 +138,14 @@ namespace PartsKit
         {
             if (treeNode == null || nodes.Contains(treeNode))
             {
-                Debug.LogError("Add Node Err");
+                CustomLog.LogError("Add Node Err");
                 return;
             }
 
             //先加入列表后init
             nodes.Add(treeNode);
             treeNode.Init(this);
+            SetDirtySelf();
         }
 
         public virtual void RemoveNode(BlueprintNode treeNode)
@@ -143,6 +156,7 @@ namespace PartsKit
             }
 
             nodes.Remove(treeNode);
+            SetDirtySelf();
         }
 
         public BlueprintNode GetNodeByGuid(string guid)
@@ -173,7 +187,7 @@ namespace PartsKit
         {
             if (edges.Contains(edge))
             {
-                Debug.LogError("Add Edge Err");
+                CustomLog.LogError("Add Edge Err");
                 return;
             }
 
@@ -181,12 +195,14 @@ namespace PartsKit
             edges.Add(edge);
             edge.Init();
             UpdateLinkByEdge(edge, true);
+            SetDirtySelf();
         }
 
         public virtual void RemoveEdge(BlueprintEdge edge)
         {
             edges.Remove(edge);
             UpdateLinkByEdge(edge, false);
+            SetDirtySelf();
         }
 
         public List<BlueprintEdge> GetEdgeByPort(IBlueprintPort port)
@@ -337,12 +353,12 @@ namespace PartsKit
             OnExecutedChange?.Invoke();
         }
 
-        #endregion
-
         public void SetOwnerObject(GameObject ownerObjectVal)
         {
             OwnerObject = ownerObjectVal;
         }
+
+        #endregion
 
         /// <summary>
         /// 克隆自己

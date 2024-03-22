@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -6,11 +7,17 @@ namespace PartsKit
 {
     public class DefaultDialogueShowPanel : MonoBehaviour, IDialogueShowPanel
     {
+        [SerializeField] private GameObjectPool gameObjectPool;
         [SerializeField] private Text contentText;
         [SerializeField] private List<DefaultDialogueShowCharacter> showCharacters;
 
+        [SerializeField] private Transform selectItemParent;
+        [SerializeField] private DefaultDialogueShowSelectItem selectItemPrefab;
+
         private readonly List<DefaultDialogueShowCharacter>
             curShowCharacters = new List<DefaultDialogueShowCharacter>();
+
+        private readonly List<DefaultDialogueShowSelectItem> curSelectItems = new List<DefaultDialogueShowSelectItem>();
 
         public void Show()
         {
@@ -65,6 +72,24 @@ namespace PartsKit
                 DefaultDialogueShowCharacter targetShowCharacter = showCharacters[showCharacterIndex];
                 curShowCharacters.Add(targetShowCharacter);
                 targetShowCharacter.SetShow(character);
+            }
+        }
+
+        public void SetSelects(List<DialogueSelectItemData> selects, Action<DialogueSelectItemData> onSelect)
+        {
+            foreach (DefaultDialogueShowSelectItem item in curSelectItems)
+            {
+                gameObjectPool.Release(item.gameObject);
+            }
+
+            curSelectItems.Clear();
+
+            foreach (DialogueSelectItemData itemData in selects)
+            {
+                DefaultDialogueShowSelectItem item = gameObjectPool.Get(selectItemPrefab);
+                item.transform.SetParent(selectItemParent);
+                item.SetData(itemData, onSelect);
+                curSelectItems.Add(item);
             }
         }
 

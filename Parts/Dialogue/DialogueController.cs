@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using DG.Tweening;
 using UnityEngine;
 
@@ -8,6 +9,37 @@ namespace PartsKit
     {
         public abstract DialogueNodeConfig LoadNodeConfig(int nodeKey);
         public abstract IDialogueShowPanel LoadShowPanel();
+    }
+
+    [Serializable]
+    public class DialogueSelectItemData
+    {
+        [field: SerializeField] public string InfoEntryName { get; private set; }
+
+        public DialogueSelectItemData(string infoEntryName)
+        {
+            InfoEntryName = infoEntryName;
+        }
+    }
+
+    public struct DialoguePlayData
+    {
+        public int NodeConfigKey { get; set; }
+        public bool IsForce { get; set; }
+        public bool HideInEnd { get; set; }
+        public List<DialogueSelectItemData> SelectItemList { get; set; }
+        public Action OnComplete { get; set; }
+        public Action OnBeginPlay { get; set; }
+
+        public DialoguePlayData(int nodeConfigKey, bool isForce)
+        {
+            NodeConfigKey = nodeConfigKey;
+            IsForce = isForce;
+            HideInEnd = true;
+            SelectItemList = new List<DialogueSelectItemData>();
+            OnComplete = null;
+            OnBeginPlay = null;
+        }
     }
 
     /// <summary>
@@ -23,6 +55,7 @@ namespace PartsKit
         public event Action OnPlay;
         public event Action OnStop;
         private DialogueNodeConfig curNode;
+        private readonly List<DialogueSelectItemData> curSelectItemList = new List<DialogueSelectItemData>();
         public IDialogueShowPanel CurShowPanel { get; private set; }
         private int curGroupIndex;
         private Action curOnComplete;
@@ -46,24 +79,27 @@ namespace PartsKit
         /// <summary>
         /// 播放对话
         /// </summary>
-        public bool TryPlayDialogue(int nodeConfigKey, bool isForce, Action onComplete, Action onBeginPlay)
+        public bool TryPlayDialogue(DialoguePlayData playData)
         {
-            if (IsPlayingDialogue && !isForce) //正在播放对话&&非强制更新
+            if (IsPlayingDialogue && !playData.IsForce) //正在播放对话&&非强制更新
             {
                 return false;
             }
 
             StopDialogue(); //结束上次对话
-            curNode = loadDialogueFun.LoadNodeConfig(nodeConfigKey);
+            SetTempHideInEnd(playData.HideInEnd);
+            curNode = loadDialogueFun.LoadNodeConfig(playData.NodeConfigKey);
+            curSelectItemList.Clear();
+            curSelectItemList.AddRange(playData.SelectItemList);
             CurShowPanel = loadDialogueFun.LoadShowPanel();
             curGroupIndex = 0;
-            curOnComplete = onComplete;
+            curOnComplete = playData.OnComplete;
             CurShowPanel.Show();
             CurShowPanel.BeginPlay();
             IsPlayingDialogue = true;
-            onBeginPlay?.Invoke();
+            playData.OnBeginPlay?.Invoke();
             OnPlay?.Invoke();
-            return DoPlayNode(curGroupIndex);
+            return DoPlayNode(curGroupIndex, null);
         }
 
         /// <summary>
@@ -100,7 +136,7 @@ namespace PartsKit
                 return true;
             }
 
-            if (DoPlayNode(curGroupIndex + 1))
+            if (DoPlayNode(curGroupIndex + 1, null))
             {
                 curGroupIndex++;
                 return true;
@@ -135,10 +171,15 @@ namespace PartsKit
             return true;
         }
 
-        private bool DoPlayNode(int index)
+        private bool DoPlayNode(int index, DialogueSelectItemData selectItemData)
         {
             if (CurShowPanel == null || curNode == null || index >= curNode.NodeGroups.Count)
             {
+                if (selectItemData == null && IsEndShowSelect())
+                {
+                    return false;
+                }
+
                 StopDialogue(); //结束对话
                 return false;
             }
@@ -159,8 +200,23 @@ namespace PartsKit
             {
                 IsPlayingNode = false;
                 curPlayNodeAnim = null;
+
+                if (index == curNode.NodeGroups.Count - 1 && IsEndShowSelect())
+                {
+                    CurShowPanel.SetSelects(curSelectItemList, (selectItem) =>
+                    {
+                        DialogueSelectItemData targetSelectItem = curSelectItemList.Find(item =>
+                            item.InfoEntryName == selectItem.InfoEntryName);
+                        DoPlayNode(index++, targetSelectItem);
+                    });
+                }
             });
             return true;
+        }
+
+        private bool IsEndShowSelect()
+        {
+            return curSelectItemList.Count > 0;
         }
 
         /// <summary>

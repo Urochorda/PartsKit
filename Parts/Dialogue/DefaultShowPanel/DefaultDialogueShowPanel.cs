@@ -21,11 +21,18 @@ namespace PartsKit
 
         public void Show()
         {
+            if (selectItemPrefab.transform.parent != null)
+            {
+                selectItemPrefab.gameObject.SetActive(false);
+            }
+
             gameObject.SetActive(true);
         }
 
         public void Hide()
         {
+            SetCharacters(null);
+            SetSelects(null, null);
             gameObject.SetActive(false);
         }
 
@@ -83,6 +90,11 @@ namespace PartsKit
             }
 
             curSelectItems.Clear();
+
+            if (selects == null || selects.Count <= 0)
+            {
+                return;
+            }
 
             foreach (DialogueSelectItemData itemData in selects)
             {

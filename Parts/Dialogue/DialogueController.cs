@@ -28,7 +28,7 @@ namespace PartsKit
         public bool IsForce { get; set; }
         public bool HideInEnd { get; set; }
         public List<DialogueSelectItemData> SelectItemList { get; set; }
-        public Action OnComplete { get; set; }
+        public Action<DialogueSelectItemData> OnComplete { get; set; }
         public Action OnBeginPlay { get; set; }
 
         public DialoguePlayData(int nodeConfigKey, bool isForce)
@@ -43,12 +43,12 @@ namespace PartsKit
     }
 
     /// <summary>
-    /// 简单的对话控制器（只有最简单的播放对话功能，不提供选择分支功能）
+    /// 简单的对话控制器
     /// </summary>
     public class DialogueController : PartsKitBehaviour
     {
         [SerializeField] private LoadDialogueFun loadDialogueFun;
-        [SerializeField] private float charDuration = 0.2f;
+        [SerializeField] private float charDuration = 0.05f;
         [SerializeField] private float advanceTimeScale = 5f;
         [SerializeField] private bool defaultHideInEnd = true;
 
@@ -58,7 +58,7 @@ namespace PartsKit
         private readonly List<DialogueSelectItemData> curSelectItemList = new List<DialogueSelectItemData>();
         public IDialogueShowPanel CurShowPanel { get; private set; }
         private int curGroupIndex;
-        private Action curOnComplete;
+        private Action<DialogueSelectItemData> curOnComplete;
         private Tweener curPlayNodeAnim;
         public bool IsPlayingDialogue { get; private set; }
         public bool IsPlayingNode { get; private set; }
@@ -107,23 +107,7 @@ namespace PartsKit
         /// </summary>
         public void StopDialogue()
         {
-            if (!IsPlayingDialogue)
-            {
-                return;
-            }
-
-            IsPlayingDialogue = false;
-            StopCurNode();
-            CurShowPanel.EndPlay();
-            if (CurHideInEnd)
-            {
-                CurShowPanel.Hide();
-            }
-
-            CurHideInEnd = defaultHideInEnd;
-            curOnComplete?.Invoke();
-            curOnComplete = null;
-            OnStop?.Invoke();
+            DoStopDialogue(null);
         }
 
         /// <summary>
@@ -180,7 +164,7 @@ namespace PartsKit
                     return false;
                 }
 
-                StopDialogue(); //结束对话
+                DoStopDialogue(selectItemData); //结束对话
                 return false;
             }
 
@@ -196,7 +180,7 @@ namespace PartsKit
             {
                 string content = targetString.Substring(0, newIndex + 1);
                 CurShowPanel.SetContent(content);
-            }, endIndex, duration).OnKill(() =>
+            }, endIndex, duration).SetEase(Ease.Linear).OnKill(() =>
             {
                 IsPlayingNode = false;
                 curPlayNodeAnim = null;
@@ -207,11 +191,32 @@ namespace PartsKit
                     {
                         DialogueSelectItemData targetSelectItem = curSelectItemList.Find(item =>
                             item.InfoEntryName == selectItem.InfoEntryName);
-                        DoPlayNode(index++, targetSelectItem);
+                        DoPlayNode(curGroupIndex + 1, targetSelectItem);
                     });
                 }
             });
             return true;
+        }
+
+        private void DoStopDialogue(DialogueSelectItemData selectItemData)
+        {
+            if (!IsPlayingDialogue)
+            {
+                return;
+            }
+
+            IsPlayingDialogue = false;
+            StopCurNode();
+            CurShowPanel.EndPlay();
+            if (CurHideInEnd)
+            {
+                CurShowPanel.Hide();
+            }
+
+            CurHideInEnd = defaultHideInEnd;
+            curOnComplete?.Invoke(selectItemData);
+            curOnComplete = null;
+            OnStop?.Invoke();
         }
 
         private bool IsEndShowSelect()

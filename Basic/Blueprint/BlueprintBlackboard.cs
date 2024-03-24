@@ -72,6 +72,17 @@ namespace PartsKit
             return (T)parameter.Value;
         }
 
+        public void SetParameterValue<T>(string pName, T value)
+        {
+            IBlueprintParameter parameter = GetParameterByName(pName);
+            if (parameter == null)
+            {
+                return;
+            }
+
+            parameter.Value = value;
+        }
+
         public void ClearNotValidParameters()
         {
             parameters.RemoveAll(item =>

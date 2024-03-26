@@ -19,16 +19,29 @@ namespace PartsKit
         public GameObject OwnerObject { get; private set; }
 
         public event Action OnExecutedChange;
+        bool isEnabled = false;
 
         protected virtual void OnEnable()
         {
+            if (isEnabled)
+            {
+                OnDisable();
+            }
+
             InitData();
             OnInit();
+            isEnabled = true;
         }
 
         protected virtual void OnDisable()
         {
+            if (!isEnabled)
+            {
+                return;
+            }
+
             OnDeInit();
+            isEnabled = false;
         }
 
         public void CheckValid()
@@ -134,18 +147,19 @@ namespace PartsKit
             blackboard.ClearNotValidParameters();
         }
 
-        public virtual void AddNode(BlueprintNode treeNode)
+        public virtual BlueprintNode AddNode(BlueprintNode treeNode)
         {
             if (treeNode == null || nodes.Contains(treeNode))
             {
                 CustomLog.LogError("Add Node Err");
-                return;
+                return null;
             }
 
             //先加入列表后init
             nodes.Add(treeNode);
             treeNode.Init(this);
             SetDirtySelf();
+            return treeNode;
         }
 
         public virtual void RemoveNode(BlueprintNode treeNode)

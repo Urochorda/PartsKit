@@ -344,7 +344,7 @@ namespace PartsKit
                 Rect nodePos = new Rect(graphMousePosition, new Vector2(100, 100));
                 //设置数据存储
                 node.Rect = nodePos;
-                Blueprint.AddNode(node);
+                node = Blueprint.AddNode(node);
             }
 
             //创建view
@@ -455,6 +455,7 @@ namespace PartsKit
                     nodeView.RefreshName();
                 }
             }
+
             Blueprint.Blackboard.OnParameterRename();
         }
 

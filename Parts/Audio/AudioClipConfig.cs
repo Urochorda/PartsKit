@@ -6,6 +6,13 @@ using Random = UnityEngine.Random;
 namespace PartsKit
 {
     [Serializable]
+    public class AudioClipData
+    {
+        [field: SerializeField] public AudioClip AudioClip { get; set; }
+        [field: SerializeField] public float VolumeScale { get; set; } = 1;
+    }
+
+    [Serializable]
     public class AudioClipGroup
     {
         public enum PlayMode
@@ -23,44 +30,43 @@ namespace PartsKit
         public CheckNullProperty<AudioSource> SourcePrefab3D { get; private set; } //3d音效source预设
 
         [SerializeField] private PlayMode playMode = PlayMode.Sequence;
-        [SerializeField] private AudioClip[] audioClips;
-        [field: SerializeField] public float VolumeScale { get; set; } = 1;
+        [SerializeField] private AudioClipData[] audioClipData;
 
         int nextIndex = -1;
         int lastIndex = -1;
 
-        public AudioClip GetClip()
+        public AudioClipData GetClip()
         {
-            if (audioClips.Length <= 0)
+            if (audioClipData.Length <= 0)
             {
                 CustomLog.LogError("AudioClipGroupConfig的" + GroupName + "的AudioClip为空");
                 return null;
             }
 
-            if (audioClips.Length == 1) //如果只有1个则直接返回
+            if (audioClipData.Length == 1) //如果只有1个则直接返回
             {
-                return audioClips[0];
+                return audioClipData[0];
             }
 
             switch (playMode)
             {
                 case PlayMode.Random:
-                    nextIndex = Random.Range(0, audioClips.Length);
+                    nextIndex = Random.Range(0, audioClipData.Length);
                     break;
                 case PlayMode.NoRepeatRandom:
                     do
                     {
-                        nextIndex = Random.Range(0, audioClips.Length);
+                        nextIndex = Random.Range(0, audioClipData.Length);
                     } while (nextIndex == lastIndex);
 
                     break;
                 case PlayMode.Sequence:
-                    nextIndex = (int)Mathf.Repeat(++lastIndex, audioClips.Length);
+                    nextIndex = (int)Mathf.Repeat(++lastIndex, audioClipData.Length);
                     break;
             }
 
             lastIndex = nextIndex;
-            return audioClips[nextIndex];
+            return audioClipData[nextIndex];
         }
     }
 

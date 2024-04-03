@@ -92,10 +92,11 @@ namespace PartsKit
                 return;
             }
 
-            AudioClip audioClip = clipGroup.GetClip();
+            AudioClipData audioClip = clipGroup.GetClip();
             bool isOverrideSource = clipGroup.SourcePrefab.GetValue(out AudioSource overrideSourcePrefab);
             AudioSource source = isOverrideSource ? objectPool.Get(overrideSourcePrefab) : defaultSoundSource;
-            DoPlaySound(audioClip, source, isOverrideSource, clipGroup.VolumeScale, source.transform.position);
+            DoPlaySound(audioClip.AudioClip, source, isOverrideSource, audioClip.VolumeScale,
+                source.transform.position);
         }
 
         public void PlaySound3D(string audioGroupName, Vector3 point)
@@ -105,10 +106,10 @@ namespace PartsKit
                 return;
             }
 
-            AudioClip audioClip = clipGroup.GetClip();
+            AudioClipData audioClip = clipGroup.GetClip();
             bool isOverrideSource = clipGroup.SourcePrefab3D.GetValue(out AudioSource overrideSourcePrefab);
             AudioSource source = isOverrideSource ? objectPool.Get(overrideSourcePrefab) : defaultSoundSource3D;
-            DoPlaySound(audioClip, source, isOverrideSource, clipGroup.VolumeScale, point);
+            DoPlaySound(audioClip.AudioClip, source, isOverrideSource, audioClip.VolumeScale, point);
         }
 
         private void DoPlaySound(AudioClip audioClip, AudioSource source, bool isRelease, float volumeScale,
@@ -133,13 +134,13 @@ namespace PartsKit
                 return -1;
             }
 
-            AudioClip audioClip = clipGroup.GetClip();
+            AudioClipData audioClip = clipGroup.GetClip();
             AudioSource targetMusicSource =
                 objectPool.Get(clipGroup.SourcePrefab.GetValue(out AudioSource overrideSourcePrefab)
                     ? overrideSourcePrefab
                     : defaultMusicSource);
 
-            return DoPlayMusic(audioClip, targetMusicSource, isLoop, clipGroup.VolumeScale,
+            return DoPlayMusic(audioClip.AudioClip, targetMusicSource, isLoop, audioClip.VolumeScale,
                 targetMusicSource.transform.position);
         }
 
@@ -150,13 +151,13 @@ namespace PartsKit
                 return -1;
             }
 
-            AudioClip audioClip = clipGroup.GetClip();
+            AudioClipData audioClip = clipGroup.GetClip();
             AudioSource targetMusicSource =
                 objectPool.Get(clipGroup.SourcePrefab3D.GetValue(out AudioSource overrideSourcePrefab)
                     ? overrideSourcePrefab
                     : defaultMusicSource3D);
 
-            return DoPlayMusic(audioClip, targetMusicSource, isLoop, clipGroup.VolumeScale, point);
+            return DoPlayMusic(audioClip.AudioClip, targetMusicSource, isLoop, audioClip.VolumeScale, point);
         }
 
         private int DoPlayMusic(AudioClip audioClip, AudioSource source, bool isLoop, float volumeScale,

@@ -35,38 +35,41 @@ namespace PartsKit
         int nextIndex = -1;
         int lastIndex = -1;
 
-        public AudioClipData GetClip()
+        public bool GetClip(out AudioClipData targetData)
         {
-            if (audioClipData.Length <= 0)
+            if (audioClipData == null || audioClipData.Length <= 0)
             {
                 CustomLog.LogError("AudioClipGroupConfig的" + GroupName + "的AudioClip为空");
-                return null;
+                targetData = null;
             }
-
-            if (audioClipData.Length == 1) //如果只有1个则直接返回
+            else if (audioClipData.Length == 1) //如果只有1个则直接返回
             {
-                return audioClipData[0];
+                targetData = audioClipData[0];
             }
-
-            switch (playMode)
+            else
             {
-                case PlayMode.Random:
-                    nextIndex = Random.Range(0, audioClipData.Length);
-                    break;
-                case PlayMode.NoRepeatRandom:
-                    do
-                    {
+                switch (playMode)
+                {
+                    case PlayMode.Random:
                         nextIndex = Random.Range(0, audioClipData.Length);
-                    } while (nextIndex == lastIndex);
+                        break;
+                    case PlayMode.NoRepeatRandom:
+                        do
+                        {
+                            nextIndex = Random.Range(0, audioClipData.Length);
+                        } while (nextIndex == lastIndex);
 
-                    break;
-                case PlayMode.Sequence:
-                    nextIndex = (int)Mathf.Repeat(++lastIndex, audioClipData.Length);
-                    break;
+                        break;
+                    case PlayMode.Sequence:
+                        nextIndex = (int)Mathf.Repeat(++lastIndex, audioClipData.Length);
+                        break;
+                }
+
+                lastIndex = nextIndex;
+                targetData = audioClipData[nextIndex];
             }
 
-            lastIndex = nextIndex;
-            return audioClipData[nextIndex];
+            return targetData != null;
         }
     }
 

@@ -92,7 +92,12 @@ namespace PartsKit
                 return;
             }
 
-            AudioClipData audioClip = clipGroup.GetClip();
+            bool hasAudioClipData = clipGroup.GetClip(out AudioClipData audioClip);
+            if (!hasAudioClipData)
+            {
+                return;
+            }
+
             bool isOverrideSource = clipGroup.SourcePrefab.GetValue(out AudioSource overrideSourcePrefab);
             AudioSource source = isOverrideSource ? objectPool.Get(overrideSourcePrefab) : defaultSoundSource;
             DoPlaySound(audioClip.AudioClip, source, isOverrideSource, audioClip.VolumeScale,
@@ -106,7 +111,12 @@ namespace PartsKit
                 return;
             }
 
-            AudioClipData audioClip = clipGroup.GetClip();
+            bool hasAudioClipData = clipGroup.GetClip(out AudioClipData audioClip);
+            if (!hasAudioClipData)
+            {
+                return;
+            }
+
             bool isOverrideSource = clipGroup.SourcePrefab3D.GetValue(out AudioSource overrideSourcePrefab);
             AudioSource source = isOverrideSource ? objectPool.Get(overrideSourcePrefab) : defaultSoundSource3D;
             DoPlaySound(audioClip.AudioClip, source, isOverrideSource, audioClip.VolumeScale, point);
@@ -134,7 +144,12 @@ namespace PartsKit
                 return -1;
             }
 
-            AudioClipData audioClip = clipGroup.GetClip();
+            bool hasAudioClipData = clipGroup.GetClip(out AudioClipData audioClip);
+            if (!hasAudioClipData)
+            {
+                return -1;
+            }
+
             AudioSource targetMusicSource =
                 objectPool.Get(clipGroup.SourcePrefab.GetValue(out AudioSource overrideSourcePrefab)
                     ? overrideSourcePrefab
@@ -151,7 +166,12 @@ namespace PartsKit
                 return -1;
             }
 
-            AudioClipData audioClip = clipGroup.GetClip();
+            bool hasAudioClipData = clipGroup.GetClip(out AudioClipData audioClip);
+            if (!hasAudioClipData)
+            {
+                return -1;
+            }
+
             AudioSource targetMusicSource =
                 objectPool.Get(clipGroup.SourcePrefab3D.GetValue(out AudioSource overrideSourcePrefab)
                     ? overrideSourcePrefab

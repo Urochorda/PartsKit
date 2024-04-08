@@ -14,10 +14,13 @@ namespace PartsKit
         [SerializeField] private Transform selectItemParent;
         [SerializeField] private DefaultDialogueShowSelectItem selectItemPrefab;
 
-        private readonly List<DefaultDialogueShowCharacter>
-            curShowCharacters = new List<DefaultDialogueShowCharacter>();
+        public List<DefaultDialogueShowCharacter> CurShowCharacters { get; } =
+            new List<DefaultDialogueShowCharacter>();
 
-        private readonly List<DefaultDialogueShowSelectItem> curSelectItems = new List<DefaultDialogueShowSelectItem>();
+        public List<DefaultDialogueShowSelectItem> CurSelectItems { get; } = new List<DefaultDialogueShowSelectItem>();
+
+        public event Action onSelectItemChange;
+        public event Action onCharacterChange;
 
         public void Show()
         {
@@ -51,15 +54,16 @@ namespace PartsKit
 
         public void SetCharacters(List<DialogueCharacter> characters)
         {
-            foreach (DefaultDialogueShowCharacter showCharacter in curShowCharacters)
+            foreach (DefaultDialogueShowCharacter showCharacter in CurShowCharacters)
             {
                 showCharacter.SetHide();
             }
 
-            curShowCharacters.Clear();
+            CurShowCharacters.Clear();
 
             if (characters == null || characters.Count <= 0)
             {
+                onCharacterChange?.Invoke();
                 return;
             }
 
@@ -77,22 +81,25 @@ namespace PartsKit
                 }
 
                 DefaultDialogueShowCharacter targetShowCharacter = showCharacters[showCharacterIndex];
-                curShowCharacters.Add(targetShowCharacter);
+                CurShowCharacters.Add(targetShowCharacter);
                 targetShowCharacter.SetShow(character);
             }
+
+            onCharacterChange?.Invoke();
         }
 
         public void SetSelects(List<DialogueSelectItemData> selects, Action<DialogueSelectItemData> onSelect)
         {
-            foreach (DefaultDialogueShowSelectItem item in curSelectItems)
+            foreach (DefaultDialogueShowSelectItem item in CurSelectItems)
             {
                 gameObjectPool.Release(item.gameObject);
             }
 
-            curSelectItems.Clear();
+            CurSelectItems.Clear();
 
             if (selects == null || selects.Count <= 0)
             {
+                onSelectItemChange?.Invoke();
                 return;
             }
 
@@ -101,8 +108,10 @@ namespace PartsKit
                 DefaultDialogueShowSelectItem item = gameObjectPool.Get(selectItemPrefab);
                 item.transform.SetParent(selectItemParent);
                 item.SetData(itemData, onSelect);
-                curSelectItems.Add(item);
+                CurSelectItems.Add(item);
             }
+
+            onSelectItemChange?.Invoke();
         }
 
         public void SetContent(string content)

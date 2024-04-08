@@ -12,6 +12,8 @@ namespace PartsKit
         private Action<DialogueSelectItemData> onSelect;
         private DialogueSelectItemData itemData;
 
+        public Button SelectButton => selectButton;
+
         private void Awake()
         {
             selectButton.onClick.AddListener(OnSelectClick);

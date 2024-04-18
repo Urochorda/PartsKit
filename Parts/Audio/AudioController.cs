@@ -13,6 +13,28 @@ namespace PartsKit
         public abstract AudioMixerConfig LoadAudioMixer();
     }
 
+    public class PlayMusicKey
+    {
+        /// <summary>
+        /// 管理器调用，不要手动调用
+        /// </summary>
+        public static void SetStop(PlayMusicKey key, bool isStop)
+        {
+            key.IsStop = isStop;
+        }
+
+        /// <summary>
+        /// 管理器调用，不要手动调用
+        /// </summary>
+        public static void SetInsID(PlayMusicKey key, int insId)
+        {
+            key.InsID = insId;
+        }
+
+        public bool IsStop { get; private set; }
+        public int InsID { get; private set; }
+    }
+
     public class AudioController : PartsKitBehaviour
     {
         private const int AudioMixerMinVolume = -80;
@@ -36,10 +58,10 @@ namespace PartsKit
         private string SoundMixerVolume => customLoadAudioAssetFun.LoadAudioMixer().SoundMixerVolume;
         private string MusicMixerVolume => customLoadAudioAssetFun.LoadAudioMixer().MusicMixerVolume;
 
-        private AudioMixerGroup SoundMixerGroup =>
+        public AudioMixerGroup SoundMixerGroup =>
             AudioMixer.FindMatchingGroups($"{MasterMixerName}/{SoundMixerName}")[0];
 
-        private AudioMixerGroup MusicMixerGroup =>
+        public AudioMixerGroup MusicMixerGroup =>
             AudioMixer.FindMatchingGroups($"{MasterMixerName}/{MusicMixerName}")[0];
 
         private readonly List<AudioSource> curMusicSourceList = new List<AudioSource>();
@@ -137,17 +159,17 @@ namespace PartsKit
             }
         }
 
-        public int PlayMusic(string audioGroupName, bool isLoop)
+        public PlayMusicKey PlayMusic(string audioGroupName, bool isLoop)
         {
             if (!MusicClipGroup.GetAudioClipGroup(audioGroupName, out AudioClipGroup clipGroup))
             {
-                return -1;
+                return null;
             }
 
             bool hasAudioClipData = clipGroup.GetClip(out AudioClipData audioClip);
             if (!hasAudioClipData)
             {
-                return -1;
+                return null;
             }
 
             AudioSource targetMusicSource =
@@ -159,17 +181,17 @@ namespace PartsKit
                 targetMusicSource.transform.position);
         }
 
-        public int PlayMusic3D(string audioGroupName, bool isLoop, Vector3 point)
+        public PlayMusicKey PlayMusic3D(string audioGroupName, bool isLoop, Vector3 point)
         {
             if (!MusicClipGroup.GetAudioClipGroup(audioGroupName, out AudioClipGroup clipGroup))
             {
-                return -1;
+                return null;
             }
 
             bool hasAudioClipData = clipGroup.GetClip(out AudioClipData audioClip);
             if (!hasAudioClipData)
             {
-                return -1;
+                return null;
             }
 
             AudioSource targetMusicSource =
@@ -180,7 +202,7 @@ namespace PartsKit
             return DoPlayMusic(audioClip.AudioClip, targetMusicSource, isLoop, audioClip.VolumeScale, point);
         }
 
-        private int DoPlayMusic(AudioClip audioClip, AudioSource source, bool isLoop, float volumeScale,
+        private PlayMusicKey DoPlayMusic(AudioClip audioClip, AudioSource source, bool isLoop, float volumeScale,
             Vector3 point)
         {
             Transform sourceTransform = source.transform;
@@ -203,21 +225,55 @@ namespace PartsKit
                 }));
             }
 
-            return source.GetInstanceID();
+            PlayMusicKey playMusicKey = new PlayMusicKey();
+            PlayMusicKey.SetStop(playMusicKey, false);
+            PlayMusicKey.SetInsID(playMusicKey, source.GetInstanceID());
+            return playMusicKey;
         }
 
-        public void StopMusic(ref int instanceID)
+        public void StopMusic(PlayMusicKey playMusicKey)
         {
-            int targetInsID = instanceID;
-            AudioSource targetMusicSource = curMusicSourceList.Find(item => item.GetInstanceID() == targetInsID);
-            if (targetMusicSource != null)
+            if (!TryGetMusicAudioSource(playMusicKey, out AudioSource targetMusicSource))
             {
-                targetMusicSource.Stop();
-                curMusicSourceList.Remove(targetMusicSource);
-                objectPool.Release(targetMusicSource.gameObject);
+                return;
             }
 
-            instanceID = -1;
+            targetMusicSource.Stop();
+            curMusicSourceList.Remove(targetMusicSource);
+            objectPool.Release(targetMusicSource.gameObject);
+            PlayMusicKey.SetStop(playMusicKey, true);
+        }
+
+        public void PauseMusic(PlayMusicKey playMusicKey)
+        {
+            if (!TryGetMusicAudioSource(playMusicKey, out AudioSource targetMusicSource))
+            {
+                return;
+            }
+
+            targetMusicSource.Pause();
+        }
+
+        public void UnPauseMusic(PlayMusicKey playMusicKey)
+        {
+            if (!TryGetMusicAudioSource(playMusicKey, out AudioSource targetMusicSource))
+            {
+                return;
+            }
+
+            targetMusicSource.UnPause();
+        }
+
+        private bool TryGetMusicAudioSource(PlayMusicKey playMusicKey, out AudioSource audioSource)
+        {
+            if (playMusicKey == null || playMusicKey.IsStop) //已经废掉了
+            {
+                audioSource = null;
+                return false;
+            }
+
+            audioSource = curMusicSourceList.Find(item => item.GetInstanceID() == playMusicKey.InsID);
+            return audioSource != null;
         }
 
         #endregion

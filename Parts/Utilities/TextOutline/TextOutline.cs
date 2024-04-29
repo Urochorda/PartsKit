@@ -311,6 +311,11 @@ namespace PartsKit
 
         public override void ModifyMesh(VertexHelper vh)
         {
+            if (!IsActive())
+            {
+                return;
+            }
+
             var lVetexList = new List<UIVertex>();
             vh.GetUIVertexStream(lVetexList);
             ProcessVertices(lVetexList, OutlineWidth);

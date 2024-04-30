@@ -35,7 +35,7 @@ namespace PartsKit
         private SearchField m_searchField;
 
         //查找资源引用信息
-        [MenuItem("Assets/Find References In Project %#&f", false, 25)]
+        [MenuItem("Assets/Find References In Project(PartsKit) %#&f", false, 25)]
         static void FindRef()
         {
             InitDataIfNeeded();
@@ -45,7 +45,7 @@ namespace PartsKit
         }
 
         //打开窗口
-        [MenuItem("Window/Reference Finder", false, 1000)]
+        [MenuItem("Window/Reference Finder(PartsKit)", false, 1000)]
         static void OpenWindow()
         {
             ReferenceFinderWindow window = GetWindow<ReferenceFinderWindow>();

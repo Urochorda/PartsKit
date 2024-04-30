@@ -7,6 +7,7 @@ Shader "Custom/Text2DOutline"
         _OutlineColor ("Outline Color", Color) = (1, 1, 1, 1)
         _OutlineWidth ("Outline Width", Float) = 1
         _OutlineOffset ("Outline Offset", Vector) = (1, 1, 1, 1)
+        _FontTexSize("Font Tex Size", Vector) = (1, 1, 1, 1)
 
         _StencilComp ("Stencil Comparison", Float) = 8
         _Stencil ("Stencil ID", Float) = 0
@@ -66,7 +67,7 @@ Shader "Custom/Text2DOutline"
             sampler2D _MainTex;
             fixed4 _Color;
             fixed4 _TextureSampleAdd;
-            float4 _MainTex_TexelSize;
+            float4 _FontTexSize;
 
             float4 _OutlineColor;
             float _OutlineWidth;
@@ -137,7 +138,7 @@ Shader "Custom/Text2DOutline"
             {
                 const fixed sinArray[12] = {0, 0.5, 0.866, 1, 0.866, 0.5, 0, -0.5, -0.866, -1, -0.866, -0.5};
                 const fixed cosArray[12] = {1, 0.866, 0.5, 0, -0.5, -0.866, -1, -0.866, -0.5, 0, 0.5, 0.866};
-                float2 pos = IN.texcoord + _MainTex_TexelSize.xy * float2(cosArray[pIndex], sinArray[pIndex]) * width;
+                float2 pos = IN.texcoord + _FontTexSize.xy * float2(cosArray[pIndex], sinArray[pIndex]) * width;
                 //normal.z 存放 _OutlineWidth
                 return IsInRect(pos, IN.uv1, IN.uv2) * (tex2D(_MainTex, pos) + _TextureSampleAdd).a * outlineColor.a;
                 //tangent.w 存放 _OutlineColor.w

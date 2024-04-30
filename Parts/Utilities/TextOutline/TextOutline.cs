@@ -158,23 +158,55 @@ namespace PartsKit
         private static readonly int OutlineWidthKey = Shader.PropertyToID("_OutlineWidth");
         private static readonly int ShadowOutlineColorKey = Shader.PropertyToID("_ShadowOutlineColor");
         private static readonly int ShadowOutlineWidthKey = Shader.PropertyToID("_ShadowOutlineWidth");
+        private static readonly int FontTexSize = Shader.PropertyToID("_FontTexSize");
+
+        private Text curText;
 
         protected override void Awake()
         {
             base.Awake();
+            curText = GetComponent<Text>();
             RefreshAll(); //初始化刷新一下
+        }
+
+        protected override void Start()
+        {
+            base.Start();
+            UpdateFontMainTexTexelSize();
+            Font.textureRebuilt += TextTextureRebuild;
         }
 
         protected override void OnDestroy()
         {
             base.OnDestroy();
             graphic.material = null;
+            Font.textureRebuilt -= TextTextureRebuild;
         }
 
         protected override void OnTransformParentChanged()
         {
             base.OnCanvasHierarchyChanged();
             RefreshAll(); //父物体变化，刷新一下
+        }
+        
+        private void TextTextureRebuild(Font font)
+        {
+            if (curText.font == font)
+            {
+                UpdateFontMainTexTexelSize();
+            }
+        }
+ 
+        private void UpdateFontMainTexTexelSize()
+        {
+            Font font = curText.font;
+            if (font == null || font.material == null || font.material.mainTexture == null)
+                return;
+ 
+            float width = font.material.mainTexture.width;
+            float height = font.material.mainTexture.height;
+            Vector4 vector = new Vector4(1.0f / width, 1.0f / height, width, height);
+            graphic.material.SetVector(FontTexSize, vector);
         }
 
         private void SetMaterial()
@@ -303,7 +335,6 @@ namespace PartsKit
             SetMaterial();
             if (CheckShader())
             {
-                SetShaderParams();
                 SetShaderChannels();
                 Refresh();
             }
@@ -311,9 +342,9 @@ namespace PartsKit
 
         public override void ModifyMesh(VertexHelper vh)
         {
-            var lVetexList = new List<UIVertex>();
-            vh.GetUIVertexStream(lVetexList);
-            ProcessVertices(lVetexList, OutlineWidth);
+            var vertexList = new List<UIVertex>();
+            vh.GetUIVertexStream(vertexList);
+            ProcessVertices(vertexList, OutlineWidth);
 
             List<UIVertex> lShadowVerts = new List<UIVertex>();
             if (useShadow)
@@ -330,13 +361,13 @@ namespace PartsKit
 
             if (useTextGradient)
             {
-                ApplyGradient(lVetexList, textGradient);
+                ApplyGradient(vertexList, textGradient);
             }
 
             vh.Clear();
-            vh.AddUIVertexTriangleStream(lShadowVerts.Concat(lVetexList).ToList());
+            vh.AddUIVertexTriangleStream(lShadowVerts.Concat(vertexList).ToList());
             lShadowVerts.Clear();
-            lVetexList.Clear();
+            vertexList.Clear();
         }
 
         private void ApplyShadow(List<UIVertex> lShadowVerts, Color32 color)

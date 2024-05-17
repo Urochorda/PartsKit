@@ -1,9 +1,11 @@
 using System;
+using System.Collections.Generic;
+using Microsoft.Extensions.Logging;
 using UnityEngine;
 
 namespace PartsKit
 {
-    public class CustomLog
+    public class CustomLog : Microsoft.Extensions.Logging.ILogger
     {
         public static bool EnableLog { get; set; } = true;
 
@@ -91,6 +93,55 @@ namespace PartsKit
             if (!EnableLog)
                 return;
             Debug.LogWarningFormat(format, args);
+        }
+
+
+        private readonly IExternalScopeProvider scopeProvider = new LoggerExternalScopeProvider();
+
+        private readonly IList<object> scopes = new List<object>();
+
+        public IDisposable BeginScope<TState>(TState state)
+        {
+            return scopeProvider.Push(state);
+        }
+
+        public bool IsEnabled(LogLevel logLevel)
+        {
+            if (logLevel == LogLevel.Error || logLevel == LogLevel.Critical)
+            {
+                return true;
+            }
+
+            return EnableLog;
+        }
+
+        public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception,
+            Func<TState, Exception, string> formatter)
+        {
+            scopes.Clear();
+            scopeProvider.ForEachScope((x, scopeList) => scopeList.Add(x), scopes);
+
+            var message = formatter(state, exception);
+            if (scopes.Count > 0)
+                message = $"[{string.Join(">", scopes)}] {message}";
+
+            switch (logLevel)
+            {
+                case LogLevel.Trace:
+                case LogLevel.Debug:
+                case LogLevel.Information:
+                    Log(message);
+                    break;
+
+                case LogLevel.Warning:
+                    LogWarning(message);
+                    break;
+
+                case LogLevel.Error:
+                case LogLevel.Critical:
+                    LogError(message);
+                    break;
+            }
         }
     }
 }

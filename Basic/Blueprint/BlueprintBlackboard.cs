@@ -36,7 +36,7 @@ namespace PartsKit
             if (parameter == null || Parameters.Contains(parameter) ||
                 string.IsNullOrWhiteSpace(parameter.ParameterName))
             {
-                CustomLog.LogError("Add Parameter Err");
+                OwnerBlueprint.LogError("Add Parameter Err");
                 return;
             }
 
@@ -89,7 +89,7 @@ namespace PartsKit
             {
                 if (item == null || string.IsNullOrEmpty(item.Guid))
                 {
-                    CustomLog.LogError("Parameter NotValid");
+                    OwnerBlueprint.LogError("Parameter NotValid");
                     OwnerBlueprint.SetDirtySelf();
                     return true;
                 }

@@ -96,7 +96,7 @@ namespace PartsKit
             {
                 if (item == null || string.IsNullOrEmpty(item.Guid))
                 {
-                    CustomLog.LogError("Node Data Err");
+                    LogError($"Node Data Err FillName: {name}");
                     SetDirtySelf();
                     return true;
                 }
@@ -111,7 +111,7 @@ namespace PartsKit
             {
                 if (item.IsNotValid())
                 {
-                    CustomLog.LogError("Node IsNotValid");
+                    LogError("Node IsNotValid");
                     SetDirtySelf();
                     return true;
                 }
@@ -126,14 +126,14 @@ namespace PartsKit
             {
                 if (item == null || string.IsNullOrEmpty(item.Guid))
                 {
-                    CustomLog.LogError("Edge Guid Err");
+                    LogError("Edge Guid Err");
                     SetDirtySelf();
                     return true;
                 }
 
                 if (!GetPortByEdge(item, out _, out _))
                 {
-                    CustomLog.LogError("Edge Port Err");
+                    LogError("Edge Port Err");
                     SetDirtySelf();
                     return true;
                 }
@@ -151,7 +151,7 @@ namespace PartsKit
         {
             if (treeNode == null || nodes.Contains(treeNode))
             {
-                CustomLog.LogError("Add Node Err");
+                LogError("Add Node Err");
                 return null;
             }
 
@@ -201,7 +201,7 @@ namespace PartsKit
         {
             if (edges.Contains(edge))
             {
-                CustomLog.LogError("Add Edge Err");
+                LogError("Add Edge Err");
                 return;
             }
 
@@ -411,6 +411,11 @@ namespace PartsKit
             }
 #endif
             return runB;
+        }
+
+        public void LogError(string info)
+        {
+            CustomLog.LogError($"FillName: {name}, {info}");
         }
 
 #if UNITY_EDITOR

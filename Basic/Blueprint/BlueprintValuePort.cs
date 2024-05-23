@@ -88,7 +88,7 @@ namespace PartsKit
                 }
                 catch (InvalidCastException e)
                 {
-                    CustomLog.LogError(e);
+                    OwnerNode.OwnerBlueprint.LogError(e.ToString());
                     value = default;
                     return false;
                 }

@@ -13,16 +13,22 @@ namespace PartsKit
         private void Awake()
         {
             TypeEventSystem.Global.Register<RedDotUpdateEvent>(UpdateDot).UnRegisterWhenGameObjectDestroyed(gameObject);
-            if (RedDotController.GetIns != null)
-            {
-                int count = RedDotController.GetIns.Invoke().GetRedDotCount(Key);
-                UpdateCount(count);
-            }
+            Refresh();
         }
 
         public void SetData(string key)
         {
             Key = key;
+            Refresh();
+        }
+
+        private void Refresh()
+        {
+            if (RedDotController.GetIns != null)
+            {
+                int count = RedDotController.GetIns.Invoke().GetRedDotCount(Key);
+                UpdateCount(count);
+            }
         }
 
         private void UpdateDot(RedDotUpdateEvent eventData)

@@ -43,6 +43,11 @@ namespace PartsKit
             return new List<RedDot>(children);
         }
 
+        public int GetChildrenCount()
+        {
+            return children.Count;
+        }
+
         public void UpdateCount()
         {
             if (isRemove)
@@ -149,7 +154,13 @@ namespace PartsKit
 
         public void CalculatorAll()
         {
-            UpdateCounts(redDotRoot);
+            foreach (var redDot in redDots)
+            {
+                if (redDot.Value.GetChildrenCount() <= 0)
+                {
+                    UpdateCounts(redDot.Value);
+                }
+            }
         }
 
         public void Calculator(string key)

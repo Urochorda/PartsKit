@@ -54,6 +54,8 @@ namespace PartsKit
             {
                 animValue.SetBool(hasRedDotBoolAnimKey, count > 0);
             }
+
+            gameObject.SetActive(count > 0);
         }
     }
 }

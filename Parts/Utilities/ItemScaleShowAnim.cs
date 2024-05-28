@@ -4,10 +4,10 @@ using UnityEngine;
 
 namespace PartsKit
 {
-    public class ItemScaleShowAnim: MonoBehaviour
+    public class ItemScaleShowAnim : MonoBehaviour
     {
-        [SerializeField] private float delayTime = 0.05f;
-        [SerializeField] private float duration = 0.2f;
+        [SerializeField] private float delayTime = 0.01f;
+        [SerializeField] private float duration = 0.08f;
         [SerializeField] private Ease ease = Ease.Unset;
         [SerializeField] private Vector3 formScale = Vector3.zero;
         [SerializeField] private Vector3 endScale = Vector3.one;
@@ -22,6 +22,7 @@ namespace PartsKit
                 return;
             }
 
+            itemList.Clear();
             foreach (Transform item in itemListVal)
             {
                 itemList.Add(item);
@@ -52,9 +53,15 @@ namespace PartsKit
         [ContextMenu("Play")]
         public void Play()
         {
+            Play(0);
+        }
+
+        public void Play(float startDelay)
+        {
             sequence?.Kill();
             sequence = DOTween.Sequence();
             sequence.OnKill(() => sequence = null);
+            sequence.AppendInterval(startDelay);
             for (var i = 0; i < itemList.Count; i++)
             {
                 DoScaleAnim(itemList[i], i);

@@ -10,7 +10,7 @@ namespace PartsKit
     {
         public BlueprintView OwnerView { get; private set; }
         public BlueprintBlackboard Blackboard { get; private set; }
-        public Func<IEnumerable<BlueprintCreateParameterInfo>> OnGetCreateParameterInfo { get; set; }
+        public Func<IEnumerable<BlueprintParameterCreateInfo>> OnGetCreateParameterInfo { get; set; }
 
         public virtual void Init(BlueprintView ownerViewVal, BlueprintBlackboard blackboardVal)
         {
@@ -41,10 +41,10 @@ namespace PartsKit
             }
         }
 
-        private IEnumerable<BlueprintCreateParameterInfo> GetCreateParameterInfo()
+        private IEnumerable<BlueprintParameterCreateInfo> GetCreateParameterInfo()
         {
-            IEnumerable<BlueprintCreateParameterInfo> targetInfo = OnGetCreateParameterInfo?.Invoke();
-            return targetInfo ?? new List<BlueprintCreateParameterInfo>();
+            IEnumerable<BlueprintParameterCreateInfo> targetInfo = OnGetCreateParameterInfo?.Invoke();
+            return targetInfo ?? new List<BlueprintParameterCreateInfo>();
         }
 
         public void AddField(IBlueprintParameter parameter)

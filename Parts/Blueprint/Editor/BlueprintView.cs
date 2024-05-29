@@ -462,7 +462,7 @@ namespace PartsKit
         /// <summary>
         /// 添加黑板字段
         /// </summary>
-        public virtual void AddParameter(BlueprintCreateParameterInfo createInfo)
+        public virtual void AddParameter(BlueprintParameterCreateInfo createInfo)
         {
             IBlueprintParameter parameter = IBlueprintParameter.CreateFromType(createInfo.ParameterType);
             Blueprint.Blackboard.AddParameter(parameter);

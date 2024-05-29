@@ -6,6 +6,10 @@ namespace PartsKit
 {
     public class Blueprint : ScriptableObject
     {
+        public const string CommonNodeGroup = "Blueprint.CommonNodeGroup";
+
+        public const string CommonParameterGroup = "Blueprint.CommonParameterGroup";
+
         //可能有派生类，所以用SerializeReference
         [DisplayOnly] [SerializeReference] private List<BlueprintNode> nodes = new List<BlueprintNode>();
         [DisplayOnly] [SerializeReference] private List<BlueprintEdge> edges = new List<BlueprintEdge>();
@@ -17,6 +21,8 @@ namespace PartsKit
         public Stack<BlueprintExecutePort> ExecutePortStack { get; } = new Stack<BlueprintExecutePort>();
         public Stack<BlueprintExecutePort> AllExecutePortStack { get; } = new Stack<BlueprintExecutePort>();
         public GameObject OwnerObject { get; private set; }
+        public virtual List<string> NodeGroup { get; } = new List<string>() { CommonNodeGroup };
+        public virtual List<string> ParameterGroup { get; } = new List<string>() { CommonParameterGroup };
 
         public event Action OnExecutedChange;
         bool isEnabled = false;

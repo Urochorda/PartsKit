@@ -52,6 +52,7 @@ namespace PartsKit
 
             if (stateAnim.GetValue(out Animator animValue))
             {
+                animValue.keepAnimatorStateOnDisable = true;
                 animValue.SetBool(hasRedDotBoolAnimKey, count > 0);
             }
 

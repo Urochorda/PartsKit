@@ -13,11 +13,14 @@ namespace PartsKit
         public event Action OnDownAnim;
         public event Action OnUpAnim;
 
+        private Vector3 downScale;
+
         public void OnPointerDown(PointerEventData eventData)
         {
-            animSequence?.Kill();
+            animSequence?.Kill(); //先kill，会恢复localScale，使得下次记录的downScale正确
+            downScale = SafePoint.localScale;
             animSequence = DOTween.Sequence();
-            animSequence.Append(SafePoint.DOScale(new Vector3(0.9f, 0.9f, 1), 0.15f));
+            animSequence.Append(SafePoint.DOScale(downScale * 0.9f, 0.15f));
             animSequence.OnKill(() => { animSequence = null; });
             OnDownAnim?.Invoke();
         }
@@ -26,10 +29,10 @@ namespace PartsKit
         {
             animSequence?.Kill();
             animSequence = DOTween.Sequence();
-            animSequence.Append(SafePoint.DOScale(Vector3.one, 0.15f));
+            animSequence.Append(SafePoint.DOScale(downScale, 0.15f));
             animSequence.OnKill(() =>
             {
-                SafePoint.localScale = Vector3.one;
+                SafePoint.localScale = downScale;
                 animSequence = null;
             });
             OnUpAnim?.Invoke();

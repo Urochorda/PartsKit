@@ -5,13 +5,16 @@ using UnityEngine.EventSystems;
 
 namespace PartsKit
 {
-    public class ButtonAnim : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
+    public class ButtonEffect : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
     {
+        public static Action<ButtonEffect> OnDownGlobal { get; set; }
+        public static Action<ButtonEffect> OnUpGlobal { get; set; }
+
         [SerializeField] private CheckNullProperty<Transform> rootPoint;
         private Sequence animSequence;
         private Transform SafePoint => rootPoint.GetValue(out Transform rootPointValue) ? rootPointValue : transform;
-        public event Action OnDownAnim;
-        public event Action OnUpAnim;
+        public event Action<ButtonEffect> OnDown;
+        public event Action<ButtonEffect> OnUp;
 
         private Vector3 downScale;
 
@@ -22,7 +25,8 @@ namespace PartsKit
             animSequence = DOTween.Sequence();
             animSequence.Append(SafePoint.DOScale(downScale * 0.9f, 0.15f));
             animSequence.OnKill(() => { animSequence = null; });
-            OnDownAnim?.Invoke();
+            OnDown?.Invoke(this);
+            OnDownGlobal?.Invoke(this);
         }
 
         public void OnPointerUp(PointerEventData eventData)
@@ -35,7 +39,8 @@ namespace PartsKit
                 SafePoint.localScale = downScale;
                 animSequence = null;
             });
-            OnUpAnim?.Invoke();
+            OnUp?.Invoke(this);
+            OnUpGlobal?.Invoke(this);
         }
 
         private void OnDisable()

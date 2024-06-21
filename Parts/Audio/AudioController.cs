@@ -8,8 +8,8 @@ namespace PartsKit
 {
     public abstract class LoadAudioAssetFun : MonoBehaviour
     {
-        public abstract AudioClipConfig LoadSoundClipGroup();
-        public abstract AudioClipConfig LoadMusicClipGroup();
+        public abstract bool LoadSoundClipGroup(string audioGroupName, out AudioClipGroup clipGroup);
+        public abstract bool LoadMusicClipGroup(string audioGroupName, out AudioClipGroup clipGroup);
         public abstract AudioMixerConfig LoadAudioMixer();
     }
 
@@ -47,9 +47,6 @@ namespace PartsKit
         [SerializeField] private AudioSource defaultMusicSource;
         [SerializeField] private AudioSource defaultMusicSource3D;
         [SerializeField] private GameObjectPool objectPool;
-
-        private AudioClipConfig SoundClipGroup => customLoadAudioAssetFun.LoadSoundClipGroup();
-        private AudioClipConfig MusicClipGroup => customLoadAudioAssetFun.LoadMusicClipGroup();
         private AudioMixer AudioMixer => customLoadAudioAssetFun.LoadAudioMixer().AudioMixer;
         private string MasterMixerName => customLoadAudioAssetFun.LoadAudioMixer().MasterMixerName;
         private string SoundMixerName => customLoadAudioAssetFun.LoadAudioMixer().SoundMixerName;
@@ -109,14 +106,16 @@ namespace PartsKit
 
         public void PlaySound(string audioGroupName)
         {
-            if (!SoundClipGroup.GetAudioClipGroup(audioGroupName, out AudioClipGroup clipGroup))
+            if (!customLoadAudioAssetFun.LoadSoundClipGroup(audioGroupName, out AudioClipGroup clipGroup))
             {
+                CustomLog.LogError($"SoundClipGroup is null: {audioGroupName}");
                 return;
             }
 
             bool hasAudioClipData = clipGroup.GetClip(out AudioClipData audioClip);
             if (!hasAudioClipData)
             {
+                CustomLog.LogError($"SoundClipData is null: {audioGroupName}");
                 return;
             }
 
@@ -128,14 +127,16 @@ namespace PartsKit
 
         public void PlaySound3D(string audioGroupName, Vector3 point)
         {
-            if (!SoundClipGroup.GetAudioClipGroup(audioGroupName, out AudioClipGroup clipGroup))
+            if (!customLoadAudioAssetFun.LoadSoundClipGroup(audioGroupName, out AudioClipGroup clipGroup))
             {
+                CustomLog.LogError($"SoundClipGroup is null: {audioGroupName}");
                 return;
             }
 
             bool hasAudioClipData = clipGroup.GetClip(out AudioClipData audioClip);
             if (!hasAudioClipData)
             {
+                CustomLog.LogError($"SoundClipData is null: {audioGroupName}");
                 return;
             }
 
@@ -161,14 +162,16 @@ namespace PartsKit
 
         public PlayMusicKey PlayMusic(string audioGroupName, bool isLoop)
         {
-            if (!MusicClipGroup.GetAudioClipGroup(audioGroupName, out AudioClipGroup clipGroup))
+            if (!customLoadAudioAssetFun.LoadMusicClipGroup(audioGroupName, out AudioClipGroup clipGroup))
             {
+                CustomLog.LogError($"MusicClipGroup is null: {audioGroupName}");
                 return null;
             }
 
             bool hasAudioClipData = clipGroup.GetClip(out AudioClipData audioClip);
             if (!hasAudioClipData)
             {
+                CustomLog.LogError($"MusicClipData is null: {audioGroupName}");
                 return null;
             }
 
@@ -183,14 +186,16 @@ namespace PartsKit
 
         public PlayMusicKey PlayMusic3D(string audioGroupName, bool isLoop, Vector3 point)
         {
-            if (!MusicClipGroup.GetAudioClipGroup(audioGroupName, out AudioClipGroup clipGroup))
+            if (!customLoadAudioAssetFun.LoadMusicClipGroup(audioGroupName, out AudioClipGroup clipGroup))
             {
+                CustomLog.LogError($"MusicClipGroup is null: {audioGroupName}");
                 return null;
             }
 
             bool hasAudioClipData = clipGroup.GetClip(out AudioClipData audioClip);
             if (!hasAudioClipData)
             {
+                CustomLog.LogError($"MusicClipData is null: {audioGroupName}");
                 return null;
             }
 

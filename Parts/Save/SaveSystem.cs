@@ -13,25 +13,19 @@ namespace PartsKit
 
         public void Set<T>(string name, T data)
         {
-            if (!string.IsNullOrEmpty(UserKey))
-            {
-                name = UserKey + name;
-            }
+            name = GetName(name);
             string dataStr = JsonConvert.SerializeObject(data);
             PlayerPrefs.SetString(name, dataStr);
         }
 
         public bool Get<T>(string name, out T data)
         {
-            if (!string.IsNullOrEmpty(UserKey))
-            {
-                name = UserKey + name;
-            }
             return Get(name, null, out data);
         }
 
         public bool Get<T>(string name, Func<T> getDefault, out T data)
         {
+            name = GetName(name);
             if (!PlayerPrefs.HasKey(name))
             {
                 data = getDefault == null ? default : getDefault.Invoke();
@@ -55,6 +49,7 @@ namespace PartsKit
 
         public void Delete(string name)
         {
+            name = GetName(name);
             PlayerPrefs.DeleteKey(name);
         }
 
@@ -62,6 +57,16 @@ namespace PartsKit
         {
             SaveEvent?.Trigger();
             PlayerPrefs.Save();
+        }
+
+        private string GetName(string name)
+        {
+            if (!string.IsNullOrEmpty(UserKey))
+            {
+                name = $"{UserKey}.{name}";
+            }
+
+            return name;
         }
     }
 }

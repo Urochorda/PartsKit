@@ -9,11 +9,10 @@ namespace PartsKit
         public static Color PointColor { get; set; } = Color.green;
         public static float PointTime { get; set; } = 1;
 
-        public static void DrawPoint(Vector2 point)
+        public static void DrawPoint(Vector2 point, float radius)
         {
 #if UNITY_EDITOR
             int segments = 36;
-            float radius = 20;
             DrawCircle(point, radius, segments, PointColor, PointTime);
 #endif
         }

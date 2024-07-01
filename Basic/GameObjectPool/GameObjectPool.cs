@@ -95,6 +95,7 @@ namespace PartsKit
             }
 
             objectPool.Release(obj.gameObject);
+            obj.transform.position = transform.position;
         }
     }
 }

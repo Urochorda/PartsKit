@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Pool;
 
@@ -21,7 +22,7 @@ namespace PartsKit
         private readonly Dictionary<int, ObjectPool<GameObject>> itemPoolDic =
             new Dictionary<int, ObjectPool<GameObject>>();
 
-        public T Get<T>(T objPrefab) where T : Component
+        public GameObject Get(GameObject objPrefab)
         {
             if (objPrefab == null)
             {
@@ -36,7 +37,7 @@ namespace PartsKit
                 itemPoolDic[id] = itemPool;
             }
 
-            return itemPool.Get().GetComponent<T>();
+            return itemPool.Get();
 
 
             GameObject CreateFunc()
@@ -76,6 +77,11 @@ namespace PartsKit
             }
         }
 
+        public T Get<T>(T objPrefab) where T : Component
+        {
+            return Get(objPrefab.gameObject).GetComponent<T>();
+        }
+
         public void Release(GameObject obj)
         {
             if (obj == null)
@@ -95,7 +101,28 @@ namespace PartsKit
             }
 
             objectPool.Release(obj.gameObject);
-            obj.transform.position = transform.position;
+        }
+
+        public void Release<T>(List<T> objList, Action<T> onRelease) where T : Component
+        {
+            foreach (T obj in objList)
+            {
+                onRelease?.Invoke(obj);
+                Release(obj.gameObject);
+            }
+
+            objList.Clear();
+        }
+
+        public void Release(List<GameObject> objList, Action<GameObject> onRelease)
+        {
+            foreach (GameObject obj in objList)
+            {
+                onRelease?.Invoke(obj);
+                Release(obj.gameObject);
+            }
+
+            objList.Clear();
         }
     }
 }

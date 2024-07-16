@@ -2,7 +2,16 @@ using System;
 
 namespace PartsKit
 {
-    public class BindableProperty<T>
+    public interface IReadOnlyBindableProperty<T>
+    {
+        public T GetValue();
+        public IRegister Register(Action<T> onValueChanged);
+        public IRegister RegisterWithInitValue(Action<T> onValueChanged);
+        public void UnRegister(Action<T> onValueChanged);
+        public string ToString();
+    }
+
+    public class BindableProperty<T> : IReadOnlyBindableProperty<T>
     {
         private T mValue;
         private Action<T> mOnValueChanged;

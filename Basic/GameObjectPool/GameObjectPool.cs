@@ -68,6 +68,7 @@ namespace PartsKit
                 }
 
                 gameObj.transform.SetParent(transform);
+                gameObj.transform.localPosition = Vector3.zero;
                 gameObj.SetActive(false);
             }
 

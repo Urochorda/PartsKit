@@ -40,17 +40,20 @@ namespace PartsKit
             }
 
             FileStream saveFile = File.Create(savePath);
-
-            using (MemoryStream memoryStream = new MemoryStream())
-            using (StreamWriter streamWriter = new StreamWriter(memoryStream))
+            if (isEncryption)
             {
+                using MemoryStream memoryStream = new MemoryStream();
+                using StreamWriter streamWriter = new StreamWriter(memoryStream);
                 streamWriter.Write(dataStr);
-                if (isEncryption)
-                {
-                    streamWriter.Flush();
-                    memoryStream.Position = 0;
-                    Encrypt(memoryStream, saveFile, encryptionKey);
-                }
+                streamWriter.Flush();
+                memoryStream.Position = 0;
+                Encrypt(memoryStream, saveFile, encryptionKey);
+            }
+            else
+            {
+                StreamWriter streamWriter = new StreamWriter(saveFile, Encoding.UTF8);
+                streamWriter.Write(dataStr);
+                streamWriter.Close();
             }
 
             saveFile.Close();
@@ -72,27 +75,34 @@ namespace PartsKit
 
             FileStream saveFile = File.Open(savePath, FileMode.Open, FileAccess.Read, FileShare.Read);
             bool isSuccess;
-            using (MemoryStream memoryStream = new MemoryStream())
-            using (StreamReader streamReader = new StreamReader(memoryStream))
+            try
             {
-                try
+                if (isEncryption)
                 {
-                    if (isEncryption)
-                    {
-                        Decrypt(saveFile, memoryStream, encryptionKey);
-                        memoryStream.Position = 0;
-                    }
+                    using MemoryStream memoryStream = new MemoryStream();
+                    using StreamReader streamReader = new StreamReader(memoryStream);
+                    Decrypt(saveFile, memoryStream, encryptionKey);
+                    memoryStream.Position = 0;
+                    string infoStr = streamReader.ReadToEnd();
+                    data = JsonConvert.DeserializeObject<T>(infoStr);
+                }
+                else
+                {
+                    StreamReader streamReader = new StreamReader(saveFile, Encoding.UTF8);
+                    string infoStr = streamReader.ReadToEnd();
+                    data = JsonConvert.DeserializeObject<T>(infoStr);
+                }
 
-                    data = JsonConvert.DeserializeObject<T>(streamReader.ReadToEnd());
-                    isSuccess = true;
-                }
-                catch (Exception e)
-                {
-                    isSuccess = false;
-                    CustomLog.LogError(e);
-                    data = getDefault == null ? default : getDefault.Invoke();
-                }
+                data ??= getDefault == null ? default : getDefault.Invoke();
+                isSuccess = true;
             }
+            catch (Exception e)
+            {
+                isSuccess = false;
+                CustomLog.LogError(e);
+                data = getDefault == null ? default : getDefault.Invoke();
+            }
+
 
             saveFile.Close();
             return isSuccess;

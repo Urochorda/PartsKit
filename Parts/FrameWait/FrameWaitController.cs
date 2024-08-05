@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using PartsKit;
 using UnityEngine;
 
-namespace Plugins
+namespace PartsKit
 {
     public class FrameWaitController : MonoBehaviour
     {

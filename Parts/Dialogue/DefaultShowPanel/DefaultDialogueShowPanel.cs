@@ -105,8 +105,11 @@ namespace PartsKit
 
             foreach (DialogueSelectItemData itemData in selects)
             {
-                DefaultDialogueShowSelectItem item = gameObjectPool.Get(selectItemPrefab);
-                item.transform.SetParent(selectItemParent);
+                DefaultDialogueShowSelectItem item = gameObjectPool.Get(selectItemPrefab, selectItemParent);
+                var itemTrans = item.transform;
+                var prefabTrans = selectItemPrefab.transform;
+                itemTrans.localScale = prefabTrans.localScale;
+                itemTrans.rotation = prefabTrans.rotation;
                 item.SetData(itemData, onSelect);
                 CurSelectItems.Add(item);
             }

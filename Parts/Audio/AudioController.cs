@@ -120,7 +120,8 @@ namespace PartsKit
             }
 
             bool isOverrideSource = clipGroup.SourcePrefab.GetValue(out AudioSource overrideSourcePrefab);
-            AudioSource source = isOverrideSource ? objectPool.Get(overrideSourcePrefab) : defaultSoundSource;
+            AudioSource source =
+                isOverrideSource ? objectPool.Get(overrideSourcePrefab, transform) : defaultSoundSource;
             DoPlaySound(audioClip.AudioClip, source, isOverrideSource, audioClip.VolumeScale,
                 source.transform.position);
         }
@@ -141,7 +142,8 @@ namespace PartsKit
             }
 
             bool isOverrideSource = clipGroup.SourcePrefab3D.GetValue(out AudioSource overrideSourcePrefab);
-            AudioSource source = isOverrideSource ? objectPool.Get(overrideSourcePrefab) : defaultSoundSource3D;
+            AudioSource source =
+                isOverrideSource ? objectPool.Get(overrideSourcePrefab, transform) : defaultSoundSource3D;
             DoPlaySound(audioClip.AudioClip, source, isOverrideSource, audioClip.VolumeScale, point);
         }
 
@@ -149,7 +151,6 @@ namespace PartsKit
             Vector3 point)
         {
             Transform sourceTransform = source.transform;
-            sourceTransform.SetParent(transform);
             sourceTransform.position = point;
             source.clip = null;
             source.outputAudioMixerGroup = SoundMixerGroup;
@@ -178,7 +179,7 @@ namespace PartsKit
             AudioSource targetMusicSource =
                 objectPool.Get(clipGroup.SourcePrefab.GetValue(out AudioSource overrideSourcePrefab)
                     ? overrideSourcePrefab
-                    : defaultMusicSource);
+                    : defaultMusicSource, transform);
 
             return DoPlayMusic(audioClip.AudioClip, targetMusicSource, isLoop, audioClip.VolumeScale,
                 targetMusicSource.transform.position);
@@ -202,7 +203,7 @@ namespace PartsKit
             AudioSource targetMusicSource =
                 objectPool.Get(clipGroup.SourcePrefab3D.GetValue(out AudioSource overrideSourcePrefab)
                     ? overrideSourcePrefab
-                    : defaultMusicSource3D);
+                    : defaultMusicSource3D, transform);
 
             return DoPlayMusic(audioClip.AudioClip, targetMusicSource, isLoop, audioClip.VolumeScale, point);
         }
@@ -211,9 +212,7 @@ namespace PartsKit
             Vector3 point)
         {
             Transform sourceTransform = source.transform;
-            sourceTransform.SetParent(transform);
             sourceTransform.position = point;
-            source.transform.SetParent(transform);
             source.clip = audioClip;
             source.volume = volumeScale;
             source.loop = isLoop;

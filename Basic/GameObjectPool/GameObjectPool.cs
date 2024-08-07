@@ -22,7 +22,7 @@ namespace PartsKit
         private readonly Dictionary<int, ObjectPool<GameObject>> itemPoolDic =
             new Dictionary<int, ObjectPool<GameObject>>();
 
-        public GameObject Get(GameObject objPrefab)
+        public GameObject Get(GameObject objPrefab, Transform parent)
         {
             if (objPrefab == null)
             {
@@ -39,10 +39,9 @@ namespace PartsKit
 
             return itemPool.Get();
 
-
             GameObject CreateFunc()
             {
-                GameObject obj = Instantiate(objPrefab.gameObject);
+                GameObject obj = Instantiate(objPrefab.gameObject, parent);
                 obj.AddComponent<PoolItemKey>().KeyID = id;
                 return obj;
             }
@@ -55,7 +54,7 @@ namespace PartsKit
                     poolAction.PoolOnGet();
                 }
 
-                gameObj.transform.SetParent(null);
+                gameObj.transform.SetParent(parent);
                 gameObj.SetActive(true);
             }
 
@@ -78,9 +77,19 @@ namespace PartsKit
             }
         }
 
+        public GameObject Get(GameObject objPrefab)
+        {
+            return Get(objPrefab, null);
+        }
+
+        public T Get<T>(T objPrefab, Transform parent) where T : Component
+        {
+            return Get(objPrefab.gameObject, parent).GetComponent<T>();
+        }
+
         public T Get<T>(T objPrefab) where T : Component
         {
-            return Get(objPrefab.gameObject).GetComponent<T>();
+            return Get(objPrefab, null);
         }
 
         public void Release(GameObject obj)

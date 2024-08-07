@@ -67,8 +67,11 @@ namespace PartsKit
             }
 
             EffectItem effectItemPrefab = effectConfig.GetEffect();
-            EffectItem effectItem = gameObjectPool.Get(effectItemPrefab);
-            effectItem.transform.SetParent(transform);
+            EffectItem effectItem = gameObjectPool.Get(effectItemPrefab, transform);
+            var itemTrans = effectItem.transform;
+            var prefabTrans = effectItemPrefab.transform;
+            itemTrans.localScale = prefabTrans.localScale;
+            itemTrans.rotation = prefabTrans.rotation;
             EffectItem.Init(effectItem);
             return effectItem;
         }

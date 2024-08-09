@@ -26,7 +26,11 @@ namespace PartsKit
 
             public void Update()
             {
-                if (IsCompleted) return;
+                if (IsCompleted)
+                {
+                    return;
+                }
+
                 remainingFrames--;
                 CheckComplete();
             }
@@ -41,15 +45,27 @@ namespace PartsKit
 
             private void OnComplete()
             {
+                if (IsCompleted)
+                {
+                    return;
+                }
+
                 callback?.Invoke();
                 IsCompleted = true;
             }
+
+            public void ImmediatelyCompleted()
+            {
+                OnComplete();
+            }
         }
+
+        public const int NoValid = -1;
 
         // 等待任务列表
         private readonly List<FrameWaitTask> tasks = new List<FrameWaitTask>();
 
-        private int taskId;
+        private int taskId = NoValid + 1;
 
         private void Update()
         {
@@ -72,9 +88,23 @@ namespace PartsKit
             return taskId;
         }
 
-        public void CancelWait(int id)
+        public void CancelWait(ref int id)
         {
-            tasks.RemoveMatchDisorder(item => item.Id == id);
+            int idValue = id;
+            tasks.RemoveMatchDisorder(item => item.Id == idValue);
+            id = -1;
+        }
+
+        public void ImmediatelyCompleted(ref int id)
+        {
+            int idValue = id;
+            int targetIndex = tasks.FindIndex(item => item.Id == idValue);
+            if (targetIndex >= 0)
+            {
+                tasks[targetIndex].ImmediatelyCompleted();
+            }
+
+            id = -1;
         }
 
         public void CancelAll()

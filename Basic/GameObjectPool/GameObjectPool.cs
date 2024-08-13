@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Pool;
+using UnityEngine.SceneManagement;
 
 namespace PartsKit
 {
@@ -18,6 +19,8 @@ namespace PartsKit
         {
             public int KeyID { get; set; }
         }
+
+        [field: SerializeField] public bool AutoCancelDontDestroyOnLoad { get; set; }
 
         private readonly Dictionary<int, ObjectPool<GameObject>> itemPoolDic =
             new Dictionary<int, ObjectPool<GameObject>>();
@@ -56,6 +59,10 @@ namespace PartsKit
 
                 gameObj.transform.SetParent(parent);
                 gameObj.SetActive(true);
+                if (AutoCancelDontDestroyOnLoad && parent == null)
+                {
+                    SceneManager.MoveGameObjectToScene(gameObj, SceneManager.GetActiveScene());
+                }
             }
 
             void ActionOnRelease(GameObject gameObj)

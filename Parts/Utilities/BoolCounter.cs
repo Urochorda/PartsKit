@@ -17,7 +17,7 @@ namespace PartsKit
         }
 
         public bool Value { get; private set; }
-        public event Action<BoolCounter> onChange;
+        public event Action<bool, BoolCounter> onChange;
 
         public BoolCounter(int initCount)
         {
@@ -26,7 +26,7 @@ namespace PartsKit
 
         public void Trigger()
         {
-            onChange?.Invoke(this);
+            onChange?.Invoke(Value, this);
         }
 
         private void UpdateCount()
@@ -35,7 +35,7 @@ namespace PartsKit
             Value = Count > 0;
             if (oldValue != Value)
             {
-                Trigger();
+                onChange?.Invoke(oldValue, this);
             }
         }
     }

@@ -30,6 +30,11 @@ namespace PartsKit
             {
                 mOnEvent?.Invoke(t);
             }
+
+            public void UnAllRegister()
+            {
+                mOnEvent = null;
+            }
         }
 
         public static TypeEventSystem Global { get; } = new TypeEventSystem(); //默认全局类型事件系统
@@ -56,6 +61,16 @@ namespace PartsKit
         {
             var e = GetEvent<T>();
             DoUnRegister(e, onEvent);
+        }
+
+        public void UnAllRegister()
+        {
+            foreach (var eventItem in mTypeEvents)
+            {
+                eventItem.Value.UnAllRegister();
+            }
+
+            mTypeEvents.Clear();
         }
 
         private void DoUnRegister<T>(TypeEventItem<T> eventItem, Action<T> onEvent) where T : new()

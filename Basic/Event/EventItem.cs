@@ -4,7 +4,7 @@ namespace PartsKit
 {
     public class EventItem : IEventItem
     {
-        private Action mOnEvent = () => {};
+        private Action mOnEvent;
 
         public IRegister Register(Action onEvent)
         {
@@ -21,11 +21,16 @@ namespace PartsKit
         {
             mOnEvent?.Invoke();
         }
+
+        public void UnAllRegister()
+        {
+            mOnEvent = null;
+        }
     }
 
     public class EventItem<T> : IEventItem
     {
-        private Action<T> mOnEvent = e => {};
+        private Action<T> mOnEvent;
 
         public IRegister Register(Action<T> onEvent)
         {
@@ -42,11 +47,16 @@ namespace PartsKit
         {
             mOnEvent?.Invoke(t);
         }
+
+        public void UnAllRegister()
+        {
+            mOnEvent = null;
+        }
     }
 
     public class EventItem<T, K> : IEventItem
     {
-        private Action<T, K> mOnEvent = (t, k) => {};
+        private Action<T, K> mOnEvent;
 
         public IRegister Register(Action<T, K> onEvent)
         {
@@ -63,11 +73,16 @@ namespace PartsKit
         {
             mOnEvent?.Invoke(t, k);
         }
+
+        public void UnAllRegister()
+        {
+            mOnEvent = null;
+        }
     }
 
     public class EventItem<T, K, S> : IEventItem
     {
-        private Action<T, K, S> mOnEvent = (t, k, s) => {};
+        private Action<T, K, S> mOnEvent;
 
         public IRegister Register(Action<T, K, S> onEvent)
         {
@@ -83,6 +98,11 @@ namespace PartsKit
         public void Trigger(T t, K k, S s)
         {
             mOnEvent?.Invoke(t, k, s);
+        }
+
+        public void UnAllRegister()
+        {
+            mOnEvent = null;
         }
     }
 }

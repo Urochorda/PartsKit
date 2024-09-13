@@ -6,9 +6,9 @@ namespace PartsKit
     {
         public T StateId { get; }
         public event Action onEntry;
-        public event Action<float> onUpdate;
-        public event Action<float> onFixUpdate;
-        public event Action<float> onLateUpdate;
+        public event Action<float, float> onUpdate;
+        public event Action<float, float> onFixUpdate;
+        public event Action<float, float> onLateUpdate;
         public event Action onExit;
 
         public FsmState(T stateId)
@@ -21,19 +21,19 @@ namespace PartsKit
             onEntry?.Invoke();
         }
 
-        public void Update(float deltaTime)
+        public void Update(float deltaTime, float unscaledDeltaTime)
         {
-            onUpdate?.Invoke(deltaTime);
+            onUpdate?.Invoke(deltaTime, unscaledDeltaTime);
         }
 
-        public void FixUpdate(float deltaTime)
+        public void FixUpdate(float deltaTime, float unscaledDeltaTime)
         {
-            onFixUpdate?.Invoke(deltaTime);
+            onFixUpdate?.Invoke(deltaTime, unscaledDeltaTime);
         }
 
-        public void LateUpdate(float deltaTime)
+        public void LateUpdate(float deltaTime, float unscaledDeltaTime)
         {
-            onLateUpdate?.Invoke(deltaTime);
+            onLateUpdate?.Invoke(deltaTime, unscaledDeltaTime);
         }
 
         public void Exit()

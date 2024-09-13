@@ -6,9 +6,9 @@ namespace PartsKit
     public class FsmCallBack
     {
         public Action OnEntry { get; set; }
-        public Action<float> OnUpdate { get; set; }
-        public Action<float> OnFixUpdate { get; set; }
-        public Action<float> OnLateUpdate { get; set; }
+        public Action<float, float> OnUpdate { get; set; }
+        public Action<float, float> OnFixUpdate { get; set; }
+        public Action<float, float> OnLateUpdate { get; set; }
         public Action OnExit { get; set; }
     }
 
@@ -62,19 +62,19 @@ namespace PartsKit
             onStateChange?.Invoke(stateId);
         }
 
-        public void UpdateState(float deltaTime)
+        public void UpdateState(float deltaTime, float unscaledDeltaTime)
         {
-            mCurState.Update(deltaTime);
+            mCurState.Update(deltaTime, unscaledDeltaTime);
         }
 
-        public void FixUpdateState(float deltaTime)
+        public void FixUpdateState(float deltaTime, float unscaledDeltaTime)
         {
-            mCurState.FixUpdate(deltaTime);
+            mCurState.FixUpdate(deltaTime, unscaledDeltaTime);
         }
 
-        public void LateUpdateState(float deltaTime)
+        public void LateUpdateState(float deltaTime, float unscaledDeltaTime)
         {
-            mCurState.LateUpdate(deltaTime);
+            mCurState.LateUpdate(deltaTime, unscaledDeltaTime);
         }
 
         /// <summary>

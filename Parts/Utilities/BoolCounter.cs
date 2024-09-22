@@ -21,7 +21,7 @@ namespace PartsKit
 
         public BoolCounter(int initCount)
         {
-            selfCount = initCount;
+            Count = initCount;
         }
 
         public void Trigger()

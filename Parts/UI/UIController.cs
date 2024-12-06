@@ -8,6 +8,7 @@ namespace PartsKit
     {
         public abstract T Load<T>(string panelKey) where T : UIPanel;
         public abstract void LoadAsync<T>(string panelKey, Action<T> onPanelLoad) where T : UIPanel;
+        public abstract void Release<T>(T obj) where T : UIPanel;
     }
 
     public class UIController : PartsKitBehaviour
@@ -19,6 +20,12 @@ namespace PartsKit
             [field: SerializeField] public Transform LevelObj { get; set; }
         }
 
+        private class PreLoadPanelData
+        {
+            public UIPanel UIPanel { get; set; }
+            public int Count { get; set; }
+        }
+
         [field: SerializeField] public LoadUIPanelFun CustomLoadPanelFun { get; set; }
 
         [SerializeField] [Tooltip("CustomLoadPanelFun为空时默认使用Resources的加载方式")]
@@ -28,6 +35,9 @@ namespace PartsKit
         [SerializeField] private Transform resetPanelParent;
 
         private readonly Dictionary<string, UIPanel> panelPool = new Dictionary<string, UIPanel>();
+
+        private readonly Dictionary<string, PreLoadPanelData> preLoadPanelAsset =
+            new Dictionary<string, PreLoadPanelData>();
 
         protected override void OnInit()
         {
@@ -42,12 +52,71 @@ namespace PartsKit
         /// </summary>
         public void PreLoadPanel<T>(string panelKey, Action<T> onPanelLoad) where T : UIPanel
         {
-            LoadUIPanelAsync(panelKey, onPanelLoad);
+            //设置计数器
+            {
+                if (!preLoadPanelAsset.TryGetValue(panelKey, out var preData))
+                {
+                    preData = new PreLoadPanelData();
+                    preLoadPanelAsset.Add(panelKey, preData);
+                }
+
+                preData.Count++;
+            }
+
+            //预加载资源
+            LoadUIPanelAsync<T>(panelKey, (panelPrefab) =>
+            {
+                onPanelLoad?.Invoke(panelPrefab);
+
+                if (preLoadPanelAsset.TryGetValue(panelKey, out var preData))
+                {
+                    if (preData.Count <= 0)
+                    {
+                        ReleaseUIPanel(panelPrefab);
+                    }
+                    else
+                    {
+                        preData.UIPanel = panelPrefab;
+                    }
+                }
+                else
+                {
+                    ReleaseUIPanel(panelPrefab);
+                }
+            });
         }
 
         public void PreLoadPanel(string panelKey)
         {
             LoadUIPanelAsync<UIPanel>(panelKey, null);
+        }
+
+        /// <summary>
+        /// 回收预加载资源页面
+        /// </summary>
+        public void ReleasePreLoadPanel(string panelKey)
+        {
+            if (!preLoadPanelAsset.TryGetValue(panelKey, out var preData))
+            {
+                return;
+            }
+
+            if (preData.Count <= 0)
+            {
+                preLoadPanelAsset.Remove(panelKey);
+                return;
+            }
+
+            if (preData.UIPanel != null)
+            {
+                ReleaseUIPanel(preData.UIPanel);
+            }
+
+            preData.Count--;
+            if (preData.Count <= 0)
+            {
+                preLoadPanelAsset.Remove(panelKey);
+            }
         }
 
         /// <summary>
@@ -57,7 +126,7 @@ namespace PartsKit
         {
             if (!GetPanelLevel(levelKey, out Transform levelObj))
             {
-                CustomLog.LogError($"{nameof(OpenPanelAsync)} {levelKey} err");
+                CustomLog.LogError($"{nameof(OpenPanel)} {levelKey} err");
                 panel = null;
                 return false;
             }
@@ -169,11 +238,17 @@ namespace PartsKit
 
         private bool CreateUIPanel<T>(string panelKey, Transform levelObj, out T uiPanel) where T : UIPanel
         {
-            T panelPrefab = CustomLoadPanelFun != null
-                ? CustomLoadPanelFun.Load<T>(panelKey)
-                : Resources.Load<T>(GetResourcesPath(panelKey));
+            T panelPrefab = LoadUIPanel<T>(panelKey);
+            if (panelPrefab != null)
+            {
+                uiPanel = InstantiateUIPanel(panelPrefab, levelObj);
+                ReleaseUIPanel(panelPrefab);
+            }
+            else
+            {
+                uiPanel = null;
+            }
 
-            uiPanel = panelPrefab != null ? InstantiateUIPanel(panelPrefab, levelObj) : null;
             return uiPanel != null;
         }
 
@@ -182,6 +257,7 @@ namespace PartsKit
             LoadUIPanelAsync<T>(panelKey, (panelPrefab) =>
             {
                 T uiPanel = InstantiateUIPanel(panelPrefab, levelObj);
+                ReleaseUIPanel(panelPrefab);
                 onPanelLoad?.Invoke(uiPanel);
             });
         }
@@ -189,6 +265,16 @@ namespace PartsKit
         private string GetResourcesPath(string panelKey)
         {
             return $"{resourcesPath}/{panelKey}";
+        }
+
+        private T LoadUIPanel<T>(string panelKey) where T : UIPanel
+        {
+            if (CustomLoadPanelFun != null)
+            {
+                return CustomLoadPanelFun.Load<T>(panelKey);
+            }
+
+            return Resources.Load<T>(GetResourcesPath(panelKey));
         }
 
         private void LoadUIPanelAsync<T>(string panelKey, Action<T> onPanelLoad) where T : UIPanel
@@ -210,6 +296,14 @@ namespace PartsKit
             {
                 ResourceRequest request = Resources.LoadAsync<T>(GetResourcesPath(panelKey));
                 request.completed += (operation) => { onPanelLoad?.Invoke(request.asset as T); };
+            }
+        }
+
+        private void ReleaseUIPanel<T>(T panelPrefab) where T : UIPanel
+        {
+            if (CustomLoadPanelFun != null)
+            {
+                CustomLoadPanelFun.Release(panelPrefab);
             }
         }
 

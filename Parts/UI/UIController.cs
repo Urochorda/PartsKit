@@ -8,7 +8,7 @@ namespace PartsKit
     {
         public abstract T Load<T>(string panelKey) where T : UIPanel;
         public abstract void LoadAsync<T>(string panelKey, Action<T> onPanelLoad) where T : UIPanel;
-        public abstract void Release<T>(T obj) where T : UIPanel;
+        public abstract void Release<T>(T panelPrefab) where T : UIPanel;
     }
 
     public class UIController : PartsKitBehaviour

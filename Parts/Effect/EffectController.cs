@@ -5,6 +5,7 @@ namespace PartsKit
     public abstract class LoadEffectAssetFun : MonoBehaviour
     {
         public abstract EffectConfig LoadEffectConfig(string effectId);
+        public abstract void Release(EffectConfig effectConfig);
     }
 
     public class EffectController : PartsKitBehaviour
@@ -73,6 +74,7 @@ namespace PartsKit
             itemTrans.localScale = prefabTrans.localScale;
             itemTrans.rotation = prefabTrans.rotation;
             EffectItem.Init(effectItem);
+            customLoadEffectAssetFun.Release(effectConfig);
             return effectItem;
         }
     }

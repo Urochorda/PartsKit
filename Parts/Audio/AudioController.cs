@@ -8,9 +8,11 @@ namespace PartsKit
 {
     public abstract class LoadAudioAssetFun : MonoBehaviour
     {
-        public abstract bool LoadSoundClipGroup(string audioGroupName, out AudioClipGroup clipGroup);
-        public abstract bool LoadMusicClipGroup(string audioGroupName, out AudioClipGroup clipGroup);
+        public abstract bool GetSoundClipGroup(string audioGroupName, out AudioClipGroup clipGroup);
+        public abstract bool GetMusicClipGroup(string audioGroupName, out AudioClipGroup clipGroup);
         public abstract AudioMixerConfig LoadAudioMixer();
+        public abstract void ReleaseAudioMixer(AudioMixerConfig mixerConfig);
+        public abstract void ReleaseAll();
     }
 
     public class PlayMusicKey
@@ -21,6 +23,15 @@ namespace PartsKit
         public static void SetStop(PlayMusicKey key, bool isStop)
         {
             key.IsStop = isStop;
+            SetPause(key, false);
+        }
+
+        /// <summary>
+        /// 管理器调用，不要手动调用
+        /// </summary>
+        public static void SetPause(PlayMusicKey key, bool isPause)
+        {
+            key.IsPause = isPause;
         }
 
         /// <summary>
@@ -32,6 +43,7 @@ namespace PartsKit
         }
 
         public bool IsStop { get; private set; }
+        public bool IsPause { get; private set; }
         public int InsID { get; private set; }
     }
 
@@ -47,13 +59,14 @@ namespace PartsKit
         [SerializeField] private AudioSource defaultMusicSource;
         [SerializeField] private AudioSource defaultMusicSource3D;
         [SerializeField] private GameObjectPool objectPool;
-        private AudioMixer AudioMixer => customLoadAudioAssetFun.LoadAudioMixer().AudioMixer;
-        private string MasterMixerName => customLoadAudioAssetFun.LoadAudioMixer().MasterMixerName;
-        private string SoundMixerName => customLoadAudioAssetFun.LoadAudioMixer().SoundMixerName;
-        private string MusicMixerName => customLoadAudioAssetFun.LoadAudioMixer().MusicMixerName;
-        private string MasterMixerVolume => customLoadAudioAssetFun.LoadAudioMixer().MasterMixerVolume;
-        private string SoundMixerVolume => customLoadAudioAssetFun.LoadAudioMixer().SoundMixerVolume;
-        private string MusicMixerVolume => customLoadAudioAssetFun.LoadAudioMixer().MusicMixerVolume;
+        private AudioMixerConfig audioMixerConfig;
+        private AudioMixer AudioMixer => audioMixerConfig.AudioMixer;
+        private string MasterMixerName => audioMixerConfig.MasterMixerName;
+        private string SoundMixerName => audioMixerConfig.SoundMixerName;
+        private string MusicMixerName => audioMixerConfig.MusicMixerName;
+        private string MasterMixerVolume => audioMixerConfig.MasterMixerVolume;
+        private string SoundMixerVolume => audioMixerConfig.SoundMixerVolume;
+        private string MusicMixerVolume => audioMixerConfig.MusicMixerVolume;
 
         public AudioMixerGroup SoundMixerGroup =>
             AudioMixer.FindMatchingGroups($"{MasterMixerName}/{SoundMixerName}")[0];
@@ -93,6 +106,7 @@ namespace PartsKit
 
         protected override void OnInit()
         {
+            audioMixerConfig = customLoadAudioAssetFun.LoadAudioMixer();
             masterVolume = GetMixerMasterVolume();
             musicVolume = GetMixerMusicVolume();
             soundVolume = GetMixerSoundVolume();
@@ -100,13 +114,15 @@ namespace PartsKit
 
         protected override void OnDeInit()
         {
+            customLoadAudioAssetFun.ReleaseAudioMixer(audioMixerConfig);
+            customLoadAudioAssetFun.ReleaseAll();
         }
 
         #region Play/Stop Audio
 
         public void PlaySound(string audioGroupName)
         {
-            if (!customLoadAudioAssetFun.LoadSoundClipGroup(audioGroupName, out AudioClipGroup clipGroup))
+            if (!customLoadAudioAssetFun.GetSoundClipGroup(audioGroupName, out AudioClipGroup clipGroup))
             {
                 CustomLog.LogError($"SoundClipGroup is null: {audioGroupName}");
                 return;
@@ -121,14 +137,13 @@ namespace PartsKit
 
             bool isOverrideSource = clipGroup.SourcePrefab.GetValue(out AudioSource overrideSourcePrefab);
             AudioSource source =
-                isOverrideSource ? objectPool.Get(overrideSourcePrefab, transform) : defaultSoundSource;
-            DoPlaySound(audioClip.AudioClip, source, isOverrideSource, audioClip.VolumeScale,
-                source.transform.position);
+                objectPool.Get(isOverrideSource ? overrideSourcePrefab : defaultSoundSource, transform);
+            DoPlaySound(audioClip.AudioClip, source, audioClip.VolumeScale, source.transform.position);
         }
 
         public void PlaySound3D(string audioGroupName, Vector3 point)
         {
-            if (!customLoadAudioAssetFun.LoadSoundClipGroup(audioGroupName, out AudioClipGroup clipGroup))
+            if (!customLoadAudioAssetFun.GetSoundClipGroup(audioGroupName, out AudioClipGroup clipGroup))
             {
                 CustomLog.LogError($"SoundClipGroup is null: {audioGroupName}");
                 return;
@@ -143,27 +158,32 @@ namespace PartsKit
 
             bool isOverrideSource = clipGroup.SourcePrefab3D.GetValue(out AudioSource overrideSourcePrefab);
             AudioSource source =
-                isOverrideSource ? objectPool.Get(overrideSourcePrefab, transform) : defaultSoundSource3D;
-            DoPlaySound(audioClip.AudioClip, source, isOverrideSource, audioClip.VolumeScale, point);
+                objectPool.Get(isOverrideSource ? overrideSourcePrefab : defaultSoundSource3D, transform);
+            DoPlaySound(audioClip.AudioClip, source, audioClip.VolumeScale, point);
         }
 
-        private void DoPlaySound(AudioClip audioClip, AudioSource source, bool isRelease, float volumeScale,
-            Vector3 point)
+        private void DoPlaySound(AudioClip audioClip, AudioSource source, float volumeScale, Vector3 point)
         {
             Transform sourceTransform = source.transform;
             sourceTransform.position = point;
-            source.clip = null;
+            source.clip = audioClip;
             source.outputAudioMixerGroup = SoundMixerGroup;
-            source.PlayOneShot(audioClip, volumeScale);
-            if (isRelease)
+            source.volume = volumeScale;
+            source.loop = false;
+            source.Play();
+            StartCoroutine(WaitSoundPlayEnd(audioClip.length));
+
+            //音效开始播放后就不可更改了，所以直接等待时间就好了
+            IEnumerator WaitSoundPlayEnd(float time)
             {
+                yield return new WaitForSeconds(time);
                 objectPool.Release(source.gameObject);
             }
         }
 
         public PlayMusicKey PlayMusic(string audioGroupName, bool isLoop)
         {
-            if (!customLoadAudioAssetFun.LoadMusicClipGroup(audioGroupName, out AudioClipGroup clipGroup))
+            if (!customLoadAudioAssetFun.GetMusicClipGroup(audioGroupName, out AudioClipGroup clipGroup))
             {
                 CustomLog.LogError($"MusicClipGroup is null: {audioGroupName}");
                 return null;
@@ -187,7 +207,7 @@ namespace PartsKit
 
         public PlayMusicKey PlayMusic3D(string audioGroupName, bool isLoop, Vector3 point)
         {
-            if (!customLoadAudioAssetFun.LoadMusicClipGroup(audioGroupName, out AudioClipGroup clipGroup))
+            if (!customLoadAudioAssetFun.GetMusicClipGroup(audioGroupName, out AudioClipGroup clipGroup))
             {
                 CustomLog.LogError($"MusicClipGroup is null: {audioGroupName}");
                 return null;
@@ -220,19 +240,43 @@ namespace PartsKit
             source.Play();
 
             curMusicSourceList.Add(source);
-            if (!isLoop) //如果不是loop则定时回收
-            {
-                StartCoroutine(FinishPlay(audioClip.length, () =>
-                {
-                    curMusicSourceList.Remove(source);
-                    objectPool.Release(source.gameObject);
-                }));
-            }
-
             PlayMusicKey playMusicKey = new PlayMusicKey();
             PlayMusicKey.SetStop(playMusicKey, false);
             PlayMusicKey.SetInsID(playMusicKey, source.GetInstanceID());
+
+            if (!isLoop) //如果不是loop则定时检测回收
+            {
+                StartCoroutine(WaitSoundPlayEnd(audioClip.length));
+            }
+
             return playMusicKey;
+
+            IEnumerator WaitSoundPlayEnd(float time)
+            {
+                yield return new WaitForSeconds(time);
+                if (playMusicKey.IsStop) //证明已经被回收掉了
+                {
+                    yield break;
+                }
+
+                if (source.clip != null)
+                {
+                    float sourceTime = source.time;
+                    float clipTime = source.clip.length;
+                    //暂停中（这个是防止时间还没有向前走的时候直接暂停）||没有走完时间（时间>0表示已经开始执行了，时间<音乐长度表示没有完成）
+                    if (playMusicKey.IsPause || sourceTime > 0 && sourceTime < clipTime)
+                    {
+                        StartCoroutine(WaitSoundPlayEnd(clipTime - sourceTime));
+                    }
+
+                    yield break;
+                }
+
+                //到时间了，回收
+                curMusicSourceList.Remove(source);
+                objectPool.Release(source.gameObject);
+                PlayMusicKey.SetStop(playMusicKey, true);
+            }
         }
 
         public void StopMusic(PlayMusicKey playMusicKey)
@@ -255,6 +299,7 @@ namespace PartsKit
                 return;
             }
 
+            PlayMusicKey.SetPause(playMusicKey, true);
             targetMusicSource.Pause();
         }
 
@@ -265,6 +310,7 @@ namespace PartsKit
                 return;
             }
 
+            PlayMusicKey.SetPause(playMusicKey, false);
             targetMusicSource.UnPause();
         }
 
@@ -427,11 +473,5 @@ namespace PartsKit
         }
 
         #endregion
-
-        private IEnumerator FinishPlay(float time, Action finish)
-        {
-            yield return new WaitForSeconds(time + 0.5f);
-            finish?.Invoke();
-        }
     }
 }

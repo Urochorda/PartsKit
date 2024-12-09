@@ -8,7 +8,9 @@ namespace PartsKit
     public abstract class LoadDialogueFun : MonoBehaviour
     {
         public abstract DialogueNodeConfig LoadNodeConfig(int nodeKey);
+        public abstract void ReleaseNodeConfig(DialogueNodeConfig nodeConfig);
         public abstract IDialogueShowPanel LoadShowPanel();
+        public abstract void ReleaseShowPanel(IDialogueShowPanel showPanel);
     }
 
     [Serializable]
@@ -88,9 +90,19 @@ namespace PartsKit
 
             StopDialogue(); //结束上次对话
             SetTempHideInEnd(playData.HideInEnd);
+            if (curNode != null)
+            {
+                loadDialogueFun.ReleaseNodeConfig(curNode);
+            }
+
             curNode = loadDialogueFun.LoadNodeConfig(playData.NodeConfigKey);
             curSelectItemList.Clear();
             curSelectItemList.AddRange(playData.SelectItemList);
+            if (CurShowPanel != null)
+            {
+                loadDialogueFun.ReleaseShowPanel(CurShowPanel);
+            }
+
             CurShowPanel = loadDialogueFun.LoadShowPanel();
             curGroupIndex = 0;
             curOnComplete = playData.OnComplete;
@@ -127,14 +139,6 @@ namespace PartsKit
             }
 
             return false;
-        }
-
-        /// <summary>
-        /// 结束节点播放
-        /// </summary>
-        public void StopCurNode()
-        {
-            curPlayNodeAnim?.Kill();
         }
 
         /// <summary>
@@ -206,11 +210,22 @@ namespace PartsKit
             }
 
             IsPlayingDialogue = false;
-            StopCurNode();
-            CurShowPanel.EndPlay();
-            if (CurHideInEnd)
+            curPlayNodeAnim?.Kill();
+            if (curNode != null)
             {
-                CurShowPanel.Hide();
+                loadDialogueFun.ReleaseNodeConfig(curNode);
+                curNode = null;
+            }
+
+            if (CurShowPanel != null)
+            {
+                CurShowPanel.EndPlay();
+                if (CurHideInEnd)
+                {
+                    CurShowPanel.Hide();
+                    loadDialogueFun.ReleaseShowPanel(CurShowPanel);
+                    CurShowPanel = null;
+                }
             }
 
             CurHideInEnd = defaultHideInEnd;

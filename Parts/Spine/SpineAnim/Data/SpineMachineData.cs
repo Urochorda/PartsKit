@@ -22,7 +22,7 @@ namespace PartsKit
             InitParameter();
         }
 
-        public bool HasParameterOfType(string key, SpineMachineParameterType type)
+        public bool HasParameterOfType(string key, AnimatorControllerParameterType type)
         {
             if (string.IsNullOrEmpty(key))
             {
@@ -76,7 +76,7 @@ namespace PartsKit
             }
         }
 
-        private void AddAllParameter(SpineMachineParameterType parameterType, string parameterName)
+        private void AddAllParameter(AnimatorControllerParameterType parameterType, string parameterName)
         {
             int hasIndex = parameter.FindIndex(item => item.ParameterName == parameterName);
             if (hasIndex >= 0)
@@ -94,22 +94,22 @@ namespace PartsKit
                 bool hasParameter = GetParameterDefault(parameterType, parameterHash, out var parameterData);
                 switch (parameterType)
                 {
-                    case SpineMachineParameterType.Float:
+                    case AnimatorControllerParameterType.Float:
                         var floatValue = hasParameter ? parameterData.DefaultValueFloat : default;
                         addValue = SpineMachineParameter.Create(parameterType, parameterName, floatValue, default,
                             default, default);
                         break;
-                    case SpineMachineParameterType.Bool:
+                    case AnimatorControllerParameterType.Bool:
                         var boolValue = hasParameter ? parameterData.DefaultValueBool : default;
                         addValue = SpineMachineParameter.Create(parameterType, parameterName, default, boolValue,
                             default, default);
                         break;
-                    case SpineMachineParameterType.Integer:
+                    case AnimatorControllerParameterType.Int:
                         var intValue = hasParameter ? parameterData.DefaultValueInteger : default;
                         addValue = SpineMachineParameter.Create(parameterType, parameterName, default, default,
                             intValue, default);
                         break;
-                    case SpineMachineParameterType.Trigger:
+                    case AnimatorControllerParameterType.Trigger:
                         var triggerValue = hasParameter ? parameterData.DefaultValueTrigger : default;
                         addValue = SpineMachineParameter.Create(parameterType, parameterName, default, default,
                             default, triggerValue);
@@ -123,7 +123,7 @@ namespace PartsKit
             }
         }
 
-        private bool GetParameterDefault(SpineMachineParameterType parameterType, int parameterHase,
+        private bool GetParameterDefault(AnimatorControllerParameterType parameterType, int parameterHase,
             out SpineMachineParameter parameterData)
         {
             foreach (var parameterItem in parameterDefault)

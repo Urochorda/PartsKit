@@ -3,18 +3,10 @@ using UnityEngine;
 
 namespace PartsKit
 {
-    public enum SpineMachineParameterType
-    {
-        Float = 1,
-        Bool = 2,
-        Integer = 3,
-        Trigger = 4,
-    }
-
     [Serializable]
     public class SpineMachineParameter
     {
-        public static SpineMachineParameter Create(SpineMachineParameterType parameterType, string parameterName,
+        public static SpineMachineParameter Create(AnimatorControllerParameterType parameterType, string parameterName,
             float defaultValueFloat, bool defaultValueBool, int defaultValueInteger, bool defaultValueTrigger)
         {
             var parameter = new SpineMachineParameter()
@@ -29,14 +21,14 @@ namespace PartsKit
             return parameter;
         }
 
-        [SerializeField] private SpineMachineParameterType parameterType;
+        [SerializeField] private AnimatorControllerParameterType parameterType;
         [SerializeField] private string parameterName;
         [Header("Float")] [SerializeField] private float defaultValueFloat;
         [Header("Bool")] [SerializeField] private bool defaultValueBool;
         [Header("Integer")] [SerializeField] private int defaultValueInteger;
         [Header("Trigger")] [SerializeField] private bool defaultValueTrigger;
 
-        public SpineMachineParameterType ParameterType => parameterType;
+        public AnimatorControllerParameterType ParameterType => parameterType;
         public string ParameterName => parameterName;
         public float DefaultValueFloat => defaultValueFloat;
         public bool DefaultValueBool => defaultValueBool;

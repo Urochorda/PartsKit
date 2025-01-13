@@ -26,7 +26,7 @@ namespace PartsKit
     [Serializable]
     public class SpineConditionData
     {
-        [SerializeField] private SpineMachineParameterType parameterType;
+        [SerializeField] private AnimatorControllerParameterType parameterType;
         [SerializeField] private string parameterName;
         [Header("Float")] [SerializeField] private SpineFloatConditionMode floatConditionMode;
         [SerializeField] private float parameterValueFloat;
@@ -34,7 +34,7 @@ namespace PartsKit
         [Header("Integer")] [SerializeField] private SpineIntConditionMode intConditionMode;
         [SerializeField] private int parameterValueInteger;
 
-        public SpineMachineParameterType ParameterType => parameterType;
+        public AnimatorControllerParameterType ParameterType => parameterType;
         public string ParameterName => parameterName;
         public SpineFloatConditionMode FloatConditionMode => floatConditionMode;
         public float ParameterValueFloat => parameterValueFloat;

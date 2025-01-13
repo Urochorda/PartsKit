@@ -58,7 +58,7 @@ namespace PartsKit
             spineAnimPlayer.StopAnimationAll();
         }
 
-        public bool HasParameterOfType(string key, SpineMachineParameterType type)
+        public bool HasParameterOfType(string key, AnimatorControllerParameterType type)
         {
             return stateDataAnim.HasParameterOfType(key, type);
         }
@@ -75,16 +75,16 @@ namespace PartsKit
                 int parameterHash = StringToHash(parameter.ParameterName);
                 switch (parameter.ParameterType)
                 {
-                    case SpineMachineParameterType.Float:
+                    case AnimatorControllerParameterType.Float:
                         floatParameterPool[parameterHash] = parameter.DefaultValueFloat;
                         break;
-                    case SpineMachineParameterType.Bool:
+                    case AnimatorControllerParameterType.Bool:
                         boolParameterPool[parameterHash] = parameter.DefaultValueBool;
                         break;
-                    case SpineMachineParameterType.Integer:
+                    case AnimatorControllerParameterType.Int:
                         intParameterPool[parameterHash] = parameter.DefaultValueInteger;
                         break;
-                    case SpineMachineParameterType.Trigger:
+                    case AnimatorControllerParameterType.Trigger:
                         triggerParameterPool[parameterHash] = parameter.DefaultValueTrigger;
                         break;
                 }
@@ -223,7 +223,7 @@ namespace PartsKit
                 var parameterName = condition.ParameterName;
                 switch (parameterType)
                 {
-                    case SpineMachineParameterType.Float:
+                    case AnimatorControllerParameterType.Float:
                     {
                         var parameterValue = condition.ParameterValueFloat;
                         var curParameterValue = GetFloat(parameterName);
@@ -237,7 +237,7 @@ namespace PartsKit
                                 throw new ArgumentOutOfRangeException();
                         }
                     }
-                    case SpineMachineParameterType.Bool:
+                    case AnimatorControllerParameterType.Bool:
                     {
                         var curParameterValue = GetBool(parameterName);
                         switch (condition.BoolConditionMode)
@@ -250,7 +250,7 @@ namespace PartsKit
                                 throw new ArgumentOutOfRangeException();
                         }
                     }
-                    case SpineMachineParameterType.Integer:
+                    case AnimatorControllerParameterType.Int:
                     {
                         var parameterValue = condition.ParameterValueInteger;
                         var curParameterValue = GetInteger(parameterName);
@@ -268,7 +268,7 @@ namespace PartsKit
                                 throw new ArgumentOutOfRangeException();
                         }
                     }
-                    case SpineMachineParameterType.Trigger:
+                    case AnimatorControllerParameterType.Trigger:
                     {
                         return GetTrigger(parameterName);
                     }

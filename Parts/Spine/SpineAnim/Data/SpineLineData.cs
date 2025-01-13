@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace _Test
+namespace PartsKit
 {
     [Serializable]
     public class SpineLineData

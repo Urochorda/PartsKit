@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace _Test
+namespace PartsKit
 {
     public enum SpineIntConditionMode
     {

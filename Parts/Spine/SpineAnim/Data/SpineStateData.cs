@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace _Test
+namespace PartsKit
 {
     [CreateAssetMenu]
     public class SpineStateData : ScriptableObject

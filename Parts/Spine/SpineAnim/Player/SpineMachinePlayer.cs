@@ -3,10 +3,15 @@ using System.Collections.Generic;
 using Spine.Unity;
 using UnityEngine;
 
-namespace _Test
+namespace PartsKit
 {
     public class SpineMachinePlayer : MonoBehaviour
     {
+        public static int StringToHash(string value)
+        {
+            return Animator.StringToHash(value);
+        }
+
         [SerializeField] private SpineMachineData stateDataAnim;
         [SerializeField] private SkeletonAnimation skeletonAnimation;
 
@@ -14,6 +19,7 @@ namespace _Test
         private readonly Dictionary<int, int> intParameterPool = new Dictionary<int, int>();
         private readonly Dictionary<int, bool> boolParameterPool = new Dictionary<int, bool>();
         private readonly Dictionary<int, bool> triggerParameterPool = new Dictionary<int, bool>();
+        public IReadOnlyList<SpineMachineParameter> Parameter => stateDataAnim.Parameter;
 
         private SpineAnimPlayer spineAnimPlayer;
 
@@ -35,7 +41,7 @@ namespace _Test
             }
 
             isPlaying = true;
-
+            InitParameter();
             curActivateState = stateDataAnim.EnterState;
             curPlayingState = null;
             spineAnimPlayer ??= new SpineAnimPlayer(skeletonAnimation);
@@ -50,6 +56,39 @@ namespace _Test
 
             isPlaying = false;
             spineAnimPlayer.StopAnimationAll();
+        }
+
+        public bool HasParameterOfType(string key, SpineMachineParameterType type)
+        {
+            return stateDataAnim.HasParameterOfType(key, type);
+        }
+
+        private void InitParameter()
+        {
+            floatParameterPool.Clear();
+            intParameterPool.Clear();
+            boolParameterPool.Clear();
+            triggerParameterPool.Clear();
+            var defaultPar = Parameter;
+            foreach (var parameter in defaultPar)
+            {
+                int parameterHash = StringToHash(parameter.ParameterName);
+                switch (parameter.ParameterType)
+                {
+                    case SpineMachineParameterType.Float:
+                        floatParameterPool[parameterHash] = parameter.DefaultValueFloat;
+                        break;
+                    case SpineMachineParameterType.Bool:
+                        boolParameterPool[parameterHash] = parameter.DefaultValueBool;
+                        break;
+                    case SpineMachineParameterType.Integer:
+                        intParameterPool[parameterHash] = parameter.DefaultValueInteger;
+                        break;
+                    case SpineMachineParameterType.Trigger:
+                        triggerParameterPool[parameterHash] = parameter.DefaultValueTrigger;
+                        break;
+                }
+            }
         }
 
         private void UpdateState()
@@ -243,7 +282,7 @@ namespace _Test
 
         public float GetFloat(string key)
         {
-            int id = Animator.StringToHash(key);
+            int id = StringToHash(key);
             return GetFloat(id);
         }
 
@@ -255,7 +294,7 @@ namespace _Test
 
         public void SetFloat(string key, float value)
         {
-            int id = Animator.StringToHash(key);
+            int id = StringToHash(key);
             SetFloat(id, value);
         }
 
@@ -266,7 +305,7 @@ namespace _Test
 
         public bool GetBool(string key)
         {
-            int id = Animator.StringToHash(key);
+            int id = StringToHash(key);
             return GetBool(id);
         }
 
@@ -278,7 +317,7 @@ namespace _Test
 
         public void SetBool(string key, bool value)
         {
-            int id = Animator.StringToHash(key);
+            int id = StringToHash(key);
             SetBool(id, value);
         }
 
@@ -289,7 +328,7 @@ namespace _Test
 
         public int GetInteger(string key)
         {
-            int id = Animator.StringToHash(key);
+            int id = StringToHash(key);
             return GetInteger(id);
         }
 
@@ -301,7 +340,7 @@ namespace _Test
 
         public void SetInteger(string key, int value)
         {
-            int id = Animator.StringToHash(key);
+            int id = StringToHash(key);
             SetInteger(id, value);
         }
 
@@ -312,7 +351,7 @@ namespace _Test
 
         public void SetTrigger(string key)
         {
-            int id = Animator.StringToHash(key);
+            int id = StringToHash(key);
             SetTrigger(id);
         }
 
@@ -323,7 +362,7 @@ namespace _Test
 
         public bool GetTrigger(string key)
         {
-            int id = Animator.StringToHash(key);
+            int id = StringToHash(key);
             return GetTrigger(id);
         }
 
@@ -335,7 +374,7 @@ namespace _Test
 
         public void ResetTrigger(string key)
         {
-            int id = Animator.StringToHash(key);
+            int id = StringToHash(key);
             ResetTrigger(id);
         }
 
@@ -346,7 +385,7 @@ namespace _Test
 
         public void ResetTriggerAll()
         {
-            triggerParameterPool.Clear();
+            triggerParameterPool.Clear(); //清除全部设置为false，不需要设置为default
         }
     }
 }

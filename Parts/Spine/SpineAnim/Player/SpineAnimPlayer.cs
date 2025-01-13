@@ -1,32 +1,8 @@
 using Spine;
 using Spine.Unity;
 
-namespace _Test
+namespace PartsKit
 {
-    //todo 整理代码
-    public static class Ex
-    {
-        public static bool IsPlaying(this AnimationState state)
-        {
-            if (state.Tracks.Count <= 0)
-            {
-                return false;
-            }
-
-            foreach (var stateTrack in state.Tracks)
-            {
-                if (stateTrack.Loop)
-                {
-                    return true;
-                }
-
-                return !stateTrack.IsComplete;
-            }
-
-            return false;
-        }
-    }
-
     public class SpineAnimPlayer
     {
         private SkeletonAnimation mSkeletonAnimation;
@@ -55,17 +31,6 @@ namespace _Test
         {
             animation = mSkeleton.Data.FindAnimation(animName);
             return animation != null;
-        }
-
-        public void ResetEvent(int trackIndex)
-        {
-            var current = mAnimationState.GetCurrent(trackIndex);
-            if (current == null)
-            {
-                return;
-            }
-
-            current.ResetEvent();
         }
 
         public TrackEntry PlayAnimation(int trackIndex, string animName, bool isLoop)

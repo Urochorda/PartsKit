@@ -7,59 +7,59 @@ namespace PartsKit
     public class UIInteractionHandler : MonoBehaviour, IPointerClickHandler, IPointerDownHandler, IPointerUpHandler,
         IPointerEnterHandler, IPointerExitHandler, IPointerMoveHandler, IBeginDragHandler, IDragHandler, IEndDragHandler
     {
-        public event Action<PointerEventData> onPointerClickEvent;
-        public event Action<PointerEventData> onPointerDownEvent;
-        public event Action<PointerEventData> onPointerUpEvent;
-        public event Action<PointerEventData> onPointerEnterEvent;
-        public event Action<PointerEventData> onPointerExitEvent;
-        public event Action<PointerEventData> onPointerMoveEvent;
-        public event Action<PointerEventData> onBeginDragEvent;
-        public event Action<PointerEventData> onDragEvent;
-        public event Action<PointerEventData> onEndDragEvent;
+        public event Action<UIInteractionHandler, PointerEventData> onPointerClickEvent;
+        public event Action<UIInteractionHandler, PointerEventData> onPointerDownEvent;
+        public event Action<UIInteractionHandler, PointerEventData> onPointerUpEvent;
+        public event Action<UIInteractionHandler, PointerEventData> onPointerEnterEvent;
+        public event Action<UIInteractionHandler, PointerEventData> onPointerExitEvent;
+        public event Action<UIInteractionHandler, PointerEventData> onPointerMoveEvent;
+        public event Action<UIInteractionHandler, PointerEventData> onBeginDragEvent;
+        public event Action<UIInteractionHandler, PointerEventData> onDragEvent;
+        public event Action<UIInteractionHandler, PointerEventData> onEndDragEvent;
 
         public void OnPointerClick(PointerEventData eventData)
         {
-            onPointerClickEvent?.Invoke(eventData);
+            onPointerClickEvent?.Invoke(this, eventData);
         }
 
         public void OnPointerDown(PointerEventData eventData)
         {
-            onPointerDownEvent?.Invoke(eventData);
+            onPointerDownEvent?.Invoke(this, eventData);
         }
 
         public void OnPointerUp(PointerEventData eventData)
         {
-            onPointerUpEvent?.Invoke(eventData);
+            onPointerUpEvent?.Invoke(this, eventData);
         }
 
         public void OnPointerEnter(PointerEventData eventData)
         {
-            onPointerEnterEvent?.Invoke(eventData);
+            onPointerEnterEvent?.Invoke(this, eventData);
         }
 
         public void OnPointerExit(PointerEventData eventData)
         {
-            onPointerExitEvent?.Invoke(eventData);
+            onPointerExitEvent?.Invoke(this, eventData);
         }
 
         public void OnPointerMove(PointerEventData eventData)
         {
-            onPointerMoveEvent?.Invoke(eventData);
+            onPointerMoveEvent?.Invoke(this, eventData);
         }
 
         public void OnBeginDrag(PointerEventData eventData)
         {
-            onBeginDragEvent?.Invoke(eventData);
+            onBeginDragEvent?.Invoke(this, eventData);
         }
 
         public void OnDrag(PointerEventData eventData)
         {
-            onDragEvent?.Invoke(eventData);
+            onDragEvent?.Invoke(this, eventData);
         }
 
         public void OnEndDrag(PointerEventData eventData)
         {
-            onEndDragEvent?.Invoke(eventData);
+            onEndDragEvent?.Invoke(this, eventData);
         }
     }
 }

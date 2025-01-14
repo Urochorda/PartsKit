@@ -14,6 +14,7 @@ namespace PartsKit
 
         [SerializeField] private SpineMachineData stateDataAnim;
         [SerializeField] private SkeletonAnimation skeletonAnimation;
+        [SerializeField] private bool isDisableStop = true; //默认为true，重新开启时会重置状态
 
         private readonly Dictionary<int, float> floatParameterPool = new Dictionary<int, float>();
         private readonly Dictionary<int, int> intParameterPool = new Dictionary<int, int>();
@@ -28,12 +29,25 @@ namespace PartsKit
         private ISpineClipData curPlayingClip;
         private bool isPlaying;
 
+        private void OnEnable()
+        {
+            Play();
+        }
+
+        private void OnDisable()
+        {
+            if (isDisableStop)
+            {
+                Stop();
+            }
+        }
+
         private void Update()
         {
             UpdateState();
         }
 
-        public void Play()
+        private void Play()
         {
             if (isPlaying)
             {
@@ -47,7 +61,7 @@ namespace PartsKit
             spineAnimPlayer ??= new SpineAnimPlayer(skeletonAnimation);
         }
 
-        public void Stop()
+        private void Stop()
         {
             if (!isPlaying)
             {

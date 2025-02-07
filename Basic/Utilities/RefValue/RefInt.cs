@@ -1,6 +1,11 @@
 namespace PartsKit
 {
-    public class RefInt
+    public interface IReadOnlyRefInt
+    {
+        public int Value { get; }
+    }
+
+    public class RefInt : IReadOnlyRefInt
     {
         public int Value { get; set; }
 

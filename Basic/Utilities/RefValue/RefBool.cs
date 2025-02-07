@@ -1,6 +1,11 @@
 namespace PartsKit
 {
-    public class RefBool
+    public interface IReadOnlyRefBool
+    {
+        public bool Value { get; }
+    }
+
+    public class RefBool : IReadOnlyRefBool
     {
         public bool Value { get; set; }
 

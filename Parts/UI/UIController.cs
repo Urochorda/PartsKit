@@ -33,14 +33,22 @@ namespace PartsKit
 
         [SerializeField] private List<UILevelData> panelLevels = new List<UILevelData>();
         [SerializeField] private Transform resetPanelParent;
+        [SerializeField] private GameObject maskObj;
 
         private readonly Dictionary<string, UIPanel> panelPool = new Dictionary<string, UIPanel>();
+
+        //每个页面Key只会同时打开一个（支持同一个UIPanel类对应不同的Key），所以这里直接使用HashSet
+        private readonly HashSet<string> loadingPanelPool = new HashSet<string>();
 
         private readonly Dictionary<string, PreLoadPanelData> preLoadPanelAsset =
             new Dictionary<string, PreLoadPanelData>();
 
+        private int maskCount;
+
         protected override void OnInit()
         {
+            maskCount = 1;
+            SetMaskActive(false);
         }
 
         protected override void OnDeInit()
@@ -120,6 +128,18 @@ namespace PartsKit
         }
 
         /// <summary>
+        /// 设置遮罩
+        /// </summary>
+        public void SetMaskActive(bool isActive)
+        {
+            maskCount += isActive ? 1 : -1;
+            if (maskObj)
+            {
+                maskObj.SetActive(maskCount > 0);
+            }
+        }
+
+        /// <summary>
         /// 打开面板，输出打开的面板对象
         /// </summary>
         public bool OpenPanel<T>(string panelKey, string levelKey, out T panel) where T : UIPanel
@@ -129,6 +149,11 @@ namespace PartsKit
                 CustomLog.LogError($"{nameof(OpenPanel)} {levelKey} err");
                 panel = null;
                 return false;
+            }
+
+            if (IsOpenedPanel(panelKey))
+            {
+                ClosePanel(panelKey, false);
             }
 
             panelPool.TryGetValue(panelKey, out UIPanel panelVal);
@@ -154,12 +179,18 @@ namespace PartsKit
         /// <summary>
         /// 异步打开panel
         /// </summary>
-        public void OpenPanelAsync<T>(string panelKey, string levelKey, Action<T> onPanelOpen) where T : UIPanel
+        public void OpenPanelAsync<T>(string panelKey, string levelKey, bool useMask, Action<T> onPanelOpen)
+            where T : UIPanel
         {
             if (!GetPanelLevel(levelKey, out Transform levelObj))
             {
                 CustomLog.LogError($"{nameof(OpenPanelAsync)} {levelKey} err");
                 return;
+            }
+
+            if (IsOpenedPanel(panelKey))
+            {
+                ClosePanel(panelKey, false);
             }
 
             panelPool.TryGetValue(panelKey, out UIPanel panelVal);
@@ -170,7 +201,27 @@ namespace PartsKit
             }
             else
             {
-                CreateUIPanelAsync<T>(panelKey, levelObj, (createPanel) =>
+                if (useMask)
+                {
+                    SetMaskActive(true);
+                }
+
+                loadingPanelPool.Add(panelKey);
+                CreateUIPanelAsync<T>(panelKey, levelObj, (loadPanel) =>
+                {
+                    if (useMask)
+                    {
+                        SetMaskActive(false);
+                    }
+
+                    bool isLoading = IsLoadingPanel(panelKey);
+                    if (isLoading)
+                    {
+                        loadingPanelPool.Remove(panelKey);
+                    }
+
+                    return isLoading;
+                }, (createPanel) =>
                 {
                     SetUIPanelOpen(panelKey, createPanel, levelObj);
                     onPanelOpen?.Invoke(createPanel);
@@ -178,9 +229,9 @@ namespace PartsKit
             }
         }
 
-        public void OpenPanelAsync(string panelKey, string levelKey)
+        public void OpenPanelAsync(string panelKey, string levelKey, bool useMask)
         {
-            OpenPanelAsync<UIPanel>(panelKey, levelKey, null);
+            OpenPanelAsync<UIPanel>(panelKey, levelKey, useMask, null);
         }
 
         /// <summary>
@@ -190,6 +241,7 @@ namespace PartsKit
         /// <param name="isDestroy">是否销毁</param>
         public void ClosePanel(string panelKey, bool isDestroy)
         {
+            loadingPanelPool.Remove(panelKey);
             if (!panelPool.TryGetValue(panelKey, out UIPanel uiPanel))
             {
                 return;
@@ -210,6 +262,23 @@ namespace PartsKit
                 uiPanel.gameObject.SetActive(false);
                 uiPanel.transform.SetParent(resetPanelParent);
             }
+        }
+
+        /// <summary>
+        /// 是否打开面板
+        /// </summary>
+        public bool IsOpenedPanel(string panelKey)
+        {
+            return GetOpenedPanel<UIPanel>(panelKey, out _);
+        }
+
+        /// <summary>
+        /// 是否正在加载
+        /// </summary>
+        public bool IsLoadingPanel(string panelKey)
+        {
+            bool isLoading = loadingPanelPool.Contains(panelKey);
+            return isLoading;
         }
 
         /// <summary>
@@ -252,13 +321,20 @@ namespace PartsKit
             return uiPanel != null;
         }
 
-        private void CreateUIPanelAsync<T>(string panelKey, Transform levelObj, Action<T> onPanelLoad) where T : UIPanel
+        private void CreateUIPanelAsync<T>(string panelKey, Transform levelObj, Func<T, bool> onPanelLoad,
+            Action<T> onPanelCreate) where T : UIPanel
         {
             LoadUIPanelAsync<T>(panelKey, (panelPrefab) =>
             {
+                bool canCreate = onPanelLoad.Invoke(panelPrefab);
+                if (!canCreate)
+                {
+                    return;
+                }
+
                 T uiPanel = InstantiateUIPanel(panelPrefab, levelObj);
                 ReleaseUIPanel(panelPrefab);
-                onPanelLoad?.Invoke(uiPanel);
+                onPanelCreate?.Invoke(uiPanel);
             });
         }
 
@@ -321,11 +397,6 @@ namespace PartsKit
 
         private void SetUIPanelOpen(string panelKey, UIPanel panel, Transform levelObj)
         {
-            if (panel.IsOpen)
-            {
-                ClosePanel(panelKey, false);
-            }
-
             panel.transform.SetParent(levelObj);
             panel.transform.SetAsLastSibling();
             panelPool[panelKey] = panel;

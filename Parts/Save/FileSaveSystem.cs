@@ -34,29 +34,61 @@ namespace PartsKit
         {
             string dataStr = JsonConvert.SerializeObject(data);
             string savePath = GetSavePath(name, out string fileName, out string saveDir);
-            if (!Directory.Exists(saveDir))
+            string tempPath = savePath + ".tmp";
+
+            if (!string.IsNullOrEmpty(saveDir) && !Directory.Exists(saveDir))
             {
                 Directory.CreateDirectory(saveDir);
             }
 
-            FileStream saveFile = File.Create(savePath);
-            if (isEncryption)
+            try
             {
-                using MemoryStream memoryStream = new MemoryStream();
-                using StreamWriter streamWriter = new StreamWriter(memoryStream);
-                streamWriter.Write(dataStr);
-                streamWriter.Flush();
-                memoryStream.Position = 0;
-                Encrypt(memoryStream, saveFile, encryptionKey);
-            }
-            else
-            {
-                StreamWriter streamWriter = new StreamWriter(saveFile, Encoding.UTF8);
-                streamWriter.Write(dataStr);
-                streamWriter.Close();
-            }
+                using (FileStream tempSaveFile = File.Create(tempPath))
+                {
+                    if (isEncryption)
+                    {
+                        if (string.IsNullOrEmpty(encryptionKey))
+                        {
+                            throw new ArgumentNullException(nameof(encryptionKey), "参数不能为空！");
+                        }
+                        using (MemoryStream memoryStream = new MemoryStream())
+                        {
+                            using (StreamWriter streamWriter = new StreamWriter(memoryStream))
+                            {
+                                streamWriter.Write(dataStr);
+                                streamWriter.Flush();
+                                memoryStream.Position = 0;
+                                Encrypt(memoryStream, tempSaveFile, encryptionKey);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        using (StreamWriter streamWriter = new StreamWriter(tempSaveFile, Encoding.UTF8))
+                        {
+                            streamWriter.Write(dataStr);
+                        }
+                    }
+                }
 
-            saveFile.Close();
+                //原子替换，防止存档损坏
+                if (File.Exists(savePath))
+                {
+                    File.Replace(tempPath, savePath, null);
+                }
+                else
+                {
+                    File.Move(tempPath, savePath);
+                }
+            }
+            catch (Exception e)
+            {
+                CustomLog.LogError(e);
+                if (File.Exists(tempPath))
+                {
+                    File.Delete(tempPath);
+                }
+            }
         }
 
         public bool Get<T>(string name, out T data)
@@ -73,38 +105,44 @@ namespace PartsKit
                 return false;
             }
 
-            FileStream saveFile = File.Open(savePath, FileMode.Open, FileAccess.Read, FileShare.Read);
             bool isSuccess;
             try
             {
-                if (isEncryption)
+                using (FileStream saveFile = File.Open(savePath, FileMode.Open, FileAccess.Read, FileShare.Read))
                 {
-                    using MemoryStream memoryStream = new MemoryStream();
-                    using StreamReader streamReader = new StreamReader(memoryStream);
-                    Decrypt(saveFile, memoryStream, encryptionKey);
-                    memoryStream.Position = 0;
-                    string infoStr = streamReader.ReadToEnd();
-                    data = JsonConvert.DeserializeObject<T>(infoStr);
-                }
-                else
-                {
-                    StreamReader streamReader = new StreamReader(saveFile, Encoding.UTF8);
-                    string infoStr = streamReader.ReadToEnd();
-                    data = JsonConvert.DeserializeObject<T>(infoStr);
-                }
+                    if (isEncryption)
+                    {
+                        using (MemoryStream memoryStream = new MemoryStream())
+                        {
+                            using (StreamReader streamReader = new StreamReader(memoryStream))
+                            {
+                                Decrypt(saveFile, memoryStream, encryptionKey);
+                                memoryStream.Position = 0;
+                                string infoStr = streamReader.ReadToEnd();
+                                data = JsonConvert.DeserializeObject<T>(infoStr);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        using (StreamReader streamReader = new StreamReader(saveFile, Encoding.UTF8))
+                        {
+                            string infoStr = streamReader.ReadToEnd();
+                            data = JsonConvert.DeserializeObject<T>(infoStr);
+                        }
+                    }
 
-                data ??= getDefault == null ? default : getDefault.Invoke();
-                isSuccess = true;
+                    data ??= getDefault == null ? default : getDefault.Invoke();
+                    isSuccess = true;
+                }
             }
             catch (Exception e)
             {
-                isSuccess = false;
                 CustomLog.LogError(e);
+                isSuccess = false;
                 data = getDefault == null ? default : getDefault.Invoke();
             }
 
-
-            saveFile.Close();
             return isSuccess;
         }
 
@@ -164,30 +202,45 @@ namespace PartsKit
             return $"{Application.persistentDataPath}";
         }
 
+        /// <summary>
+        /// 加密数据流
+        /// </summary>
         private void Encrypt(Stream inputStream, Stream outputStream, string sKey)
         {
-            RijndaelManaged algorithm = new RijndaelManaged();
-            Rfc2898DeriveBytes key = new Rfc2898DeriveBytes(sKey, Encoding.ASCII.GetBytes(saltText));
+            using (Aes aes = Aes.Create())
+            {
+                using (Rfc2898DeriveBytes keyDerivation =
+                       new Rfc2898DeriveBytes(sKey, Encoding.ASCII.GetBytes(saltText), 10000))
+                {
+                    aes.Key = keyDerivation.GetBytes(aes.KeySize / 8);
+                    aes.IV = keyDerivation.GetBytes(aes.BlockSize / 8);
+                }
 
-            algorithm.Key = key.GetBytes(algorithm.KeySize / 8);
-            algorithm.IV = key.GetBytes(algorithm.BlockSize / 8);
-
-            CryptoStream cryptoStream =
-                new CryptoStream(inputStream, algorithm.CreateEncryptor(), CryptoStreamMode.Read);
-            cryptoStream.CopyTo(outputStream);
+                using (CryptoStream cryptoStream =
+                       new CryptoStream(outputStream, aes.CreateEncryptor(), CryptoStreamMode.Write))
+                {
+                    inputStream.CopyTo(cryptoStream);
+                }
+            }
         }
 
         private void Decrypt(Stream inputStream, Stream outputStream, string sKey)
         {
-            RijndaelManaged algorithm = new RijndaelManaged();
-            Rfc2898DeriveBytes key = new Rfc2898DeriveBytes(sKey, Encoding.ASCII.GetBytes(saltText));
+            using (Aes aes = Aes.Create())
+            {
+                using (Rfc2898DeriveBytes keyDerivation =
+                       new Rfc2898DeriveBytes(sKey, Encoding.ASCII.GetBytes(saltText), 10000))
+                {
+                    aes.Key = keyDerivation.GetBytes(aes.KeySize / 8);
+                    aes.IV = keyDerivation.GetBytes(aes.BlockSize / 8);
+                }
 
-            algorithm.Key = key.GetBytes(algorithm.KeySize / 8);
-            algorithm.IV = key.GetBytes(algorithm.BlockSize / 8);
-
-            CryptoStream cryptoStream =
-                new CryptoStream(inputStream, algorithm.CreateDecryptor(), CryptoStreamMode.Read);
-            cryptoStream.CopyTo(outputStream);
+                using (CryptoStream cryptoStream =
+                       new CryptoStream(inputStream, aes.CreateDecryptor(), CryptoStreamMode.Read))
+                {
+                    cryptoStream.CopyTo(outputStream);
+                }
+            }
         }
     }
 }

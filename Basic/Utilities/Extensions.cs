@@ -5,45 +5,48 @@ namespace PartsKit
 {
     public static class Extensions
     {
-        public static void RemoveMatch<T>(this List<T> list, Predicate<T> match)
+        public static bool RemoveMatch<T>(this List<T> list, Predicate<T> match)
         {
             for (var i = 0; i < list.Count; i++)
             {
                 if (match(list[i]))
                 {
                     list.RemoveAt(i);
-                    return;
+                    return true;
                 }
             }
+
+            return false;
         }
 
-        public static void RemoveAtDisorder<T>(this List<T> self, int index)
+        public static bool RemoveAtDisorder<T>(this List<T> self, int index)
         {
             if (index < 0 || index >= self.Count)
             {
-                return;
+                return false;
             }
 
             int lastIndex = self.Count - 1;
             self[index] = self[lastIndex];
             self.RemoveAt(lastIndex);
+            return true;
         }
 
-        public static void RemoveMatchDisorder<T>(this List<T> self, Predicate<T> match)
+        public static bool RemoveMatchDisorder<T>(this List<T> self, Predicate<T> match)
         {
             int index = self.FindIndex(match);
             if (index < 0)
             {
-                return;
+                return false;
             }
 
-            self.RemoveAtDisorder(index);
+            return self.RemoveAtDisorder(index);
         }
 
-        public static void RemoveDisorder<T>(this List<T> self, T item)
+        public static bool RemoveDisorder<T>(this List<T> self, T item)
         {
             int index = self.IndexOf(item);
-            self.RemoveAtDisorder(index);
+            return self.RemoveAtDisorder(index);
         }
     }
 }

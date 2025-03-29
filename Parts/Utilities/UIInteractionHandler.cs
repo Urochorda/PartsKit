@@ -19,6 +19,10 @@ namespace PartsKit
 
         private bool isDragDown;
 
+        public bool IsDragging;
+        public bool IsDowning;
+        public bool IsEntering;
+
         public void OnPointerClick(PointerEventData eventData)
         {
             if (!isDragDown)
@@ -29,22 +33,26 @@ namespace PartsKit
 
         public void OnPointerDown(PointerEventData eventData)
         {
+            IsDowning = true;
             isDragDown = false;
             onPointerDownEvent?.Invoke(this, eventData);
         }
 
         public void OnPointerUp(PointerEventData eventData)
         {
+            IsDowning = false;
             onPointerUpEvent?.Invoke(this, eventData);
         }
 
         public void OnPointerEnter(PointerEventData eventData)
         {
+            IsEntering = true;
             onPointerEnterEvent?.Invoke(this, eventData);
         }
 
         public void OnPointerExit(PointerEventData eventData)
         {
+            IsEntering = false;
             onPointerExitEvent?.Invoke(this, eventData);
         }
 
@@ -55,6 +63,7 @@ namespace PartsKit
 
         public void OnBeginDrag(PointerEventData eventData)
         {
+            IsDragging = true;
             isDragDown = true;
             onBeginDragEvent?.Invoke(this, eventData);
         }
@@ -66,7 +75,27 @@ namespace PartsKit
 
         public void OnEndDrag(PointerEventData eventData)
         {
+            IsDragging = false;
             onEndDragEvent?.Invoke(this, eventData);
+        }
+
+        private void OnDisable()
+        {
+            var eventSystem = EventSystem.current;
+            if (IsDragging)
+            {
+                OnEndDrag(new PointerEventData(eventSystem));
+            }
+
+            if (IsEntering)
+            {
+                OnPointerExit(new PointerEventData(eventSystem));
+            }
+
+            if (IsDowning)
+            {
+                OnPointerUp(new PointerEventData(eventSystem));
+            }
         }
     }
 }

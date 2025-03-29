@@ -12,7 +12,7 @@ namespace PartsKit
                 return;
             }
 
-            var insObj = new GameObject();
+            var insObj = new GameObject("LogicSequenceController");
             Instance = insObj.AddComponent<LogicSequenceController>();
             DontDestroyOnLoad(Instance);
         }

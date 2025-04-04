@@ -21,6 +21,11 @@ namespace PartsKit
             Follow(true);
         }
 
+        private void OnDestroy()
+        {
+            followTweener?.Kill();
+        }
+
         private void LateUpdate()
         {
             if (isUpdateFollow)

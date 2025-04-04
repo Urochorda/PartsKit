@@ -25,10 +25,7 @@ namespace PartsKit
         {
             float deltaTime = Time.deltaTime;
             float unscaledDeltaTime = Time.unscaledDeltaTime;
-            foreach (var sequence in allSequence)
-            {
-                sequence.Update(deltaTime, unscaledDeltaTime);
-            }
+            UpdateSequence(deltaTime, unscaledDeltaTime);
         }
 
         public void AddSequence(LogicSequence sequence)
@@ -44,6 +41,16 @@ namespace PartsKit
             }
 
             allSequence.Add(sequence);
+
+            UpdateSequence(0, 0);
+        }
+
+        private void UpdateSequence(float deltaTime, float unscaledDeltaTime)
+        {
+            foreach (var sequence in allSequence)
+            {
+                sequence.Update(deltaTime, unscaledDeltaTime);
+            }
         }
     }
 }

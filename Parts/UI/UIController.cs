@@ -247,6 +247,8 @@ namespace PartsKit
                 return;
             }
 
+            //先将Active设置为false，因为玩家可以Destroy后继续点到按钮（PS：确实在页面点击很快时遇到过这个情况，Unity的特殊Bug？？？）
+            uiPanel.gameObject.SetActive(false);
             if (uiPanel.IsOpen)
             {
                 UIPanel.SetClose(uiPanel);
@@ -259,7 +261,6 @@ namespace PartsKit
             }
             else
             {
-                uiPanel.gameObject.SetActive(false);
                 uiPanel.transform.SetParent(resetPanelParent);
             }
         }

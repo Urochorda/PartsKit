@@ -50,6 +50,35 @@ namespace PartsKit
             return self.RemoveAtDisorder(index);
         }
 
+        /// <summary>
+        /// 判断外层包围盒是否完全包含内层包围盒
+        /// </summary>
+        public static bool Contains(this Bounds outer, Bounds inner)
+        {
+            return outer.min.x <= inner.min.x &&
+                   outer.min.y <= inner.min.y &&
+                   outer.min.z <= inner.min.z &&
+                   outer.max.x >= inner.max.x &&
+                   outer.max.y >= inner.max.y &&
+                   outer.max.z >= inner.max.z;
+        }
+
+        public static bool Contains(this Circle outer, Bounds inner)
+        {
+            // 确定每个轴的最远点坐标
+            float farthestX = (outer.Center.x > inner.center.x) ? inner.min.x : inner.max.x;
+            float farthestY = (outer.Center.y > inner.center.y) ? inner.min.y : inner.max.y;
+            float farthestZ = (outer.Center.z > inner.center.z) ? inner.min.z : inner.max.z;
+            Vector3 farthestPoint = new Vector3(farthestX, farthestY, farthestZ);
+
+            // 计算距离平方并比较
+            float distanceSqr = (farthestPoint - outer.Center).sqrMagnitude;
+            return distanceSqr <= outer.Radius * outer.Radius;
+        }
+
+        /// <summary>
+        /// 合并所有包围盒（提高性能）
+        /// </summary>
         public static Bounds Encapsulate(this List<Bounds> boundsList)
         {
             float minX = float.MaxValue;
@@ -153,6 +182,9 @@ namespace PartsKit
             return bounds;
         }
 
+        /// <summary>
+        /// 获取相交部分
+        /// </summary>
         public static bool Intersection(this Bounds a, Bounds b, out Bounds result)
         {
             // 判断是否相交

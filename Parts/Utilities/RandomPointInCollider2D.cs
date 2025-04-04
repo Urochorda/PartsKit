@@ -8,7 +8,7 @@ namespace PartsKit
     public class RandomPointInCollider2D
     {
         private Collider2D mCollider;
-        private int maxRandomCount = 1000;
+        private int maxRandomCount = 100;
         private Func<float, float, float> onRandom;
 
         private readonly List<Bounds> tempBounds = new List<Bounds>();
@@ -28,6 +28,41 @@ namespace PartsKit
         public void SetRandomFun(Func<float, float, float> randomF)
         {
             onRandom = randomF;
+        }
+
+        private bool DoRandomPoint(Vector3 minBound, Vector3 maxBound, Func<Vector3, bool> checkFunc, out Vector3 point)
+        {
+            Vector3 randomPoint;
+            int randomCount = 0;
+            bool isSuccess = false;
+            do
+            {
+                randomPoint =
+                    new Vector3(
+                        RandomValue(minBound.x, maxBound.x),
+                        RandomValue(minBound.y, maxBound.y),
+                        RandomValue(minBound.z, maxBound.z)
+                    );
+                randomCount++;
+                if (mCollider.OverlapPoint(randomPoint) && (checkFunc == null || checkFunc.Invoke(randomPoint)))
+                {
+                    isSuccess = true;
+                    break;
+                }
+            } while (randomCount <= maxRandomCount);
+
+            point = randomPoint;
+            return isSuccess;
+        }
+
+        private float RandomValue(float min, float max)
+        {
+            if (onRandom != null)
+            {
+                return onRandom.Invoke(min, max);
+            }
+
+            return Random.Range(min, max);
         }
 
         public bool RandomPoint(out Vector3 point)
@@ -69,9 +104,33 @@ namespace PartsKit
             return DoRandomPoint(minBound, maxBound, null, out point);
         }
 
+        public bool RandomPointIn(Circle circle, out Vector3 point)
+        {
+            //因为是2d，所有z给0
+            var inBounds = new Bounds(circle.Center, new Vector3(circle.Radius, circle.Radius, 0));
+
+            var mapBounds = mCollider.bounds;
+            if (!mapBounds.Intersection(inBounds, out var targetBounds))
+            {
+                point = Vector3.zero;
+                return false;
+            }
+
+            Vector3 minBound = targetBounds.min;
+            Vector3 maxBound = targetBounds.max;
+
+            return DoRandomPoint(minBound, maxBound, (pos) => circle.Contains(pos), out point);
+        }
+
         public bool RandomPointOut(Bounds outBounds, out Vector3 point)
         {
             var mapBounds = mCollider.bounds;
+            if (outBounds.Contains(mapBounds))
+            {
+                point = Vector3.zero;
+                return false;
+            }
+
             Vector3 minBound = mapBounds.min;
             Vector3 maxBound = mapBounds.max;
             return DoRandomPoint(minBound, maxBound, (pos) => !outBounds.Contains(pos), out point);
@@ -80,6 +139,15 @@ namespace PartsKit
         public bool RandomPointOut(List<Bounds> outBounds, out Vector3 point)
         {
             var mapBounds = mCollider.bounds;
+            foreach (var outBound in outBounds)
+            {
+                if (outBound.Contains(mapBounds))
+                {
+                    point = Vector3.zero;
+                    return false;
+                }
+            }
+
             Vector3 minBound = mapBounds.min;
             Vector3 maxBound = mapBounds.max;
             return DoRandomPoint(minBound, maxBound, (pos) =>
@@ -96,10 +164,30 @@ namespace PartsKit
             }, out point);
         }
 
+        public bool RandomPointOut(Circle circle, out Vector3 point)
+        {
+            var mapBounds = mCollider.bounds;
+            if (circle.Contains(mapBounds))
+            {
+                point = Vector3.zero;
+                return false;
+            }
+
+            Vector3 minBound = mapBounds.min;
+            Vector3 maxBound = mapBounds.max;
+            return DoRandomPoint(minBound, maxBound, (pos) => !circle.Contains(pos), out point);
+        }
+
         public bool RandomPointInOut(Bounds inBounds, Bounds outBounds, out Vector3 point)
         {
             var mapBounds = mCollider.bounds;
             if (!mapBounds.Intersection(inBounds, out var targetBounds))
+            {
+                point = Vector3.zero;
+                return false;
+            }
+
+            if (outBounds.Contains(mapBounds))
             {
                 point = Vector3.zero;
                 return false;
@@ -120,6 +208,15 @@ namespace PartsKit
             {
                 point = Vector3.zero;
                 return false;
+            }
+
+            foreach (var outBound in outBounds)
+            {
+                if (outBound.Contains(mapBounds))
+                {
+                    point = Vector3.zero;
+                    return false;
+                }
             }
 
             Vector3 minBound = targetBounds.min;
@@ -145,6 +242,15 @@ namespace PartsKit
             {
                 point = Vector3.zero;
                 return false;
+            }
+
+            foreach (var outBound in outBounds)
+            {
+                if (outBound.Contains(mapBounds))
+                {
+                    point = Vector3.zero;
+                    return false;
+                }
             }
 
             Vector3 minBound = targetBounds.min;
@@ -175,44 +281,15 @@ namespace PartsKit
                 return false;
             }
 
+            if (outBounds.Contains(mapBounds))
+            {
+                point = Vector3.zero;
+                return false;
+            }
+
             Vector3 minBound = targetBounds.min;
             Vector3 maxBound = targetBounds.max;
             return DoRandomPoint(minBound, maxBound, (pos) => !outBounds.Contains(pos), out point);
-        }
-
-        private bool DoRandomPoint(Vector3 minBound, Vector3 maxBound, Func<Vector3, bool> checkFunc, out Vector3 point)
-        {
-            Vector3 randomPoint;
-            int randomCount = 0;
-            bool isSuccess = false;
-            do
-            {
-                randomPoint =
-                    new Vector3(
-                        RandomValue(minBound.x, maxBound.x),
-                        RandomValue(minBound.y, maxBound.y),
-                        RandomValue(minBound.z, maxBound.z)
-                    );
-                randomCount++;
-                if (mCollider.OverlapPoint(randomPoint) && (checkFunc == null || checkFunc.Invoke(randomPoint)))
-                {
-                    isSuccess = true;
-                    break;
-                }
-            } while (randomCount <= maxRandomCount);
-
-            point = randomPoint;
-            return isSuccess;
-        }
-
-        private float RandomValue(float min, float max)
-        {
-            if (onRandom != null)
-            {
-                return onRandom.Invoke(min, max);
-            }
-
-            return Random.Range(min, max);
         }
     }
 }

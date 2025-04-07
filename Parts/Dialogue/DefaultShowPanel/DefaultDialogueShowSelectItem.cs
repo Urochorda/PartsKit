@@ -23,6 +23,11 @@ namespace PartsKit
         {
             itemData = itemDataVal;
             infoStringEvent.SetEntry(itemDataVal.InfoEntryName);
+            if (string.IsNullOrEmpty(itemDataVal.InfoEntryName))
+            {
+                infoStringEvent.OnUpdateString.Invoke(string.Empty);
+            }
+
             onSelect = onSelectVal;
         }
 

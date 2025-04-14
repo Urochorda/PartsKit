@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
-using UnityEditor.UI;
 using UnityEngine;
 using UnityEngine.UI;
 
 #if UNITY_EDITOR
 using UnityEditor;
+using UnityEditor.UI;
 using UnityEditor.AnimatedValues;
 #endif
 

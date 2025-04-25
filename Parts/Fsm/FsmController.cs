@@ -24,9 +24,15 @@ namespace PartsKit
             SetState(defaultStateId, false);
         }
 
+        public FsmController(FsmState<T> defaultState)
+        {
+            AddState(defaultState);
+            SetState(defaultState.StateId, false);
+        }
+
         public void AddState(T stateId, FsmCallBack callBack)
         {
-            FsmState<T> state = new FsmState<T>(stateId);
+            FsmCallBackState<T> state = new FsmCallBackState<T>(stateId);
             if (callBack != null)
             {
                 state.onEntry += callBack.OnEntry;
@@ -36,6 +42,11 @@ namespace PartsKit
                 state.onExit += callBack.OnExit;
             }
 
+            AddState(state);
+        }
+
+        public void AddState(FsmState<T> state)
+        {
             mFsmPool[state.StateId] = state;
         }
 

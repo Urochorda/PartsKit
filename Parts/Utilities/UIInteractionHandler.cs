@@ -19,9 +19,9 @@ namespace PartsKit
 
         private bool isDragDown;
 
-        public bool IsDragging;
-        public bool IsDowning;
-        public bool IsEntering;
+        public bool IsDragging { get; private set; }
+        public bool IsDowning { get; private set; }
+        public bool IsEntering { get; private set; }
 
         public void OnPointerClick(PointerEventData eventData)
         {

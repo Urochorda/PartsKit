@@ -11,6 +11,12 @@ namespace PartsKit
         public abstract void Release<T>(T panelPrefab) where T : UIPanel;
     }
 
+    public enum UIPanelCloseType
+    {
+        Open, //关闭打开的页面
+        Loading, //关闭加载的页面
+    }
+
     public class UIController : PartsKitBehaviour
     {
         [Serializable]
@@ -44,6 +50,13 @@ namespace PartsKit
             new Dictionary<string, PreLoadPanelData>();
 
         private int maskCount;
+
+        /// <summary>
+        /// 和onClosePanel的Open类型成对出现
+        /// </summary>
+        public event Action<string> onOpenPanel;
+
+        public event Action<string, UIPanelCloseType> onClosePanel;
 
         protected override void OnInit()
         {
@@ -241,7 +254,14 @@ namespace PartsKit
         /// <param name="isDestroy">是否销毁</param>
         public void ClosePanel(string panelKey, bool isDestroy)
         {
-            loadingPanelPool.Remove(panelKey);
+            //正在加载
+            if (IsLoadingPanel(panelKey))
+            {
+                loadingPanelPool.Remove(panelKey);
+                onClosePanel?.Invoke(panelKey, UIPanelCloseType.Loading);
+                return;
+            }
+
             if (!panelPool.TryGetValue(panelKey, out UIPanel uiPanel))
             {
                 return;
@@ -252,6 +272,7 @@ namespace PartsKit
             if (uiPanel.IsOpen)
             {
                 UIPanel.SetClose(uiPanel);
+                onClosePanel?.Invoke(panelKey, UIPanelCloseType.Open);
             }
 
             if (isDestroy)
@@ -403,6 +424,7 @@ namespace PartsKit
             panelPool[panelKey] = panel;
             panel.gameObject.SetActive(true);
             UIPanel.SetOpen(panel, this, panelKey);
+            onOpenPanel?.Invoke(panelKey);
         }
     }
 }

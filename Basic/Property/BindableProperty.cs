@@ -8,6 +8,9 @@ namespace PartsKit
         public IRegister Register(Action<T, T> onValueChanged);
         public IRegister RegisterWithInitValue(Action<T, T> onValueChanged);
         public void UnRegister(Action<T, T> onValueChanged);
+        public IRegister RegisterLate(Action<T, T> onValueChanged);
+        public IRegister RegisterLateWithInitValue(Action<T, T> onValueChanged);
+        public void UnRegisterLate(Action<T, T> onValueChanged);
         public string ToString();
     }
 
@@ -15,6 +18,7 @@ namespace PartsKit
     {
         private T mValue;
         private Action<T, T> mOnValueChanged;
+        private Action<T, T> mOnValueChangedLate;
 
         public BindableProperty(T defaultValue = default)
         {
@@ -41,6 +45,7 @@ namespace PartsKit
             var oldValue = mValue;
             mValue = newValue;
             mOnValueChanged?.Invoke(oldValue, newValue);
+            mOnValueChangedLate?.Invoke(oldValue, newValue);
         }
 
         public void SetValueWithoutEvent(T newValue)
@@ -63,6 +68,23 @@ namespace PartsKit
         public void UnRegister(Action<T, T> onValueChanged)
         {
             mOnValueChanged -= onValueChanged;
+        }
+
+        public IRegister RegisterLate(Action<T, T> onValueChanged)
+        {
+            mOnValueChangedLate += onValueChanged;
+            return new ActionRegister(() => UnRegisterLate(onValueChanged));
+        }
+
+        public IRegister RegisterLateWithInitValue(Action<T, T> onValueChanged)
+        {
+            onValueChanged(mValue, mValue);
+            return RegisterLate(onValueChanged);
+        }
+
+        public void UnRegisterLate(Action<T, T> onValueChanged)
+        {
+            mOnValueChangedLate -= onValueChanged;
         }
 
         public override string ToString()

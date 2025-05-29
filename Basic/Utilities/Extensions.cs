@@ -51,6 +51,42 @@ namespace PartsKit
         }
 
         /// <summary>
+        /// 修复到2d，也就是忽略z
+        /// </summary>
+        public static Bounds To2D(this Bounds bounds)
+        {
+            Vector3 boundCenter = bounds.center;
+            Vector3 sizeCenter = bounds.size;
+            boundCenter.z = 0;
+            sizeCenter.z = 1;
+            return new Bounds(boundCenter, sizeCenter);
+        }
+
+        public static void To2D(this List<Bounds> bounds)
+        {
+            for (var i = 0; i < bounds.Count; i++)
+            {
+                bounds[i] = bounds[i].To2D();
+            }
+        }
+
+        public static Circle To2D(this Circle bounds)
+        {
+            Vector3 boundCenter = bounds.Center;
+            float radius = bounds.Radius;
+            boundCenter.z = 0;
+            return new Circle(boundCenter, radius);
+        }
+
+        public static void To2D(this List<Circle> bounds)
+        {
+            for (var i = 0; i < bounds.Count; i++)
+            {
+                bounds[i] = bounds[i].To2D();
+            }
+        }
+
+        /// <summary>
         /// 判断外层包围盒是否完全包含内层包围盒
         /// </summary>
         public static bool Contains(this Bounds outer, Bounds inner)
@@ -74,6 +110,12 @@ namespace PartsKit
             // 计算距离平方并比较
             float distanceSqr = (farthestPoint - outer.Center).sqrMagnitude;
             return distanceSqr <= outer.Radius * outer.Radius;
+        }
+
+        public static bool Contains2D(this Bounds outer, Vector2 point)
+        {
+            return point.x > outer.min.x && point.x < outer.max.x &&
+                   point.y > outer.min.y && point.y < outer.max.y;
         }
 
         /// <summary>

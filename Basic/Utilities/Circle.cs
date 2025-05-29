@@ -18,5 +18,12 @@ namespace PartsKit
             float distanceSqr = (point - Center).sqrMagnitude;
             return distanceSqr <= Radius * Radius;
         }
+
+        public bool Contains2D(Vector2 point)
+        {
+            Vector2 center2d = Center;
+            float distanceSqr = (point - center2d).sqrMagnitude;
+            return distanceSqr <= Radius * Radius;
+        }
     }
 }

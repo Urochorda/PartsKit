@@ -17,7 +17,7 @@ namespace PartsKit
         /// </summary>
         /// <param name="value">要检测的值</param>
         /// <param name="isTimelyCheck">是否每次获取都检测</param>
-        public CheckNullProperty(T value, bool isTimelyCheck = true)
+        public CheckNullProperty(T value, bool isTimelyCheck)
         {
             timelyCheck = isTimelyCheck;
             property = value;

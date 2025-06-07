@@ -12,7 +12,6 @@ namespace PartsKit
         private Func<float, float, float> onRandom;
 
         private readonly List<Bounds> tempBounds = new List<Bounds>();
-        private readonly List<Bounds> tempBounds2 = new List<Bounds>();
 
         public Bounds Bounds => mCollider.bounds.To2D();
 
@@ -69,29 +68,13 @@ namespace PartsKit
             return DoRandomPoint(minBound, maxBound, null, out point);
         }
 
+        #region In
+
         public bool RandomPointIn(Bounds inBounds, out Vector3 point)
         {
             var mapBounds = Bounds;
             inBounds = inBounds.To2D();
             if (!mapBounds.Intersection(inBounds, out var targetBounds))
-            {
-                point = Vector3.zero;
-                return false;
-            }
-
-            Vector3 minBound = targetBounds.min;
-            Vector3 maxBound = targetBounds.max;
-            return DoRandomPoint(minBound, maxBound, null, out point);
-        }
-
-        public bool RandomPointIn(List<Bounds> inBounds, out Vector3 point)
-        {
-            var mapBounds = Bounds;
-            tempBounds.Clear();
-            tempBounds.AddRange(inBounds);
-            tempBounds.Add(mapBounds);
-            tempBounds.To2D();
-            if (!tempBounds.Intersection(out var targetBounds))
             {
                 point = Vector3.zero;
                 return false;
@@ -120,6 +103,10 @@ namespace PartsKit
             return DoRandomPoint(minBound, maxBound, (pos) => circle.Contains2D(pos), out point);
         }
 
+        #endregion
+
+        #region Out
+
         public bool RandomPointOut(Bounds outBounds, out Vector3 point)
         {
             var mapBounds = Bounds;
@@ -138,8 +125,10 @@ namespace PartsKit
         public bool RandomPointOut(List<Bounds> outBounds, out Vector3 point)
         {
             var mapBounds = Bounds;
-            outBounds.To2D();
-            foreach (var outBound in outBounds)
+            tempBounds.Clear();
+            tempBounds.AddRange(outBounds);
+            tempBounds.To2D();
+            foreach (var outBound in tempBounds)
             {
                 if (outBound.Contains(mapBounds))
                 {
@@ -152,7 +141,7 @@ namespace PartsKit
             Vector3 maxBound = mapBounds.max;
             return DoRandomPoint(minBound, maxBound, (pos) =>
             {
-                foreach (var bound in outBounds)
+                foreach (var bound in tempBounds)
                 {
                     if (bound.Contains2D(pos))
                     {
@@ -179,18 +168,22 @@ namespace PartsKit
             return DoRandomPoint(minBound, maxBound, (pos) => !circle.Contains2D(pos), out point);
         }
 
+        #endregion
+
+        #region InOut
+
         public bool RandomPointInOut(Bounds inBounds, Bounds outBounds, out Vector3 point)
         {
             var mapBounds = Bounds;
             inBounds = inBounds.To2D();
             outBounds = outBounds.To2D();
-            if (!mapBounds.Intersection(inBounds, out var targetBounds))
+            if (outBounds.Contains(mapBounds) || outBounds.Contains(inBounds))
             {
                 point = Vector3.zero;
                 return false;
             }
 
-            if (outBounds.Contains(mapBounds))
+            if (!mapBounds.Intersection(inBounds, out var targetBounds))
             {
                 point = Vector3.zero;
                 return false;
@@ -199,66 +192,23 @@ namespace PartsKit
             Vector3 minBound = targetBounds.min;
             Vector3 maxBound = targetBounds.max;
             return DoRandomPoint(minBound, maxBound, (pos) => !outBounds.Contains2D(pos), out point);
-        }
-
-        public bool RandomPointInOut(List<Bounds> inBounds, List<Bounds> outBounds, out Vector3 point)
-        {
-            var mapBounds = Bounds;
-            tempBounds.Clear();
-            tempBounds.AddRange(inBounds);
-            tempBounds.Add(mapBounds);
-            tempBounds.To2D();
-
-            tempBounds2.Clear();
-            tempBounds2.AddRange(outBounds);
-            tempBounds2.To2D();
-
-            if (!tempBounds.Intersection(out var targetBounds))
-            {
-                point = Vector3.zero;
-                return false;
-            }
-
-            foreach (var outBound in tempBounds2)
-            {
-                if (outBound.Contains(mapBounds))
-                {
-                    point = Vector3.zero;
-                    return false;
-                }
-            }
-
-            Vector3 minBound = targetBounds.min;
-            Vector3 maxBound = targetBounds.max;
-            return DoRandomPoint(minBound, maxBound, (pos) =>
-            {
-                foreach (var bound in tempBounds2)
-                {
-                    if (bound.Contains2D(pos))
-                    {
-                        return false;
-                    }
-                }
-
-                return true;
-            }, out point);
         }
 
         public bool RandomPointInOut(Bounds inBounds, List<Bounds> outBounds, out Vector3 point)
         {
             var mapBounds = Bounds;
-            tempBounds2.Clear();
-            tempBounds2.AddRange(outBounds);
-            tempBounds2.To2D();
             if (!mapBounds.Intersection(inBounds, out var targetBounds))
             {
                 point = Vector3.zero;
                 return false;
             }
 
-            foreach (var outBound in tempBounds2)
+            tempBounds.Clear();
+            tempBounds.AddRange(outBounds);
+            tempBounds.To2D();
+            foreach (var outBound in tempBounds)
             {
-                if (outBound.Contains(mapBounds))
+                if (outBound.Contains(mapBounds) || outBound.Contains(inBounds))
                 {
                     point = Vector3.zero;
                     return false;
@@ -269,7 +219,7 @@ namespace PartsKit
             Vector3 maxBound = targetBounds.max;
             return DoRandomPoint(minBound, maxBound, (pos) =>
             {
-                foreach (var bound in tempBounds2)
+                foreach (var bound in tempBounds)
                 {
                     if (bound.Contains2D(pos))
                     {
@@ -281,29 +231,6 @@ namespace PartsKit
             }, out point);
         }
 
-        public bool RandomPointInOut(List<Bounds> inBounds, Bounds outBounds, out Vector3 point)
-        {
-            var mapBounds = Bounds;
-            outBounds = outBounds.To2D();
-            tempBounds.Clear();
-            tempBounds.AddRange(inBounds);
-            tempBounds.Add(mapBounds);
-            tempBounds.To2D();
-            if (!tempBounds.Intersection(out var targetBounds))
-            {
-                point = Vector3.zero;
-                return false;
-            }
-
-            if (outBounds.Contains(mapBounds))
-            {
-                point = Vector3.zero;
-                return false;
-            }
-
-            Vector3 minBound = targetBounds.min;
-            Vector3 maxBound = targetBounds.max;
-            return DoRandomPoint(minBound, maxBound, (pos) => !outBounds.Contains2D(pos), out point);
-        }
+        #endregion
     }
 }

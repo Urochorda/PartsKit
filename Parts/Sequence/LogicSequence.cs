@@ -31,8 +31,6 @@ namespace PartsKit
                     break;
                 }
             }
-
-            LogicSequenceController.Instance.AddSequence(this);
         }
 
         protected override void OnKill()
@@ -59,6 +57,10 @@ namespace PartsKit
 
                 sequence.Reset();
             }
+
+            SequenceParent = null;
+            IsSequenced = false;
+            sequencePool.Clear();
         }
 
         protected override void OnPause(bool isPause)

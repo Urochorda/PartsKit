@@ -19,36 +19,60 @@ namespace PartsKit
 
         public static LogicSequenceController Instance { get; private set; }
 
-        private readonly List<LogicSequence> allSequence = new List<LogicSequence>();
+        private readonly List<LogicSequence> validSequencePool = new List<LogicSequence>();
+        private readonly Stack<LogicSequence> cacheSequencePool = new Stack<LogicSequence>();
 
-        public void Update()
+        public void LateUpdate()
         {
             float deltaTime = Time.deltaTime;
             float unscaledDeltaTime = Time.unscaledDeltaTime;
             UpdateSequence(deltaTime, unscaledDeltaTime);
         }
 
-        public void AddSequence(LogicSequence sequence)
+        public LogicSequence GetSequence()
         {
-            if (sequence.IsSequenced) //只允许根节点加入
+            LogicSequence sequence;
+            if (cacheSequencePool.Count > 0)
             {
-                return;
+                sequence = cacheSequencePool.Pop();
+            }
+            else
+            {
+                sequence = new LogicSequence();
             }
 
-            if (allSequence.Contains(sequence))
-            {
-                return;
-            }
-
-            allSequence.Add(sequence);
-
-            UpdateSequence(0, 0);
+            sequence.Get();
+            validSequencePool.Add(sequence);
+            return sequence;
         }
 
         private void UpdateSequence(float deltaTime, float unscaledDeltaTime)
         {
-            foreach (var sequence in allSequence)
+            for (var i = validSequencePool.Count - 1; i >= 0; i--)
             {
+                var sequence = validSequencePool[i];
+
+                if (!sequence.IsValid)
+                {
+                    sequence.Reset();
+
+                    int lastIndex = validSequencePool.Count - 1;
+                    if (i != lastIndex)
+                    {
+                        validSequencePool[i] = validSequencePool[lastIndex];
+                    }
+
+                    validSequencePool.RemoveAt(lastIndex);
+
+                    cacheSequencePool.Push(sequence);
+                    continue;
+                }
+
+                if (sequence.IsSequenced)
+                {
+                    continue;
+                }
+
                 sequence.Update(deltaTime, unscaledDeltaTime);
             }
         }

@@ -8,7 +8,7 @@ namespace PartsKit
 
         public LogicSequence Get()
         {
-            LogicSequence seq = new LogicSequence();
+            LogicSequence seq = LogicSequenceController.Instance.GetSequence();
             mList.Add(seq);
             return seq;
         }

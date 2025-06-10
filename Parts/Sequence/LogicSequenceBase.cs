@@ -4,10 +4,16 @@ namespace PartsKit
 {
     public abstract class LogicSequenceBase
     {
+        public bool IsValid { get; private set; }
         public bool IsPlaying { get; private set; } //是否正在播放，暂停：false
         public bool IsRunning { get; private set; } //是否正在运行，未播放或者已结束：false，暂停：true
         public Action KillCallback { get; set; }
         public bool IgnoreTimeScale { get; set; }
+
+        public void Get()
+        {
+            IsValid = true;
+        }
 
         public void Play()
         {
@@ -30,6 +36,7 @@ namespace PartsKit
 
             IsPlaying = false;
             IsRunning = false;
+            IsValid = false;
             OnKill();
             KillCallback?.Invoke();
         }

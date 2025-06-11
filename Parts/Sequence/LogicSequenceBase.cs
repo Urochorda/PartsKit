@@ -12,7 +12,13 @@ namespace PartsKit
 
         public void Get()
         {
+            //初始化
             IsValid = true;
+            IsPlaying = false;
+            IsRunning = false;
+            KillCallback = null;
+            IgnoreTimeScale = false;
+            OnGet();
         }
 
         public void Play()
@@ -79,8 +85,8 @@ namespace PartsKit
             }
         }
 
+        protected abstract void OnGet();
         protected abstract void OnPlay();
-
         protected abstract void OnKill();
         protected abstract void OnReset();
         protected abstract void OnPause(bool isPause);

@@ -4,27 +4,37 @@ namespace PartsKit
 {
     public class LogicSequencePool
     {
-        private readonly List<LogicSequence> mList = new List<LogicSequence>();
+        private readonly List<LogicSequence> pool = new List<LogicSequence>();
+        private bool isClearing;
 
         public LogicSequence Get()
         {
             LogicSequence seq = LogicSequenceController.Instance.GetSequence();
-            mList.Add(seq);
+            pool.Add(seq);
+            seq.KillCallback += () =>
+            {
+                if (!isClearing)
+                {
+                    pool.RemoveDisorder(seq);
+                }
+            };
             return seq;
         }
 
         public void Clear()
         {
-            for (int i = 0, imax = mList.Count; i < imax; i++)
+            isClearing = true;
+            for (int i = 0, imax = pool.Count; i < imax; i++)
             {
-                LogicSequence s = mList[i];
+                LogicSequence s = pool[i];
                 if (s != null)
                 {
                     s.Kill();
                 }
             }
 
-            mList.Clear();
+            pool.Clear();
+            isClearing = true;
         }
     }
 }

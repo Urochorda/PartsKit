@@ -15,6 +15,14 @@ namespace PartsKit
         public bool IsSequenced { get; private set; }
         public LogicSequenceBase SequenceParent { get; private set; }
 
+        protected override void OnGet()
+        {
+            //初始化
+            IsSequenced = false;
+            SequenceParent = null;
+            sequencePool.Clear();
+        }
+
         protected override void OnPlay()
         {
             //按顺序开始一个子队列

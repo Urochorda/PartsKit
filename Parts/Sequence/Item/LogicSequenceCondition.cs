@@ -11,6 +11,10 @@ namespace PartsKit
             mCondition = condition;
         }
 
+        protected override void OnGet()
+        {
+        }
+
         protected override void OnPlay()
         {
         }

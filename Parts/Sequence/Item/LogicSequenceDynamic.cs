@@ -12,6 +12,10 @@ namespace PartsKit
             mGetSequence = getSequence;
         }
 
+        protected override void OnGet()
+        {
+        }
+
         protected override void OnPlay()
         {
             sequence = mGetSequence?.Invoke();

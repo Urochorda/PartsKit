@@ -11,6 +11,10 @@ namespace PartsKit
             mCallback = callback;
         }
 
+        protected override void OnGet()
+        {
+        }
+
         protected override void OnPlay()
         {
         }

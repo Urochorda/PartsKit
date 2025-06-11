@@ -7,6 +7,11 @@ namespace PartsKit
     {
         private readonly List<LogicSequenceBase> sequencePool = new List<LogicSequenceBase>();
 
+        protected override void OnGet()
+        {
+            sequencePool.Clear();
+        }
+
         protected override void OnPlay()
         {
             foreach (var sequence in sequencePool)
@@ -44,6 +49,8 @@ namespace PartsKit
 
                 sequence.Reset();
             }
+
+            sequencePool.Clear();
         }
 
         protected override void OnPause(bool isPause)

@@ -12,6 +12,10 @@ namespace PartsKit
             curDuration = 0;
         }
 
+        protected override void OnGet()
+        {
+        }
+
         protected override void OnPlay()
         {
         }

@@ -10,6 +10,25 @@ namespace PartsKit
     {
         [field: SerializeField] public AudioClip AudioClip { get; set; }
         [field: SerializeField] public float VolumeScale { get; set; } = 1;
+        [field: SerializeField] public float Pitch { get; set; } = 1;
+        [field: SerializeField] public bool RandomVolumeScale { get; set; }
+        [field: SerializeField] public float VolumeScaleMin { get; set; } = 1;
+        [field: SerializeField] public float VolumeScaleMax { get; set; } = 1;
+        [field: SerializeField] public bool RandomPitch { get; set; }
+        [field: SerializeField] public float PitchMin { get; set; } = 1;
+        [field: SerializeField] public float PitchMax { get; set; } = 1;
+
+        public float GetVolumeScale()
+        {
+            float volumeScale = RandomVolumeScale ? Random.Range(VolumeScaleMin, VolumeScaleMax) : VolumeScale;
+            return volumeScale;
+        }
+
+        public float GetPitch()
+        {
+            float pitch = RandomPitch ? Random.Range(PitchMin, PitchMax) : Pitch;
+            return pitch;
+        }
     }
 
     [Serializable]

@@ -122,6 +122,11 @@ namespace PartsKit
 
         public void PlaySound(string audioGroupName)
         {
+            if (string.IsNullOrEmpty(audioGroupName))
+            {
+                return;
+            }
+
             if (!customLoadAudioAssetFun.GetSoundClipGroup(audioGroupName, out AudioClipGroup clipGroup))
             {
                 CustomLog.LogError($"SoundClipGroup is null: {audioGroupName}");
@@ -138,11 +143,18 @@ namespace PartsKit
             bool isOverrideSource = clipGroup.SourcePrefab.GetValue(out AudioSource overrideSourcePrefab);
             AudioSource source =
                 objectPool.Get(isOverrideSource ? overrideSourcePrefab : defaultSoundSource, transform);
-            DoPlaySound(audioClip.AudioClip, source, audioClip.VolumeScale, source.transform.position);
+            float volumeScale = audioClip.GetVolumeScale();
+            float pitch = audioClip.GetPitch();
+            DoPlaySound(audioClip.AudioClip, source, volumeScale, pitch, source.transform.position);
         }
 
         public void PlaySound3D(string audioGroupName, Vector3 point)
         {
+            if (string.IsNullOrEmpty(audioGroupName))
+            {
+                return;
+            }
+
             if (!customLoadAudioAssetFun.GetSoundClipGroup(audioGroupName, out AudioClipGroup clipGroup))
             {
                 CustomLog.LogError($"SoundClipGroup is null: {audioGroupName}");
@@ -159,16 +171,20 @@ namespace PartsKit
             bool isOverrideSource = clipGroup.SourcePrefab3D.GetValue(out AudioSource overrideSourcePrefab);
             AudioSource source =
                 objectPool.Get(isOverrideSource ? overrideSourcePrefab : defaultSoundSource3D, transform);
-            DoPlaySound(audioClip.AudioClip, source, audioClip.VolumeScale, point);
+            float volumeScale = audioClip.GetVolumeScale();
+            float pitch = audioClip.GetPitch();
+
+            DoPlaySound(audioClip.AudioClip, source, volumeScale, pitch, point);
         }
 
-        private void DoPlaySound(AudioClip audioClip, AudioSource source, float volumeScale, Vector3 point)
+        private void DoPlaySound(AudioClip audioClip, AudioSource source, float volumeScale, float pitch, Vector3 point)
         {
             Transform sourceTransform = source.transform;
             sourceTransform.position = point;
             source.clip = audioClip;
             source.outputAudioMixerGroup = SoundMixerGroup;
             source.volume = volumeScale;
+            source.pitch = pitch;
             source.loop = false;
             source.Play();
             StartCoroutine(WaitSoundPlayEnd(audioClip.length));
@@ -183,6 +199,11 @@ namespace PartsKit
 
         public PlayMusicKey PlayMusic(string audioGroupName, bool isLoop)
         {
+            if (string.IsNullOrEmpty(audioGroupName))
+            {
+                return null;
+            }
+
             if (!customLoadAudioAssetFun.GetMusicClipGroup(audioGroupName, out AudioClipGroup clipGroup))
             {
                 CustomLog.LogError($"MusicClipGroup is null: {audioGroupName}");
@@ -200,13 +221,20 @@ namespace PartsKit
                 objectPool.Get(clipGroup.SourcePrefab.GetValue(out AudioSource overrideSourcePrefab)
                     ? overrideSourcePrefab
                     : defaultMusicSource, transform);
+            float volumeScale = audioClip.GetVolumeScale();
+            float pitch = audioClip.GetPitch();
 
-            return DoPlayMusic(audioClip.AudioClip, targetMusicSource, isLoop, audioClip.VolumeScale,
+            return DoPlayMusic(audioClip.AudioClip, targetMusicSource, isLoop, volumeScale, pitch,
                 targetMusicSource.transform.position);
         }
 
         public PlayMusicKey PlayMusic3D(string audioGroupName, bool isLoop, Vector3 point)
         {
+            if (string.IsNullOrEmpty(audioGroupName))
+            {
+                return null;
+            }
+
             if (!customLoadAudioAssetFun.GetMusicClipGroup(audioGroupName, out AudioClipGroup clipGroup))
             {
                 CustomLog.LogError($"MusicClipGroup is null: {audioGroupName}");
@@ -224,17 +252,20 @@ namespace PartsKit
                 objectPool.Get(clipGroup.SourcePrefab3D.GetValue(out AudioSource overrideSourcePrefab)
                     ? overrideSourcePrefab
                     : defaultMusicSource3D, transform);
+            float volumeScale = audioClip.GetVolumeScale();
+            float pitch = audioClip.GetPitch();
 
-            return DoPlayMusic(audioClip.AudioClip, targetMusicSource, isLoop, audioClip.VolumeScale, point);
+            return DoPlayMusic(audioClip.AudioClip, targetMusicSource, isLoop, volumeScale, pitch, point);
         }
 
         private PlayMusicKey DoPlayMusic(AudioClip audioClip, AudioSource source, bool isLoop, float volumeScale,
-            Vector3 point)
+            float pitch, Vector3 point)
         {
             Transform sourceTransform = source.transform;
             sourceTransform.position = point;
             source.clip = audioClip;
             source.volume = volumeScale;
+            source.pitch = pitch;
             source.loop = isLoop;
             source.outputAudioMixerGroup = MusicMixerGroup;
             source.Play();

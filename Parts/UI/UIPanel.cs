@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 namespace PartsKit
@@ -6,6 +7,7 @@ namespace PartsKit
     {
         public bool IsOpen { get; private set; }
         public string PanelKey { get; private set; }
+        public Action OnCloseCall { get; set; }
         private UIController thisController;
 
         /// <summary>
@@ -37,6 +39,8 @@ namespace PartsKit
             uiPanel.thisController = null;
             uiPanel.PanelKey = string.Empty;
             uiPanel.OnClose();
+            uiPanel.OnCloseCall?.Invoke();
+            uiPanel.OnCloseCall = null;
         }
 
         /// <summary>

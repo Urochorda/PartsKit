@@ -2,17 +2,19 @@ using System;
 using System.Collections.Generic;
 using Spine.Unity;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace PartsKit
 {
     public class SpineMachinePlayer : MonoBehaviour
     {
-        public static int StringToHash(string value)
-        {
-            return Animator.StringToHash(value);
-        }
+        // 不使用这个了，统一使用Animator.StringToHash，方便业务层无缝切换Animator和SpineMachinePlayer
+        // public static int StringToHash(string value)
+        // {
+        //     return Animator.StringToHash(value);
+        // }
 
-        [SerializeField] private SpineMachineData stateDataAnim;
+        [SerializeField] private SpineMachineData machineData;
         [SerializeField] private SkeletonAnimation skeletonAnimation;
         [SerializeField] private bool isDisableStop = true; //默认为true，重新开启时会重置状态
 
@@ -20,7 +22,7 @@ namespace PartsKit
         private readonly Dictionary<int, int> intParameterPool = new Dictionary<int, int>();
         private readonly Dictionary<int, bool> boolParameterPool = new Dictionary<int, bool>();
         private readonly Dictionary<int, bool> triggerParameterPool = new Dictionary<int, bool>();
-        public IReadOnlyList<SpineMachineParameter> Parameter => stateDataAnim.Parameter;
+        public IReadOnlyList<SpineMachineParameter> Parameter => machineData.Parameter;
 
         private SpineAnimPlayer spineAnimPlayer;
 
@@ -28,6 +30,7 @@ namespace PartsKit
         private SpineStateData curPlayingState;
         private ISpineClipData curPlayingClip;
         private bool isPlaying;
+        private bool updateFag;
 
         private void OnEnable()
         {
@@ -56,7 +59,7 @@ namespace PartsKit
 
             isPlaying = true;
             InitParameter();
-            curActivateState = stateDataAnim.EnterState;
+            curActivateState = machineData.EnterState;
             curPlayingState = null;
             spineAnimPlayer ??= new SpineAnimPlayer(skeletonAnimation);
         }
@@ -74,7 +77,7 @@ namespace PartsKit
 
         public bool HasParameterOfType(string key, AnimatorControllerParameterType type)
         {
-            return stateDataAnim.HasParameterOfType(key, type);
+            return machineData.HasParameterOfType(key, type);
         }
 
         private void InitParameter()
@@ -86,7 +89,7 @@ namespace PartsKit
             var defaultPar = Parameter;
             foreach (var parameter in defaultPar)
             {
-                int parameterHash = StringToHash(parameter.ParameterName);
+                int parameterHash = Animator.StringToHash(parameter.ParameterName);
                 switch (parameter.ParameterType)
                 {
                     case AnimatorControllerParameterType.Float:
@@ -103,6 +106,8 @@ namespace PartsKit
                         break;
                 }
             }
+
+            updateFag = true;
         }
 
         private void UpdateState()
@@ -112,14 +117,16 @@ namespace PartsKit
                 return;
             }
 
+            //todo 判断updateFag，只更新HasExitTime
             UpdateStateLine();
             UpdatePlayingState();
             ResetTriggerAll();
+            updateFag = false;
         }
 
         private void UpdateStateLine()
         {
-            var anyState = stateDataAnim.AnyState;
+            var anyState = machineData.AnyState;
             var activateState = curActivateState;
 
             //从Any状态切换到下一个状态，切换成功则不在同一帧检测下一个状态
@@ -296,7 +303,7 @@ namespace PartsKit
 
         public float GetFloat(string key)
         {
-            int id = StringToHash(key);
+            int id = Animator.StringToHash(key);
             return GetFloat(id);
         }
 
@@ -308,18 +315,19 @@ namespace PartsKit
 
         public void SetFloat(string key, float value)
         {
-            int id = StringToHash(key);
+            int id = Animator.StringToHash(key);
             SetFloat(id, value);
         }
 
         public void SetFloat(int id, float value)
         {
             floatParameterPool[id] = value;
+            updateFag = true;
         }
 
         public bool GetBool(string key)
         {
-            int id = StringToHash(key);
+            int id = Animator.StringToHash(key);
             return GetBool(id);
         }
 
@@ -331,18 +339,19 @@ namespace PartsKit
 
         public void SetBool(string key, bool value)
         {
-            int id = StringToHash(key);
+            int id = Animator.StringToHash(key);
             SetBool(id, value);
         }
 
         public void SetBool(int id, bool value)
         {
             boolParameterPool[id] = value;
+            updateFag = true;
         }
 
         public int GetInteger(string key)
         {
-            int id = StringToHash(key);
+            int id = Animator.StringToHash(key);
             return GetInteger(id);
         }
 
@@ -354,29 +363,31 @@ namespace PartsKit
 
         public void SetInteger(string key, int value)
         {
-            int id = StringToHash(key);
+            int id = Animator.StringToHash(key);
             SetInteger(id, value);
         }
 
         public void SetInteger(int id, int value)
         {
             intParameterPool[id] = value;
+            updateFag = true;
         }
 
         public void SetTrigger(string key)
         {
-            int id = StringToHash(key);
+            int id = Animator.StringToHash(key);
             SetTrigger(id);
         }
 
         public void SetTrigger(int id)
         {
             triggerParameterPool[id] = true;
+            updateFag = true;
         }
 
         public bool GetTrigger(string key)
         {
-            int id = StringToHash(key);
+            int id = Animator.StringToHash(key);
             return GetTrigger(id);
         }
 
@@ -388,18 +399,20 @@ namespace PartsKit
 
         public void ResetTrigger(string key)
         {
-            int id = StringToHash(key);
+            int id = Animator.StringToHash(key);
             ResetTrigger(id);
         }
 
         public void ResetTrigger(int id)
         {
             triggerParameterPool[id] = false;
+            updateFag = true;
         }
 
         public void ResetTriggerAll()
         {
             triggerParameterPool.Clear(); //清除全部设置为false，不需要设置为default
+            updateFag = true;
         }
     }
 }

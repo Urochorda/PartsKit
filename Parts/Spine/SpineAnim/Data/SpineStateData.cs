@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace PartsKit
 {
-    [CreateAssetMenu]
+    [CreateAssetMenu(menuName = "PartsKit/Spine/SpineState", fileName = "SpineState_")]
     public class SpineStateData : ScriptableObject
     {
         [SerializeField] private SpineClipDataDefault defaultClip;

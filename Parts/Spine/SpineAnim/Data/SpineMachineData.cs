@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace PartsKit
 {
-    [CreateAssetMenu]
+    [CreateAssetMenu(menuName = "PartsKit/Spine/SpineMachine", fileName = "SpineMachine_")]
     public class SpineMachineData : ScriptableObject
     {
         [SerializeField] private SpineStateData enterState;
@@ -89,30 +89,30 @@ namespace PartsKit
             }
             else
             {
-                int parameterHash = SpineMachinePlayer.StringToHash(parameterName);
+                int parameterHash = Animator.StringToHash(parameterName);
                 SpineMachineParameter addValue = null;
                 bool hasParameter = GetParameterDefault(parameterType, parameterHash, out var parameterData);
                 switch (parameterType)
                 {
                     case AnimatorControllerParameterType.Float:
-                        var floatValue = hasParameter ? parameterData.DefaultValueFloat : default;
-                        addValue = SpineMachineParameter.Create(parameterType, parameterName, floatValue, default,
-                            default, default);
+                        var floatValue = hasParameter ? parameterData.DefaultValueFloat : 0;
+                        addValue = SpineMachineParameter.Create(parameterType, parameterName, floatValue, false,
+                            0, false);
                         break;
                     case AnimatorControllerParameterType.Bool:
-                        var boolValue = hasParameter ? parameterData.DefaultValueBool : default;
-                        addValue = SpineMachineParameter.Create(parameterType, parameterName, default, boolValue,
-                            default, default);
+                        var boolValue = hasParameter && parameterData.DefaultValueBool;
+                        addValue = SpineMachineParameter.Create(parameterType, parameterName, 0, boolValue,
+                            0, false);
                         break;
                     case AnimatorControllerParameterType.Int:
-                        var intValue = hasParameter ? parameterData.DefaultValueInteger : default;
-                        addValue = SpineMachineParameter.Create(parameterType, parameterName, default, default,
-                            intValue, default);
+                        var intValue = hasParameter ? parameterData.DefaultValueInteger : 0;
+                        addValue = SpineMachineParameter.Create(parameterType, parameterName, 0, false,
+                            intValue, false);
                         break;
                     case AnimatorControllerParameterType.Trigger:
-                        var triggerValue = hasParameter ? parameterData.DefaultValueTrigger : default;
-                        addValue = SpineMachineParameter.Create(parameterType, parameterName, default, default,
-                            default, triggerValue);
+                        var triggerValue = hasParameter && parameterData.DefaultValueTrigger;
+                        addValue = SpineMachineParameter.Create(parameterType, parameterName, 0, false,
+                            0, triggerValue);
                         break;
                 }
 
@@ -128,7 +128,7 @@ namespace PartsKit
         {
             foreach (var parameterItem in parameterDefault)
             {
-                var curHashKey = SpineMachinePlayer.StringToHash(parameterItem.ParameterName);
+                var curHashKey = Animator.StringToHash(parameterItem.ParameterName);
                 var curType = parameterItem.ParameterType;
                 if (curType == parameterType && curHashKey == parameterHase)
                 {

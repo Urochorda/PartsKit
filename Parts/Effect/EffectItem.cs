@@ -66,7 +66,7 @@ namespace PartsKit
                 return;
             }
 
-            playTime += Time.deltaTime;
+            curPlayTime += Time.deltaTime;
             if (ParentPoint != null)
             {
                 transform.position = ParentPoint.transform.position;

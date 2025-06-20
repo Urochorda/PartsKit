@@ -15,6 +15,7 @@ namespace PartsKit
             private readonly Action callback;
 
             public bool IsCompleted { get; private set; }
+            public bool IsCanceled { get; private set; }
 
             public FrameWaitTask(int idNumber, int frameCount, int curFrame, Action action)
             {
@@ -26,15 +27,16 @@ namespace PartsKit
                 CheckComplete();
             }
 
-            public void Update(int curFrame)
+            public bool Update(int curFrame)
             {
-                if (IsCompleted || startFrame == curFrame)
+                if (IsCompleted || startFrame == curFrame || IsCanceled)
                 {
-                    return;
+                    return true;
                 }
 
                 remainingFrames--;
                 CheckComplete();
+                return false;
             }
 
             private void CheckComplete()
@@ -60,6 +62,7 @@ namespace PartsKit
             public void OnCancel()
             {
                 id.Value = NoValid;
+                IsCanceled = true;
             }
 
             public void ImmediatelyCompleted()
@@ -81,8 +84,8 @@ namespace PartsKit
             // 迭代任务列表并更新每个任务
             for (int i = tasks.Count - 1; i >= 0; i--)
             {
-                tasks[i].Update(curFrame);
-                if (tasks[i].IsCompleted)
+                var task = tasks[i];
+                if (task.Update(curFrame))
                 {
                     tasks.RemoveAt(i);
                 }
@@ -106,16 +109,13 @@ namespace PartsKit
             }
 
             int idValue = id.Value;
-            tasks.RemoveMatchDisorder(item =>
+            int index = tasks.FindIndex(item => item.Id.Value == idValue);
+            if (index < 0)
             {
-                if (item.Id.Value == idValue)
-                {
-                    item.OnCancel();
-                    return true;
-                }
+                return;
+            }
 
-                return false;
-            });
+            tasks[index].OnCancel();
         }
 
         public void ImmediatelyCompleted(IReadOnlyRefInt id)
@@ -134,8 +134,6 @@ namespace PartsKit
             {
                 task.OnCancel();
             }
-
-            tasks.Clear();
         }
     }
 }

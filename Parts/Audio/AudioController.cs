@@ -1,4 +1,3 @@
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -8,11 +7,12 @@ namespace PartsKit
 {
     public abstract class LoadAudioAssetFun : MonoBehaviour
     {
+        public abstract void LoadAll();
+        public abstract void ReleaseAll();
         public abstract bool GetSoundClipGroup(string audioGroupName, out AudioClipGroup clipGroup);
         public abstract bool GetMusicClipGroup(string audioGroupName, out AudioClipGroup clipGroup);
-        public abstract AudioMixerConfig LoadAudioMixer();
-        public abstract void ReleaseAudioMixer(AudioMixerConfig mixerConfig);
-        public abstract void ReleaseAll();
+        public abstract string GetSoundGroupByMaterial(string action, string materialA, string materialB);
+        public abstract AudioMixerConfig GetAudioMixer();
     }
 
     public class PlayMusicKey
@@ -106,7 +106,8 @@ namespace PartsKit
 
         protected override void OnInit()
         {
-            audioMixerConfig = customLoadAudioAssetFun.LoadAudioMixer();
+            customLoadAudioAssetFun.LoadAll();
+            audioMixerConfig = customLoadAudioAssetFun.GetAudioMixer();
             masterVolume = GetMixerMasterVolume();
             musicVolume = GetMixerMusicVolume();
             soundVolume = GetMixerSoundVolume();
@@ -114,7 +115,6 @@ namespace PartsKit
 
         protected override void OnDeInit()
         {
-            customLoadAudioAssetFun.ReleaseAudioMixer(audioMixerConfig);
             customLoadAudioAssetFun.ReleaseAll();
         }
 
@@ -148,6 +148,12 @@ namespace PartsKit
             DoPlaySound(audioClip.AudioClip, source, volumeScale, pitch, source.transform.position);
         }
 
+        public void PlaySoundByMaterial(string action, string materialA, string materialB)
+        {
+            var audioGroup = customLoadAudioAssetFun.GetSoundGroupByMaterial(action, materialA, materialB);
+            PlaySound(audioGroup);
+        }
+
         public void PlaySound3D(string audioGroupName, Vector3 point)
         {
             if (string.IsNullOrEmpty(audioGroupName))
@@ -175,6 +181,12 @@ namespace PartsKit
             float pitch = audioClip.GetPitch();
 
             DoPlaySound(audioClip.AudioClip, source, volumeScale, pitch, point);
+        }
+
+        public void PlaySound3DByMaterial(string action, string materialA, string materialB, Vector3 point)
+        {
+            var audioGroup = customLoadAudioAssetFun.GetSoundGroupByMaterial(action, materialA, materialB);
+            PlaySound3D(audioGroup, point);
         }
 
         private void DoPlaySound(AudioClip audioClip, AudioSource source, float volumeScale, float pitch, Vector3 point)

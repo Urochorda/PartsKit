@@ -3,9 +3,12 @@ using System.Linq.Expressions;
 
 namespace PartsKit
 {
+    /// <summary>
+    /// 反射生成缓存池
+    /// </summary>
     public class ActivatorCachePool<TBase>
     {
-        private readonly DataCachePool<string, Func<TBase>, string> cachePool =
+        private readonly DataInstancePool<string, Func<TBase>, string> dataPool =
             new((key, info) =>
             {
                 Type classType = Type.GetType(info);
@@ -27,7 +30,7 @@ namespace PartsKit
 
         public bool Create(string className, out TBase instance)
         {
-            var factory = cachePool.GetOrCreate(className, className);
+            var factory = dataPool.GetOrCreate(className, className);
             if (factory == null)
             {
                 instance = default;
@@ -40,12 +43,12 @@ namespace PartsKit
 
         public void Remove(string className)
         {
-            cachePool.Remove(className);
+            dataPool.Remove(className);
         }
 
         public void Clear()
         {
-            cachePool.Clear();
+            dataPool.Clear();
         }
     }
 }

@@ -3,12 +3,15 @@ using System.Collections.Generic;
 
 namespace PartsKit
 {
-    public class DataCachePool<K, T, TD>
+    /// <summary>
+    /// 数据实例缓存池，每个key只有一个实例
+    /// </summary>
+    public class DataInstancePool<K, T, TD>
     {
         private readonly Dictionary<K, T> cachePool = new Dictionary<K, T>();
         private Func<K, TD, T> onCreateData;
 
-        public DataCachePool(Func<K, TD, T> onCreate)
+        public DataInstancePool(Func<K, TD, T> onCreate)
         {
             onCreateData = onCreate;
         }

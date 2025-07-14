@@ -117,7 +117,6 @@ namespace PartsKit
                 return;
             }
 
-            //todo 判断updateFag，只更新HasExitTime
             UpdateStateLine();
             UpdatePlayingState();
             ResetTriggerAll();

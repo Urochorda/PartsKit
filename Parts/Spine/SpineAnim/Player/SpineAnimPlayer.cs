@@ -75,6 +75,16 @@ namespace PartsKit
             mAnimationState.ClearTracks();
         }
 
+        public float GetTimeScale()
+        {
+            if (mAnimationState == null)
+            {
+                return 0;
+            }
+
+            return mAnimationState.TimeScale;
+        }
+
         public void SetTimeScale(float speed)
         {
             if (mAnimationState == null)

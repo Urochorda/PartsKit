@@ -300,6 +300,16 @@ namespace PartsKit
             return false;
         }
 
+        public float GetSpeed()
+        {
+            return spineAnimPlayer.GetTimeScale();
+        }
+
+        public void SetSpeed(float speed)
+        {
+            spineAnimPlayer.SetTimeScale(speed);
+        }
+
         public float GetFloat(string key)
         {
             int id = Animator.StringToHash(key);

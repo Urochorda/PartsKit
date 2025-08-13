@@ -21,14 +21,24 @@ namespace PartsKit
 
         public event Action onSelectItemChange;
         public event Action onCharacterChange;
+        private Transform dialoguePoint;
 
-        public void Show()
+        private void Update()
+        {
+            if (dialoguePoint != null)
+            {
+                transform.position = dialoguePoint.position;
+            }
+        }
+
+        public void Show(Transform point)
         {
             if (selectItemPrefab.transform.parent != null)
             {
                 selectItemPrefab.gameObject.SetActive(false);
             }
 
+            dialoguePoint = point;
             gameObject.SetActive(true);
         }
 

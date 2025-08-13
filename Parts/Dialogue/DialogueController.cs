@@ -9,7 +9,7 @@ namespace PartsKit
     {
         public abstract DialogueNodeConfig LoadNodeConfig(int nodeKey);
         public abstract void ReleaseNodeConfig(DialogueNodeConfig nodeConfig);
-        public abstract IDialogueShowPanel LoadShowPanel();
+        public abstract IDialogueShowPanel LoadShowPanel(int panelType);
         public abstract void ReleaseShowPanel(IDialogueShowPanel showPanel);
     }
 
@@ -24,20 +24,27 @@ namespace PartsKit
         }
     }
 
-    public struct DialoguePlayData
+    public class DialoguePlayData
     {
         public int NodeConfigKey { get; set; }
         public bool IsForce { get; set; }
         public bool HideInEnd { get; set; }
+        public int PanelType { get; set; }
+        public bool AutoNext { get; set; }
+        public Transform PanelPoint { get; set; }
         public List<DialogueSelectItemData> SelectItemList { get; set; }
         public Action<DialogueSelectItemData> OnComplete { get; set; }
         public Action OnBeginPlay { get; set; }
 
-        public DialoguePlayData(int nodeConfigKey, bool isForce)
+        public DialoguePlayData(int nodeConfigKey, bool isForce, bool hideInEnd, bool autoNext, int panelType,
+            Transform panelPoint)
         {
             NodeConfigKey = nodeConfigKey;
             IsForce = isForce;
-            HideInEnd = true;
+            AutoNext = autoNext;
+            PanelType = panelType;
+            PanelPoint = panelPoint;
+            HideInEnd = hideInEnd;
             SelectItemList = new List<DialogueSelectItemData>();
             OnComplete = null;
             OnBeginPlay = null;
@@ -53,6 +60,7 @@ namespace PartsKit
         [SerializeField] private float charDuration = 0.05f;
         [SerializeField] private float advanceTimeScale = 5f;
         [SerializeField] private bool defaultHideInEnd = true;
+        [SerializeField] private bool defaultAutoNext = true;
 
         public event Action OnPlay;
         public event Action OnStop;
@@ -65,10 +73,12 @@ namespace PartsKit
         public bool IsPlayingDialogue { get; private set; }
         public bool IsPlayingNode { get; private set; }
         public bool CurHideInEnd { get; private set; }
+        public bool CurAutoNext { get; private set; }
 
         protected override void OnInit()
         {
             CurHideInEnd = defaultHideInEnd;
+            CurAutoNext = defaultAutoNext;
         }
 
         protected override void OnDeInit()
@@ -90,6 +100,7 @@ namespace PartsKit
 
             StopDialogue(); //结束上次对话
             SetTempHideInEnd(playData.HideInEnd);
+            SetTempAutoNext(playData.AutoNext);
             if (curNode != null)
             {
                 loadDialogueFun.ReleaseNodeConfig(curNode);
@@ -103,10 +114,10 @@ namespace PartsKit
                 loadDialogueFun.ReleaseShowPanel(CurShowPanel);
             }
 
-            CurShowPanel = loadDialogueFun.LoadShowPanel();
+            CurShowPanel = loadDialogueFun.LoadShowPanel(playData.PanelType);
             curGroupIndex = 0;
             curOnComplete = playData.OnComplete;
-            CurShowPanel.Show();
+            CurShowPanel.Show(playData.PanelPoint);
             CurShowPanel.BeginPlay();
             IsPlayingDialogue = true;
             playData.OnBeginPlay?.Invoke();
@@ -189,6 +200,7 @@ namespace PartsKit
                 IsPlayingNode = false;
                 curPlayNodeAnim = null;
 
+                //尝试展示选择
                 if (index == curNode.NodeGroups.Count - 1 && IsEndShowSelect())
                 {
                     CurShowPanel.SetSelects(curSelectItemList, (selectItem) =>
@@ -197,6 +209,10 @@ namespace PartsKit
                             item.InfoEntryName == selectItem.InfoEntryName);
                         DoPlayNode(curGroupIndex + 1, targetSelectItem);
                     });
+                }
+                else if (CurAutoNext) //自动播放下一个
+                {
+                    DoPlayNode(curGroupIndex + 1, null);
                 }
             });
             return true;
@@ -229,6 +245,7 @@ namespace PartsKit
             }
 
             CurHideInEnd = defaultHideInEnd;
+            CurAutoNext = defaultAutoNext;
             curOnComplete?.Invoke(selectItemData);
             curOnComplete = null;
             OnStop?.Invoke();
@@ -259,6 +276,28 @@ namespace PartsKit
         {
             defaultHideInEnd = hideInEnd;
             CurHideInEnd = defaultHideInEnd;
+        }
+
+        /// <summary>
+        /// 临时设置是否在对话时自动执行
+        /// </summary>
+        public void SetTempAutoNext(bool autoNext)
+        {
+            if (!IsPlayingDialogue)
+            {
+                return;
+            }
+
+            CurAutoNext = autoNext;
+        }
+
+        /// <summary>
+        /// 设置是否在对话结束时隐藏表现
+        /// </summary>
+        public void SetAutoNext(bool autoNext)
+        {
+            defaultAutoNext = autoNext;
+            CurAutoNext = defaultAutoNext;
         }
     }
 }

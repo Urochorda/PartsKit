@@ -1,11 +1,12 @@
 using System;
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace PartsKit
 {
     public interface IDialogueShowPanel
     {
-        public void Show();
+        public void Show(Transform point);
         public void Hide();
         public void BeginPlay();
         public void EndPlay();

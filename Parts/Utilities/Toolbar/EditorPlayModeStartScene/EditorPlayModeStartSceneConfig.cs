@@ -17,7 +17,7 @@ namespace PartsKit
             Include = 2,
         }
 
-        private const string ConfigPath = "EditorPlayStartSceneConfig";
+        private const string ConfigPath = "Assets/EditorAssets/EditorPlayStartSceneConfig";
         [field: SerializeField] public bool IsActive { get; set; }
         [field: SerializeField] public SceneAsset StartSceneAsset { get; set; }
         [field: SerializeField] public MatchSceneMode MatchMode { get; set; } = MatchSceneMode.Exclude;
@@ -28,11 +28,11 @@ namespace PartsKit
             if (!EditorApplication.isPlaying)
             {
                 EditorPlayModeStartSceneConfig[]
-                    configArray = Resources.LoadAll<EditorPlayModeStartSceneConfig>(ConfigPath);
+                    configArray = LoadAllAssetsAtFolder<EditorPlayModeStartSceneConfig>(ConfigPath);
                 if (configArray == null || configArray.Length <= 0)
                 {
                     Debug.LogError(
-                        $"Please first in the \"Resources/{ConfigPath}/\" create \"{nameof(EditorPlayModeStartSceneConfig)}\"");
+                        $"Please first in the \"{ConfigPath}/\" create \"{nameof(EditorPlayModeStartSceneConfig)}\"");
                     return;
                 }
 
@@ -97,6 +97,15 @@ namespace PartsKit
         public static void StopPlay()
         {
             EditorSceneManager.playModeStartScene = null; //恢复设置;
+        }
+
+        private static T[] LoadAllAssetsAtFolder<T>(string folderPath) where T : Object
+        {
+            string[] guids = AssetDatabase.FindAssets("t:" + typeof(T).Name, new[] { folderPath });
+            return guids
+                .Select(guid => AssetDatabase.LoadAssetAtPath<T>(AssetDatabase.GUIDToAssetPath(guid)))
+                .Where(asset => asset != null)
+                .ToArray();
         }
     }
 }

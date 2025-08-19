@@ -6,7 +6,33 @@ namespace PartsKit
 {
     public static class MenuItemTMP
     {
-        [MenuItem("Assets/TMP: UpdateAtlasAndMatName")]
+        [MenuItem("Assets/TMP: UpdateAtlasAndMat", true)]
+        private static bool ValidateUpdateAtlasAndMat()
+        {
+            var selections = Selection.GetFiltered<Object>(SelectionMode.Assets);
+            foreach (var obj in selections)
+            {
+                if (obj is TMP_FontAsset)
+                {
+                    return true;
+                }
+
+                string path = AssetDatabase.GetAssetPath(obj);
+                if (AssetDatabase.IsValidFolder(path))
+                {
+                    string[] guids =
+                        AssetDatabase.FindAssets("t:TMP_FontAsset", new[] { AssetDatabase.GetAssetPath(obj) });
+                    if (guids.Length > 0)
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        [MenuItem("Assets/TMP: UpdateAtlasAndMat")]
         private static void UpdateAtlasAndMatName()
         {
             // 第一阶段：直接选中的字体资源
@@ -47,7 +73,7 @@ namespace PartsKit
 
         private static void ProcessSingleFont(TMP_FontAsset font)
         {
-            Debug.Log($"UpdateAtlasAndMatName: {font.name}");
+            Debug.Log($"update atlas and mat: {font.name}");
             if (font.material != null)
             {
                 string expectedName = $"{font.name} Material";
@@ -63,18 +89,45 @@ namespace PartsKit
                 }
             }
 
-            if (font.atlasTexture != null)
+            for (int i = 0; i < font.atlasTextures.Length; i++)
             {
-                string expectedName = $"{font.name} Atlas";
-                string atlPath = AssetDatabase.GetAssetPath(font.atlasTexture);
-
-                if (AssetDatabase.IsSubAsset(font.atlasTexture))
+                var atlas = font.atlasTextures[i];
+                if (atlas != null)
                 {
-                    font.atlasTexture.name = expectedName;
+                    string expectedName = i == 0 ? $"{font.name} Atlas" : $"{font.name} Atlas {i}";
+                    string atlPath = AssetDatabase.GetAssetPath(atlas);
+                    if (AssetDatabase.IsSubAsset(atlas))
+                    {
+                        atlas.name = expectedName;
+                    }
+                    else
+                    {
+                        AssetDatabase.RenameAsset(atlPath, expectedName);
+                    }
                 }
-                else
+            }
+
+            Debug.Log($"clear orphan atlas: {font.name}");
+            Object[] subAssets = AssetDatabase.LoadAllAssetsAtPath(AssetDatabase.GetAssetPath(font));
+            foreach (var sub in subAssets)
+            {
+                if (sub is Texture2D tex)
                 {
-                    AssetDatabase.RenameAsset(atlPath, expectedName);
+                    bool exists = false;
+                    foreach (var atlas in font.atlasTextures)
+                    {
+                        if (atlas == tex)
+                        {
+                            exists = true;
+                            break;
+                        }
+                    }
+
+                    if (!exists)
+                    {
+                        Debug.Log($"Deleting orphan atlas: {tex.name} in {font.name}");
+                        Object.DestroyImmediate(tex, true);
+                    }
                 }
             }
 

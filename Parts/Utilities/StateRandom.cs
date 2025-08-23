@@ -27,7 +27,7 @@ namespace PartsKit
         private int inextp;
         private int[] seedArray = new int[56];
 
-        public int Seed { get; }
+        public int Seed { get; private set; }
 
         public StateRandom() : this(Environment.TickCount)
         {
@@ -70,8 +70,14 @@ namespace PartsKit
             seed = 1;
         }
 
-        public StateRandom(State state)
+        public StateRandom(int seed, State state)
         {
+            SetData(seed, state);
+        }
+
+        public void SetData(int seed, State state)
+        {
+            Seed = seed;
             SetState(state);
         }
 

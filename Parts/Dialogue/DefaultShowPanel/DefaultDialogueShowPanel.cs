@@ -18,22 +18,34 @@ namespace PartsKit
             new List<DefaultDialogueShowCharacter>();
 
         public List<DefaultDialogueShowSelectItem> CurSelectItems { get; } = new List<DefaultDialogueShowSelectItem>();
-
+        public bool IsShowing { get; private set; }
         public event Action onSelectItemChange;
         public event Action onCharacterChange;
+        private Transform dialoguePoint;
 
-        public void Show()
+        private void Update()
         {
+            if (dialoguePoint != null)
+            {
+                transform.position = dialoguePoint.position;
+            }
+        }
+
+        public void Show(Transform point)
+        {
+            IsShowing = true;
             if (selectItemPrefab.transform.parent != null)
             {
                 selectItemPrefab.gameObject.SetActive(false);
             }
 
+            dialoguePoint = point;
             gameObject.SetActive(true);
         }
 
         public void Hide()
         {
+            IsShowing = false;
             SetCharacters(null);
             SetSelects(null, null);
             gameObject.SetActive(false);

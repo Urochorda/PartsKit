@@ -21,7 +21,10 @@ namespace PartsKit
         {
         }
 
-        public EffectItem PlayEffect(string effectId, Vector3 pos)
+        /// <summary>
+        /// 播放特效，如果自己维护生命周期（持有EffectItem引用）建议autoRecycle为true
+        /// </summary>
+        public EffectItem PlayEffect(string effectId, Vector3 pos, bool autoRecycle)
         {
             EffectItem ge = GetEffect(effectId);
             if (ge == null)
@@ -30,11 +33,11 @@ namespace PartsKit
             }
 
             ge.transform.position = pos;
-            EffectItem.Play(ge, this);
+            EffectItem.Play(ge, this, null, autoRecycle);
             return ge;
         }
 
-        public EffectItem PlayEffect(string effectId, Transform parent)
+        public EffectItem PlayEffect(string effectId, Transform parent, bool autoRecycle)
         {
             EffectItem ge = GetEffect(effectId);
             if (ge == null)
@@ -42,12 +45,11 @@ namespace PartsKit
                 return null;
             }
 
-            ge.ParentPoint = parent;
-            EffectItem.Play(ge, this);
+            EffectItem.Play(ge, this, parent, autoRecycle);
             return ge;
         }
 
-        public void Recycle(EffectItem effectItem)
+        public void RecycleEffect(EffectItem effectItem)
         {
             if (effectItem == null)
             {

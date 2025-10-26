@@ -105,13 +105,26 @@ namespace PartsKit
             for (int i = 0; i <= segments; i++)
             {
                 float a = Mathf.Deg2Rad * (i * angleStep);
-                startPointsTop[i] = origin +
-                                    (Vector2)(rotation * (new Vector2(Mathf.Cos(a) * radius, Mathf.Sin(a) * radius) +
-                                                          lengthOffset));
-                startPointsBottom[i] = origin +
-                                       (Vector2)(rotation *
-                                                 (new Vector2(Mathf.Cos(a) * radius, -Mathf.Sin(a) * radius) -
-                                                  lengthOffset));
+                if (capsuleDirection == CapsuleDirection2D.Vertical)
+                {
+                    // 垂直方向：上、下半圆
+                    startPointsTop[i] = origin + (Vector2)(rotation *
+                                                           (new Vector2(Mathf.Cos(a) * radius, Mathf.Sin(a) * radius) +
+                                                            lengthOffset));
+                    startPointsBottom[i] = origin + (Vector2)(rotation *
+                                                              (new Vector2(Mathf.Cos(a) * radius,
+                                                                  -Mathf.Sin(a) * radius) - lengthOffset));
+                }
+                else
+                {
+                    // 水平方向：右、左半圆
+                    startPointsTop[i] = origin + (Vector2)(rotation *
+                                                           (new Vector2(Mathf.Sin(a) * radius, Mathf.Cos(a) * radius) +
+                                                            lengthOffset));
+                    startPointsBottom[i] = origin + (Vector2)(rotation *
+                                                              (new Vector2(-Mathf.Sin(a) * radius,
+                                                                  Mathf.Cos(a) * radius) - lengthOffset));
+                }
             }
 
             // 计算结束胶囊的各个点

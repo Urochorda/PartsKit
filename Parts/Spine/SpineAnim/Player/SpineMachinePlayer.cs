@@ -117,7 +117,6 @@ namespace PartsKit
                 return;
             }
 
-            //todo 判断updateFag，只更新HasExitTime
             UpdateStateLine();
             UpdatePlayingState();
             ResetTriggerAll();
@@ -299,6 +298,16 @@ namespace PartsKit
             }
 
             return false;
+        }
+
+        public float GetSpeed()
+        {
+            return spineAnimPlayer.GetTimeScale();
+        }
+
+        public void SetSpeed(float speed)
+        {
+            spineAnimPlayer.SetTimeScale(speed);
         }
 
         public float GetFloat(string key)

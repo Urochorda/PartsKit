@@ -46,18 +46,18 @@ namespace PartsKit
             GetEvent<T>()?.Trigger(new T());
         }
 
-        public void Send<T>(T e) where T : new()
+        public void Send<T>(T e)
         {
             GetEvent<T>()?.Trigger(e);
         }
 
-        public IRegister Register<T>(Action<T> onEvent) where T : new()
+        public IRegister Register<T>(Action<T> onEvent)
         {
             var e = GetOrAddEvent<T>();
             return e.Register(onEvent);
         }
 
-        public void UnRegister<T>(Action<T> onEvent) where T : new()
+        public void UnRegister<T>(Action<T> onEvent)
         {
             var e = GetEvent<T>();
             DoUnRegister(e, onEvent);
@@ -73,29 +73,29 @@ namespace PartsKit
             mTypeEvents.Clear();
         }
 
-        private void DoUnRegister<T>(TypeEventItem<T> eventItem, Action<T> onEvent) where T : new()
+        private void DoUnRegister<T>(TypeEventItem<T> eventItem, Action<T> onEvent)
         {
             eventItem?.UnRegister(onEvent);
         }
 
-        private TypeEventItem<T> AddEvent<T>() where T : new()
+        private TypeEventItem<T> AddEvent<T>()
         {
             TypeEventItem<T> t = new TypeEventItem<T>(DoUnRegister);
             mTypeEvents.Add(typeof(T), t);
             return t;
         }
 
-        private TypeEventItem<T> GetEvent<T>() where T : new()
+        private TypeEventItem<T> GetEvent<T>()
         {
             if (mTypeEvents.TryGetValue(typeof(T), out IEventItem e))
             {
                 return e as TypeEventItem<T>;
             }
 
-            return default;
+            return null;
         }
 
-        private TypeEventItem<T> GetOrAddEvent<T>() where T : new()
+        private TypeEventItem<T> GetOrAddEvent<T>()
         {
             TypeEventItem<T> e = GetEvent<T>() ?? AddEvent<T>();
             return e;

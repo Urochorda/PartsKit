@@ -4,9 +4,12 @@ namespace PartsKit
 {
     public class EffectItem : MonoBehaviour
     {
-        public static void Play(EffectItem effectItem, EffectController controllerVal)
+        public static void Play(EffectItem effectItem, EffectController controllerVal, Transform parentPoint,
+            bool autoRecycle)
         {
             effectItem.controller = controllerVal;
+            effectItem.ParentPoint = parentPoint;
+            effectItem.AutoRecycle = autoRecycle;
             effectItem.OnPlay();
         }
 
@@ -29,7 +32,8 @@ namespace PartsKit
         private bool isPlay;
         private Vector3 initScale;
 
-        public Transform ParentPoint { get; set; }
+        public Transform ParentPoint { get; private set; }
+        public bool AutoRecycle { get; private set; }
 
         protected virtual void OnInit()
         {
@@ -56,7 +60,7 @@ namespace PartsKit
 
         public void Recycle()
         {
-            controller.Recycle(this);
+            controller.RecycleEffect(this);
         }
 
         private void Update()
@@ -72,7 +76,7 @@ namespace PartsKit
                 transform.position = ParentPoint.transform.position;
             }
 
-            if (curPlayTime > playTime)
+            if (AutoRecycle && curPlayTime > playTime)
             {
                 Recycle();
             }

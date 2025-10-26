@@ -6,13 +6,9 @@ using UnityEngine.SceneManagement;
 
 namespace PartsKit
 {
-    public interface IPoolAction
-    {
-        void PoolOnGet();
-
-        void PoolOnRelease();
-    }
-
+    /// <summary>
+    /// 物体对象池
+    /// </summary>
     public class GameObjectPool : MonoBehaviour
     {
         public class PoolItemKey : MonoBehaviour
@@ -20,7 +16,16 @@ namespace PartsKit
             public int KeyID { get; set; }
         }
 
-        [field: SerializeField] public bool AutoCancelDontDestroyOnLoad { get; set; }
+        [SerializeField] private bool collectionCheck;
+        [SerializeField] private int defaultCapacity = 10;
+        [SerializeField] private int maxSize = 10000;
+        [SerializeField] private bool autoCancelDontDestroyOnLoad;
+
+        public bool AutoCancelDontDestroyOnLoad
+        {
+            get => autoCancelDontDestroyOnLoad;
+            set => autoCancelDontDestroyOnLoad = value;
+        }
 
         private readonly Dictionary<int, ObjectPool<GameObject>> itemPoolDic =
             new Dictionary<int, ObjectPool<GameObject>>();
@@ -36,7 +41,7 @@ namespace PartsKit
             if (!itemPoolDic.TryGetValue(id, out ObjectPool<GameObject> itemPool))
             {
                 itemPool = new ObjectPool<GameObject>(CreateFunc, ActionOnGet, ActionOnRelease, ActionOnDestroy,
-                    true, 10, 100000);
+                    collectionCheck, defaultCapacity, maxSize);
                 itemPoolDic[id] = itemPool;
             }
 
@@ -51,12 +56,6 @@ namespace PartsKit
 
             void ActionOnGet(GameObject gameObj)
             {
-                IPoolAction[] poolActions = gameObj.GetComponents<IPoolAction>();
-                foreach (IPoolAction poolAction in poolActions)
-                {
-                    poolAction.PoolOnGet();
-                }
-
                 gameObj.transform.SetParent(parent);
                 gameObj.SetActive(true);
                 if (AutoCancelDontDestroyOnLoad && parent == null)
@@ -67,20 +66,14 @@ namespace PartsKit
 
             void ActionOnRelease(GameObject gameObj)
             {
-                IPoolAction[] poolActions = gameObj.GetComponents<IPoolAction>();
-                foreach (IPoolAction poolAction in poolActions)
-                {
-                    poolAction.PoolOnRelease();
-                }
-
                 gameObj.transform.SetParent(transform);
                 gameObj.transform.localPosition = Vector3.zero;
                 gameObj.SetActive(false);
             }
 
-            void ActionOnDestroy(GameObject bullet)
+            void ActionOnDestroy(GameObject gameObj)
             {
-                Destroy(bullet);
+                Destroy(gameObj);
             }
         }
 
@@ -140,6 +133,32 @@ namespace PartsKit
             }
 
             objList.Clear();
+        }
+
+        public void Clear(GameObject objPrefab)
+        {
+            if (objPrefab == null)
+            {
+                return;
+            }
+
+            int id = objPrefab.GetInstanceID();
+            if (!itemPoolDic.TryGetValue(id, out ObjectPool<GameObject> itemPool))
+            {
+                return;
+            }
+
+            itemPool.Clear();
+        }
+
+        public void ClearAll()
+        {
+            foreach (var keyValuePair in itemPoolDic)
+            {
+                keyValuePair.Value.Clear();
+            }
+
+            itemPoolDic.Clear();
         }
     }
 }

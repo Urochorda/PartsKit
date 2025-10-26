@@ -5,7 +5,8 @@ using UnityEngine.EventSystems;
 namespace PartsKit
 {
     public class UIInteractionHandler : MonoBehaviour, IPointerClickHandler, IPointerDownHandler, IPointerUpHandler,
-        IPointerEnterHandler, IPointerExitHandler, IPointerMoveHandler, IBeginDragHandler, IDragHandler, IEndDragHandler
+        IPointerEnterHandler, IPointerExitHandler, IPointerMoveHandler, IBeginDragHandler, IDragHandler,
+        IEndDragHandler, ISelectHandler, IDeselectHandler, ISubmitHandler, ICancelHandler
     {
         public event Action<UIInteractionHandler, PointerEventData> onPointerClickEvent;
         public event Action<UIInteractionHandler, PointerEventData> onPointerDownEvent;
@@ -16,12 +17,26 @@ namespace PartsKit
         public event Action<UIInteractionHandler, PointerEventData> onBeginDragEvent;
         public event Action<UIInteractionHandler, PointerEventData> onDragEvent;
         public event Action<UIInteractionHandler, PointerEventData> onEndDragEvent;
+        public event Action<UIInteractionHandler, BaseEventData> onSelectEvent;
+        public event Action<UIInteractionHandler, BaseEventData> onDeselectEvent;
+        public event Action<UIInteractionHandler, BaseEventData> onSubmitEvent;
+        public event Action<UIInteractionHandler, BaseEventData> onCancelEvent;
 
         private bool isDragDown;
 
         public bool IsDragging { get; private set; }
         public bool IsDowning { get; private set; }
         public bool IsEntering { get; private set; }
+        public bool IsSelect { get; private set; }
+
+        private void OnDisable()
+        {
+            var eventSystem = EventSystem.current;
+            OnEndDrag(new PointerEventData(eventSystem));
+            OnPointerExit(new PointerEventData(eventSystem));
+            OnPointerUp(new PointerEventData(eventSystem));
+            OnDeselect(new BaseEventData(eventSystem));
+        }
 
         public void OnPointerClick(PointerEventData eventData)
         {
@@ -40,6 +55,11 @@ namespace PartsKit
 
         public void OnPointerUp(PointerEventData eventData)
         {
+            if (!IsDowning)
+            {
+                return;
+            }
+
             IsDowning = false;
             onPointerUpEvent?.Invoke(this, eventData);
         }
@@ -52,6 +72,11 @@ namespace PartsKit
 
         public void OnPointerExit(PointerEventData eventData)
         {
+            if (!IsEntering)
+            {
+                return;
+            }
+
             IsEntering = false;
             onPointerExitEvent?.Invoke(this, eventData);
         }
@@ -75,27 +100,39 @@ namespace PartsKit
 
         public void OnEndDrag(PointerEventData eventData)
         {
+            if (!IsDragging)
+            {
+                return;
+            }
+
             IsDragging = false;
             onEndDragEvent?.Invoke(this, eventData);
         }
 
-        private void OnDisable()
+        public void OnSelect(BaseEventData eventData)
         {
-            var eventSystem = EventSystem.current;
-            if (IsDragging)
+            IsSelect = true;
+            onSelectEvent?.Invoke(this, eventData);
+        }
+
+        public void OnDeselect(BaseEventData eventData)
+        {
+            if (!IsSelect)
             {
-                OnEndDrag(new PointerEventData(eventSystem));
+                return;
             }
 
-            if (IsEntering)
-            {
-                OnPointerExit(new PointerEventData(eventSystem));
-            }
+            onDeselectEvent?.Invoke(this, eventData);
+        }
 
-            if (IsDowning)
-            {
-                OnPointerUp(new PointerEventData(eventSystem));
-            }
+        public void OnSubmit(BaseEventData eventData)
+        {
+            onSubmitEvent?.Invoke(this, eventData);
+        }
+
+        public void OnCancel(BaseEventData eventData)
+        {
+            onCancelEvent?.Invoke(this, eventData);
         }
     }
 }

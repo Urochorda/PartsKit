@@ -1,9 +1,9 @@
-using UnityEngine;
+using System;
 
 namespace PartsKit
 {
-    [System.AttributeUsage(System.AttributeTargets.Method)]
-    public class ButtonMenuAttribute : PropertyAttribute
+    [AttributeUsage(AttributeTargets.Method)]
+    public class ButtonMenuAttribute : Attribute
     {
         public string ButtonText { get; }
 

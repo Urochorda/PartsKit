@@ -9,10 +9,13 @@ namespace PartsKit
     [InitializeOnLoad]
     public static class ToolbarExtender
     {
-        public static event Action OnGuiBodyCallback;
+        public static event Action OnGuiBodyRightCallback;
+        public static event Action OnGuiBodyRightReverseCallback;
+        public static event Action OnGuiBodyLeftCallback;
+        public static event Action OnGuiBodyLeftReverseCallback;
+
         private static readonly Type KToolbarType = typeof(Editor).Assembly.GetType("UnityEditor.Toolbar");
         private static ScriptableObject sCurrentToolbar;
-
 
         static ToolbarExtender()
         {
@@ -39,27 +42,55 @@ namespace PartsKit
 
                 VisualElement concreteRoot = root.GetValue(sCurrentToolbar) as VisualElement;
 
-                VisualElement toolbarZone = concreteRoot.Q("ToolbarZoneRightAlign");
-                VisualElement parent = new VisualElement()
+                SetContainer("ToolbarZoneRightAlign", FlexDirection.RowReverse, OnGuiBodyRightReverse);
+                SetContainer("ToolbarZoneRightAlign", FlexDirection.Row, OnGuiBodyRight);
+                SetContainer("ToolbarZoneLeftAlign", FlexDirection.Row, OnGuiBodyLeft);
+                SetContainer("ToolbarZoneLeftAlign", FlexDirection.RowReverse, OnGuiBodyLeftReverse);
+
+                void SetContainer(string zoneName, FlexDirection flexDirection, Action onGUIHandler)
                 {
-                    style =
+                    VisualElement toolbarZone = concreteRoot.Q(zoneName);
+                    VisualElement parent = new VisualElement()
                     {
-                        flexGrow = 1,
-                        flexDirection = FlexDirection.Row,
-                    }
-                };
-                IMGUIContainer container = new IMGUIContainer();
-                container.onGUIHandler += OnGuiBody;
-                parent.Add(container);
-                toolbarZone.Add(parent);
+                        style =
+                        {
+                            flexGrow = 1,
+                            flexDirection = flexDirection,
+                        }
+                    };
+                    IMGUIContainer container = new IMGUIContainer();
+                    container.onGUIHandler += onGUIHandler;
+                    parent.Add(container);
+                    toolbarZone.Add(parent);
+                }
             }
         }
 
-        private static void OnGuiBody()
+        private static void OnGuiBodyRight()
         {
-            //自定义按钮加在此处
             GUILayout.BeginHorizontal();
-            OnGuiBodyCallback?.Invoke();
+            OnGuiBodyRightCallback?.Invoke();
+            GUILayout.EndHorizontal();
+        }
+
+        private static void OnGuiBodyRightReverse()
+        {
+            GUILayout.BeginHorizontal();
+            OnGuiBodyRightReverseCallback?.Invoke();
+            GUILayout.EndHorizontal();
+        }
+
+        private static void OnGuiBodyLeft()
+        {
+            GUILayout.BeginHorizontal();
+            OnGuiBodyLeftCallback?.Invoke();
+            GUILayout.EndHorizontal();
+        }
+
+        private static void OnGuiBodyLeftReverse()
+        {
+            GUILayout.BeginHorizontal();
+            OnGuiBodyLeftReverseCallback?.Invoke();
             GUILayout.EndHorizontal();
         }
     }

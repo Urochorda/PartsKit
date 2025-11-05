@@ -8,8 +8,8 @@ namespace PartsKit
     {
         static EditorPlayModeStartSceneToolbar()
         {
-            ToolbarExtender.OnGuiBodyCallback -= OnGuiBody;
-            ToolbarExtender.OnGuiBodyCallback += OnGuiBody;
+            ToolbarExtender.OnGuiBodyRightCallback -= OnGuiBody;
+            ToolbarExtender.OnGuiBodyRightCallback += OnGuiBody;
             EditorApplication.playModeStateChanged -= OnPlayModeStateChanged;
             EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
         }

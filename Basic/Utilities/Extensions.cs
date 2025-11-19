@@ -6,6 +6,8 @@ namespace PartsKit
 {
     public static class Extensions
     {
+        private const float SubtractBoundEps = 1e-4f;
+
         public static bool RemoveMatch<T>(this List<T> list, Predicate<T> match)
         {
             for (var i = 0; i < list.Count; i++)
@@ -311,6 +313,96 @@ namespace PartsKit
             }
 
             return true;
+        }
+
+        public static void SubtractBounds(this Bounds a, Bounds b, List<Bounds> result, bool isClear)
+        {
+            if (isClear)
+            {
+                result.Clear();
+            }
+
+            Bounds inter;
+            //获取相交部分
+            if (!a.Intersection(b, out inter))
+            {
+                result.Add(a);
+                return;
+            }
+
+            // A 被 inter 切分成最多 4 块
+            Vector3 aMin = a.min;
+            Vector3 aMax = a.max;
+            Vector3 iMin = inter.min;
+            Vector3 iMax = inter.max;
+
+            // 上块
+            if (iMax.y < aMax.y)
+            {
+                Vector3 min = new Vector3(aMin.x, iMax.y, 0);
+                Vector3 max = new Vector3(aMax.x, aMax.y, 0);
+                TryAddResult(min, max);
+            }
+
+            // 下块
+            if (iMin.y > aMin.y)
+            {
+                Vector3 min = new Vector3(aMin.x, aMin.y, 0);
+                Vector3 max = new Vector3(aMax.x, iMin.y, 0);
+                TryAddResult(min, max);
+            }
+
+            // 左块（垂直于中间）
+            if (iMin.x > aMin.x)
+            {
+                Vector3 min = new Vector3(aMin.x, iMin.y, 0);
+                Vector3 max = new Vector3(iMin.x, iMax.y, 0);
+                TryAddResult(min, max);
+            }
+
+            // 右块
+            if (iMax.x < aMax.x)
+            {
+                Vector3 min = new Vector3(iMax.x, iMin.y, 0);
+                Vector3 max = new Vector3(aMax.x, iMax.y, 0);
+                TryAddResult(min, max);
+            }
+
+            void TryAddResult(Vector3 min, Vector3 max)
+            {
+                if (max.x - min.x > SubtractBoundEps && max.y - min.y > SubtractBoundEps)
+                    result.Add(CreateBounds(min, max));
+            }
+        }
+
+        public static void SubtractBounds(this Bounds a, List<Bounds> bList, List<Bounds> result, bool isClear)
+        {
+            if (isClear)
+            {
+                result.Clear();
+            }
+
+            List<Bounds> resultTemp = new List<Bounds>() { a };
+            foreach (var b in bList)
+            {
+                List<Bounds> temp = new List<Bounds>();
+
+                foreach (var r in resultTemp)
+                {
+                    SubtractBounds(r, b, temp, false);
+                }
+
+                resultTemp = temp;
+            }
+
+            result.AddRange(resultTemp);
+        }
+
+        private static Bounds CreateBounds(Vector3 min, Vector3 max)
+        {
+            Vector3 size = max - min;
+            Vector3 center = (min + max) * 0.5f;
+            return new Bounds(center, size);
         }
     }
 }

@@ -7,11 +7,12 @@ namespace PartsKit
 {
     public class RandomPointInCollider2D
     {
-        private Collider2D mCollider;
+        private readonly Collider2D mCollider;
         private int maxRandomCount = 20;
         private Func<float, float, float> onRandom;
 
         private readonly List<Bounds> tempBounds = new List<Bounds>();
+        private readonly List<Bounds> tempBounds2 = new List<Bounds>();
 
         public Bounds Bounds => mCollider.bounds.To2D();
 
@@ -37,8 +38,8 @@ namespace PartsKit
             bool isSuccess = false;
             do
             {
-                randomPoint = new Vector2(RandomValue(minBound.x, maxBound.x), RandomValue(minBound.y, maxBound.y));
                 randomCount++;
+                randomPoint = new Vector2(RandomValue(minBound.x, maxBound.x), RandomValue(minBound.y, maxBound.y));
                 if (mCollider.OverlapPoint(randomPoint) && (checkFunc == null || checkFunc.Invoke(randomPoint)))
                 {
                     isSuccess = true;
@@ -47,6 +48,68 @@ namespace PartsKit
             } while (randomCount <= maxRandomCount);
 
             point = randomPoint;
+            return isSuccess;
+        }
+
+        private bool DoRandomPoint(List<Bounds> validBounds, Func<Vector3, bool> checkFunc, out Vector3 point)
+        {
+            point = Vector3.zero;
+
+            if (validBounds == null || validBounds.Count == 0)
+            {
+                return false;
+            }
+
+            float totalArea = 0f;
+            var areas = new float[validBounds.Count];
+            for (var i = 0; i < validBounds.Count; i++)
+            {
+                var bound = validBounds[i];
+                float area = Mathf.Max(0f, bound.size.x * bound.size.y);
+                areas[i] = area;
+                totalArea += area;
+            }
+
+            if (totalArea <= 0f)
+            {
+                return false;
+            }
+
+            bool isSuccess = false;
+            int checkCount = areas.Length;
+            do
+            {
+                float rand = RandomValue(0, totalArea);
+                float weightSum = 0f;
+                int chosenIndex = 0;
+                Bounds chosenBound = validBounds[chosenIndex];
+
+                for (int i = 0; i < areas.Length; i++)
+                {
+                    weightSum += areas[i];
+                    if (rand <= weightSum)
+                    {
+                        chosenIndex = i;
+                        chosenBound = validBounds[i];
+                        break;
+                    }
+                }
+
+                Vector3 minBound = chosenBound.min;
+                Vector3 maxBound = chosenBound.max;
+                if (!DoRandomPoint(minBound, maxBound, checkFunc, out point))
+                {
+                    totalArea -= areas[chosenIndex];
+                    areas[chosenIndex] = 0;
+                    checkCount--;
+                }
+                else
+                {
+                    isSuccess = true;
+                    break;
+                }
+            } while (checkCount > 0);
+
             return isSuccess;
         }
 
@@ -89,7 +152,7 @@ namespace PartsKit
         {
             //因为是2d，所有z给0
             circle = circle.To2D();
-            var inBounds = new Bounds(circle.Center, new Vector3(circle.Radius, circle.Radius, 0)).To2D();
+            var inBounds = new Bounds(circle.Center, new Vector3(circle.Radius * 2, circle.Radius * 2, 0)).To2D();
             var mapBounds = Bounds;
             if (!mapBounds.Intersection(inBounds, out var targetBounds))
             {
@@ -111,61 +174,18 @@ namespace PartsKit
         {
             var mapBounds = Bounds;
             outBounds = outBounds.To2D();
-            if (outBounds.Contains(mapBounds))
-            {
-                point = Vector3.zero;
-                return false;
-            }
-
-            Vector3 minBound = mapBounds.min;
-            Vector3 maxBound = mapBounds.max;
-            return DoRandomPoint(minBound, maxBound, (pos) => !outBounds.Contains2D(pos), out point);
+            mapBounds.SubtractBounds(outBounds, tempBounds, true);
+            return DoRandomPoint(tempBounds, null, out point);
         }
 
         public bool RandomPointOut(List<Bounds> outBounds, out Vector3 point)
         {
             var mapBounds = Bounds;
-            tempBounds.Clear();
-            tempBounds.AddRange(outBounds);
-            tempBounds.To2D();
-            foreach (var outBound in tempBounds)
-            {
-                if (outBound.Contains(mapBounds))
-                {
-                    point = Vector3.zero;
-                    return false;
-                }
-            }
-
-            Vector3 minBound = mapBounds.min;
-            Vector3 maxBound = mapBounds.max;
-            return DoRandomPoint(minBound, maxBound, (pos) =>
-            {
-                foreach (var bound in tempBounds)
-                {
-                    if (bound.Contains2D(pos))
-                    {
-                        return false;
-                    }
-                }
-
-                return true;
-            }, out point);
-        }
-
-        public bool RandomPointOut(Circle circle, out Vector3 point)
-        {
-            var mapBounds = Bounds;
-            circle = circle.To2D();
-            if (circle.Contains(mapBounds))
-            {
-                point = Vector3.zero;
-                return false;
-            }
-
-            Vector3 minBound = mapBounds.min;
-            Vector3 maxBound = mapBounds.max;
-            return DoRandomPoint(minBound, maxBound, (pos) => !circle.Contains2D(pos), out point);
+            tempBounds2.Clear();
+            tempBounds2.AddRange(outBounds);
+            tempBounds2.To2D();
+            mapBounds.SubtractBounds(tempBounds2, tempBounds, true);
+            return DoRandomPoint(tempBounds, null, out point);
         }
 
         #endregion
@@ -176,22 +196,15 @@ namespace PartsKit
         {
             var mapBounds = Bounds;
             inBounds = inBounds.To2D();
-            outBounds = outBounds.To2D();
-            if (outBounds.Contains(mapBounds) || outBounds.Contains(inBounds))
-            {
-                point = Vector3.zero;
-                return false;
-            }
-
             if (!mapBounds.Intersection(inBounds, out var targetBounds))
             {
                 point = Vector3.zero;
                 return false;
             }
 
-            Vector3 minBound = targetBounds.min;
-            Vector3 maxBound = targetBounds.max;
-            return DoRandomPoint(minBound, maxBound, (pos) => !outBounds.Contains2D(pos), out point);
+            outBounds = outBounds.To2D();
+            targetBounds.SubtractBounds(outBounds, tempBounds, true);
+            return DoRandomPoint(tempBounds, null, out point);
         }
 
         public bool RandomPointInOut(Bounds inBounds, List<Bounds> outBounds, out Vector3 point)
@@ -203,32 +216,11 @@ namespace PartsKit
                 return false;
             }
 
-            tempBounds.Clear();
-            tempBounds.AddRange(outBounds);
-            tempBounds.To2D();
-            foreach (var outBound in tempBounds)
-            {
-                if (outBound.Contains(mapBounds) || outBound.Contains(inBounds))
-                {
-                    point = Vector3.zero;
-                    return false;
-                }
-            }
-
-            Vector3 minBound = targetBounds.min;
-            Vector3 maxBound = targetBounds.max;
-            return DoRandomPoint(minBound, maxBound, (pos) =>
-            {
-                foreach (var bound in tempBounds)
-                {
-                    if (bound.Contains2D(pos))
-                    {
-                        return false;
-                    }
-                }
-
-                return true;
-            }, out point);
+            tempBounds2.Clear();
+            tempBounds2.AddRange(outBounds);
+            tempBounds2.To2D();
+            targetBounds.SubtractBounds(tempBounds2, tempBounds, true);
+            return DoRandomPoint(tempBounds, null, out point);
         }
 
         #endregion

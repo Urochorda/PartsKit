@@ -37,6 +37,12 @@ namespace PartsKit
         {
             for (var i = groups.Count - 1; i >= 0; i--)
             {
+                var data = groups[i];
+                if (data.AssetGroup != null)
+                {
+                    continue;
+                }
+
                 groups.RemoveAt(i);
             }
         }

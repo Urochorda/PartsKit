@@ -1,31 +1,29 @@
 using System;
+using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
 using UnityEditor;
+using Object = UnityEngine.Object;
 
 namespace PartsKit
 {
-    [CustomEditor(typeof(MonoBehaviour), true)]
-    [CanEditMultipleObjects]
-    public class ButtonMenuEditor : Editor
+    public static class ButtonMenuMethodAttributeEditor
     {
-        public override void OnInspectorGUI()
+        public static void DrawButtonMenu(IList<Object> targets)
         {
-            DrawDefaultInspector();
-
-            // 用第一个对象的类型来找方法
-            var monoBehaviour = target as MonoBehaviour;
-            if (monoBehaviour == null)
+            if (targets == null || targets.Count <= 0)
             {
                 return;
+                
             }
 
-            var methods = monoBehaviour.GetType().GetMethods(
+            var target = targets[0];
+            var methods = target.GetType().GetMethods(
                 BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-
             foreach (var method in methods)
             {
-                var buttonAttr = (ButtonMenuAttribute)Attribute.GetCustomAttribute(method, typeof(ButtonMenuAttribute));
+                var buttonAttr =
+                    (ButtonMenuMethodAttribute)Attribute.GetCustomAttribute(method, typeof(ButtonMenuMethodAttribute));
                 if (buttonAttr == null)
                 {
                     continue;
@@ -46,6 +44,8 @@ namespace PartsKit
                     {
                         Debug.LogError($"执行{method.Name}失败: {e}");
                     }
+
+                    EditorUtility.SetDirty(t);
                 }
             }
         }

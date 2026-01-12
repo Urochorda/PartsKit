@@ -3,11 +3,11 @@ using System;
 namespace PartsKit
 {
     [AttributeUsage(AttributeTargets.Method)]
-    public class ButtonMenuAttribute : Attribute
+    public class ButtonMenuMethodAttribute : Attribute
     {
         public string ButtonText { get; }
 
-        public ButtonMenuAttribute(string buttonText)
+        public ButtonMenuMethodAttribute(string buttonText)
         {
             ButtonText = buttonText;
         }

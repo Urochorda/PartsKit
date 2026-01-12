@@ -326,31 +326,31 @@ namespace PartsKit
 
         #region Editor
 
-        [ButtonMenu("ToNormalEditor")]
+        [ButtonMenuMethod("ToNormalEditor")]
         private void ToNormalEditor()
         {
             SetState(State.Normal);
         }
 
-        [ButtonMenu("ToHighlightedEditor")]
+        [ButtonMenuMethod("ToHighlightedEditor")]
         private void ToHighlightedEditor()
         {
             SetState(State.Highlighted);
         }
 
-        [ButtonMenu("ToPressedEditor")]
+        [ButtonMenuMethod("ToPressedEditor")]
         private void ToPressedEditor()
         {
             SetState(State.Pressed);
         }
 
-        [ButtonMenu("ToSelectedEditor")]
+        [ButtonMenuMethod("ToSelectedEditor")]
         private void ToSelectedEditor()
         {
             SetState(State.Selected);
         }
 
-        [ButtonMenu("ToDisabledEditor")]
+        [ButtonMenuMethod("ToDisabledEditor")]
         private void ToDisabledEditor()
         {
             SetState(State.Disabled);

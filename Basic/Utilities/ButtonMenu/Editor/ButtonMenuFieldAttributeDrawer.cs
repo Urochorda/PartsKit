@@ -1,3 +1,4 @@
+using System;
 using System.Reflection;
 using UnityEditor;
 using UnityEngine;
@@ -16,10 +17,17 @@ namespace PartsKit
 
             if (GUI.Button(buttonRect, inspectorButtonAttribute.MethodName))
             {
-                System.Type eventOwnerType = prop.serializedObject.targetObject.GetType();
+                object ownerObject = GetPropertyOwner(prop);
+                if (ownerObject == null)
+                {
+                    Debug.LogWarning("ButtonMenuField: owner object is null");
+                    return;
+                }
+
+                Type eventOwnerType = ownerObject.GetType();
                 string eventName = inspectorButtonAttribute.MethodName;
 
-                if (eventMethodInfo == null)
+                if (eventMethodInfo == null || eventMethodInfo.DeclaringType != eventOwnerType)
                 {
                     eventMethodInfo = eventOwnerType.GetMethod(eventName,
                         BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
@@ -27,7 +35,8 @@ namespace PartsKit
 
                 if (eventMethodInfo != null)
                 {
-                    eventMethodInfo.Invoke(prop.serializedObject.targetObject, null);
+                    eventMethodInfo.Invoke(ownerObject, null);
+                    EditorUtility.SetDirty(prop.serializedObject.targetObject);
                 }
                 else
                 {
@@ -35,6 +44,59 @@ namespace PartsKit
                         eventOwnerType));
                 }
             }
+        }
+
+        private object GetPropertyOwner(SerializedProperty prop)
+        {
+            object obj = prop.serializedObject.targetObject;
+            string path = prop.propertyPath.Replace(".Array.data[", "[");
+
+            string[] parts = path.Split('.');
+            for (int i = 0; i < parts.Length - 1; i++) //注意 -1
+            {
+                string part = parts[i];
+
+                if (part.Contains("["))
+                {
+                    string fieldName = part.Substring(0, part.IndexOf("[", StringComparison.Ordinal));
+                    int index = int.Parse(part.Substring(part.IndexOf("[", StringComparison.Ordinal) + 1,
+                        part.IndexOf("]", StringComparison.Ordinal) - part.IndexOf("[", StringComparison.Ordinal) - 1));
+                    obj = GetFieldValue(obj, fieldName, index);
+                }
+                else
+                {
+                    obj = GetFieldValue(obj, part, -1);
+                }
+            }
+
+            return obj;
+        }
+
+        private object GetFieldValue(object source, string name, int index)
+        {
+            if (source == null)
+            {
+                return null;
+            }
+
+            var type = source.GetType();
+            var field = type.GetField(
+                name,
+                BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+
+            if (field == null)
+            {
+                return null;
+            }
+
+            var value = field.GetValue(source);
+
+            if (index >= 0 && value is System.Collections.IList list)
+            {
+                return list[index];
+            }
+
+            return value;
         }
     }
 }

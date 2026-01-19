@@ -292,7 +292,7 @@ namespace PartsKit
                 return;
             }
 
-            SetState(State.Pressed);
+            SetState(State.Normal);
         }
 
         private void SetActiveSelf(GameObject[] objs, bool active)

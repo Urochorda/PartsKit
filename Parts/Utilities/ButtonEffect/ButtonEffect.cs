@@ -68,6 +68,11 @@ namespace PartsKit
 #endif
         }
 
+        private void OnEnable()
+        {
+            UpdateState();
+        }
+
         private void OnDisable()
         {
             OnPointerUp(null);
@@ -269,15 +274,15 @@ namespace PartsKit
                 return;
             }
 
-            if (isInSelect)
-            {
-                SetState(State.Selected);
-                return;
-            }
-
             if (isInDown)
             {
                 SetState(State.Pressed);
+                return;
+            }
+
+            if (isInSelect)
+            {
+                SetState(State.Selected);
                 return;
             }
 

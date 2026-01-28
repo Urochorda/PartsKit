@@ -1,36 +1,31 @@
 using System;
 using System.Collections.Generic;
-using Spine.Unity;
 using UnityEngine;
-using UnityEngine.Serialization;
 
 namespace PartsKit
 {
-    public class SpineMachinePlayer : MonoBehaviour
+    public class SpineAnimator : MonoBehaviour
     {
-        // 不使用这个了，统一使用Animator.StringToHash，方便业务层无缝切换Animator和SpineMachinePlayer
-        // public static int StringToHash(string value)
-        // {
-        //     return Animator.StringToHash(value);
-        // }
-
-        [SerializeField] private SpineMachineData machineData;
-        [SerializeField] private SkeletonAnimation skeletonAnimation;
+        [SerializeField] private SpineAnimMachineData animMachineData;
+        [SerializeField] private SpineAnimation animationPlayer;
         [SerializeField] private bool isDisableStop = true; //默认为true，重新开启时会重置状态
 
         private readonly Dictionary<int, float> floatParameterPool = new Dictionary<int, float>();
         private readonly Dictionary<int, int> intParameterPool = new Dictionary<int, int>();
         private readonly Dictionary<int, bool> boolParameterPool = new Dictionary<int, bool>();
         private readonly Dictionary<int, bool> triggerParameterPool = new Dictionary<int, bool>();
-        public IReadOnlyList<SpineMachineParameter> Parameter => machineData.Parameter;
+        public IReadOnlyList<SpineAnimMachineParameter> Parameters => animMachineData.Parameters;
+        public IReadOnlyList<SpineAnimStateData> States => animMachineData.States;
+        public IReadOnlyList<SpineAnimStateData.IClipRef> Clips => animMachineData.Clips;
+        public SpineAnimation AnimationPlayer => animationPlayer;
 
-        private SpineAnimPlayer spineAnimPlayer;
-
-        private SpineStateData curActivateState;
-        private SpineStateData curPlayingState;
-        private ISpineClipData curPlayingClip;
+        private SpineAnimStateData curActivateState;
+        private SpineAnimStateData curPlayingState;
+        private SpineAnimStateData.IClipRef curPlayingAnimClip;
+        private float globalSpeed = 1;
+        private bool updatePlayerSpeedFag;
         private bool isPlaying;
-        private bool updateFag;
+        private bool updateFlag;
 
         private void OnEnable()
         {
@@ -58,10 +53,10 @@ namespace PartsKit
             }
 
             isPlaying = true;
+            animMachineData.InitRuntime();
             InitParameter();
-            curActivateState = machineData.EnterState;
+            curActivateState = animMachineData.EnterState;
             curPlayingState = null;
-            spineAnimPlayer ??= new SpineAnimPlayer(skeletonAnimation);
         }
 
         private void Stop()
@@ -72,12 +67,12 @@ namespace PartsKit
             }
 
             isPlaying = false;
-            spineAnimPlayer.StopAnimationAll();
+            animationPlayer.StopAnim();
         }
 
         public bool HasParameterOfType(string key, AnimatorControllerParameterType type)
         {
-            return machineData.HasParameterOfType(key, type);
+            return animMachineData.HasParameterOfType(key, type);
         }
 
         private void InitParameter()
@@ -86,33 +81,34 @@ namespace PartsKit
             intParameterPool.Clear();
             boolParameterPool.Clear();
             triggerParameterPool.Clear();
-            var defaultPar = Parameter;
+            var defaultPar = Parameters;
             foreach (var parameter in defaultPar)
             {
-                int parameterHash = Animator.StringToHash(parameter.ParameterName);
+                int parameterId = parameter.ParameterId;
                 switch (parameter.ParameterType)
                 {
                     case AnimatorControllerParameterType.Float:
-                        floatParameterPool[parameterHash] = parameter.DefaultValueFloat;
+                        floatParameterPool[parameterId] = parameter.DefaultValueFloat;
                         break;
                     case AnimatorControllerParameterType.Bool:
-                        boolParameterPool[parameterHash] = parameter.DefaultValueBool;
+                        boolParameterPool[parameterId] = parameter.DefaultValueBool;
                         break;
                     case AnimatorControllerParameterType.Int:
-                        intParameterPool[parameterHash] = parameter.DefaultValueInteger;
+                        intParameterPool[parameterId] = parameter.DefaultValueInteger;
                         break;
                     case AnimatorControllerParameterType.Trigger:
-                        triggerParameterPool[parameterHash] = parameter.DefaultValueTrigger;
+                        triggerParameterPool[parameterId] = parameter.DefaultValueTrigger;
                         break;
                 }
             }
 
-            updateFag = true;
+            updateFlag = true;
+            updatePlayerSpeedFag = false;
         }
 
         private void UpdateState()
         {
-            if (!isPlaying)
+            if (!isPlaying || !updateFlag)
             {
                 return;
             }
@@ -120,12 +116,12 @@ namespace PartsKit
             UpdateStateLine();
             UpdatePlayingState();
             ResetTriggerAll();
-            updateFag = false;
+            updateFlag = false;
         }
 
         private void UpdateStateLine()
         {
-            var anyState = machineData.AnyState;
+            var anyState = animMachineData.AnyState;
             var activateState = curActivateState;
 
             //从Any状态切换到下一个状态，切换成功则不在同一帧检测下一个状态
@@ -137,9 +133,9 @@ namespace PartsKit
             //检测当前激活的状态切换
             TryNext(activateState.LinePool);
 
-            bool TryNext(IEnumerable<SpineLineData> lineList)
+            bool TryNext(IEnumerable<SpineAnimLineData> lineList)
             {
-                bool isSwitch = CheckLine(lineList, out SpineLineData targetLine);
+                bool isSwitch = CheckLine(lineList, out SpineAnimLineData targetLine);
                 if (isSwitch)
                 {
                     curActivateState = targetLine.NextState;
@@ -164,13 +160,13 @@ namespace PartsKit
                         continue;
                     }
 
-                    if (curPlayingClip == animClip)
+                    if (curPlayingAnimClip == animClip)
                     {
                         break;
                     }
 
-                    curPlayingClip = animClip;
-                    PlayAnim(animClip.SetAnimPool, animClip.AddAnimPool);
+                    curPlayingAnimClip = animClip;
+                    PlayAnim(curPlayingAnimClip);
                     isPlayed = true;
                     break;
                 }
@@ -178,31 +174,27 @@ namespace PartsKit
                 if (!isPlayed)
                 {
                     var animClip = curPlayingState.DefaultClip;
-                    if (curPlayingClip != animClip)
+                    if (curPlayingAnimClip != animClip)
                     {
-                        curPlayingClip = animClip;
-                        PlayAnim(curPlayingClip.SetAnimPool, curPlayingClip.AddAnimPool);
+                        curPlayingAnimClip = animClip;
+                        PlayAnim(curPlayingAnimClip);
                     }
+                }
+
+
+                if (!isPlayed && updatePlayerSpeedFag)
+                {
+                    animationPlayer.UpdateSpeed(GetPlayerSpeed());
                 }
             }
 
-            void PlayAnim(IReadOnlyList<SpineSetAnimData> setAnim,
-                IReadOnlyList<SpineAddAnimData> addAnim)
+            void PlayAnim(SpineAnimStateData.IClipRef clipRef)
             {
-                foreach (var setAnimData in setAnim)
-                {
-                    spineAnimPlayer.PlayAnimation(setAnimData.TrackIndex, setAnimData.AnimName, setAnimData.IsLoop);
-                }
-
-                foreach (var addAnimData in addAnim)
-                {
-                    spineAnimPlayer.AddAnimation(addAnimData.TrackIndex, addAnimData.AnimName, addAnimData.IsLoop,
-                        addAnimData.Delay);
-                }
+                animationPlayer.PlayAnim(clipRef.AnimName, GetPlayerSpeed());
             }
         }
 
-        private bool CheckLine(IEnumerable<SpineLineData> lineList, out SpineLineData targetLine)
+        private bool CheckLine(IEnumerable<SpineAnimLineData> lineList, out SpineAnimLineData targetLine)
         {
             foreach (var line in lineList)
             {
@@ -218,7 +210,7 @@ namespace PartsKit
                     return true;
                 }
 
-                var isEnd = line.HasExitTime && !spineAnimPlayer.IsPlaying();
+                var isEnd = line.HasExitTime && !animationPlayer.IsPlaying();
                 if (isEnd)
                 {
                     targetLine = line;
@@ -230,7 +222,7 @@ namespace PartsKit
             return false;
         }
 
-        private bool CheckCondition(IEnumerable<SpineConditionData> conditionList)
+        private bool CheckCondition(IEnumerable<SpineAnimConditionData> conditionList)
         {
             if (conditionList == null)
             {
@@ -249,9 +241,9 @@ namespace PartsKit
                         var curParameterValue = GetFloat(parameterName);
                         switch (condition.FloatConditionMode)
                         {
-                            case SpineFloatConditionMode.Greater:
+                            case SpineAnimFloatConditionMode.Greater:
                                 return curParameterValue > parameterValue;
-                            case SpineFloatConditionMode.Less:
+                            case SpineAnimFloatConditionMode.Less:
                                 return curParameterValue < parameterValue;
                             default:
                                 throw new ArgumentOutOfRangeException();
@@ -260,11 +252,11 @@ namespace PartsKit
                     case AnimatorControllerParameterType.Bool:
                     {
                         var curParameterValue = GetBool(parameterName);
-                        switch (condition.BoolConditionMode)
+                        switch (condition.AnimBoolConditionMode)
                         {
-                            case SpineBoolConditionMode.True:
+                            case SpineAnimBoolConditionMode.True:
                                 return curParameterValue;
-                            case SpineBoolConditionMode.False:
+                            case SpineAnimBoolConditionMode.False:
                                 return !curParameterValue;
                             default:
                                 throw new ArgumentOutOfRangeException();
@@ -276,13 +268,13 @@ namespace PartsKit
                         var curParameterValue = GetInteger(parameterName);
                         switch (condition.IntConditionMode)
                         {
-                            case SpineIntConditionMode.Greater:
+                            case SpineAnimIntConditionMode.Greater:
                                 return curParameterValue > parameterValue;
-                            case SpineIntConditionMode.Less:
+                            case SpineAnimIntConditionMode.Less:
                                 return curParameterValue < parameterValue;
-                            case SpineIntConditionMode.Equals:
+                            case SpineAnimIntConditionMode.Equals:
                                 return curParameterValue == parameterValue;
-                            case SpineIntConditionMode.NotEqual:
+                            case SpineAnimIntConditionMode.NotEqual:
                                 return curParameterValue != parameterValue;
                             default:
                                 throw new ArgumentOutOfRangeException();
@@ -302,12 +294,77 @@ namespace PartsKit
 
         public float GetSpeed()
         {
-            return spineAnimPlayer.GetTimeScale();
+            return globalSpeed;
         }
 
         public void SetSpeed(float speed)
         {
-            spineAnimPlayer.SetTimeScale(speed);
+            if (Mathf.Approximately(globalSpeed, speed))
+            {
+                return;
+            }
+
+            globalSpeed = speed;
+            updatePlayerSpeedFag = true;
+        }
+
+        public AnimatorControllerParameterType GetParameterType(string parameterName)
+        {
+            int parameterId = Animator.StringToHash(parameterName);
+            return GetParameterType(parameterId);
+        }
+
+        public AnimatorControllerParameterType GetParameterType(int parameterId)
+        {
+            foreach (var parameter in Parameters)
+            {
+                if (parameter.ParameterId == parameterId)
+                {
+                    return parameter.ParameterType;
+                }
+            }
+
+            return AnimatorControllerParameterType.Trigger;
+        }
+
+        private float GetPlayerSpeed()
+        {
+            if (curPlayingState == null)
+            {
+                return 0;
+            }
+
+            float speed = curPlayingState.Speed * globalSpeed;
+            if (curPlayingState.SpeedParameterActive)
+            {
+                var parameterType = GetParameterType(curPlayingState.SpeedParameterId);
+                float speedMult;
+                switch (parameterType)
+                {
+                    case AnimatorControllerParameterType.Float:
+                        speedMult = GetFloat(curPlayingState.SpeedParameterId);
+                        break;
+                    case AnimatorControllerParameterType.Int:
+                        speedMult = GetInteger(curPlayingState.SpeedParameterId);
+                        break;
+                    default:
+                        speedMult = 0;
+                        break;
+                }
+
+                speed *= speedMult;
+            }
+
+            return speed;
+        }
+
+        private void CheckPlayerSpeed(int parameter)
+        {
+            if (curPlayingState != null && curPlayingState.SpeedParameterActive &&
+                parameter == curPlayingState.SpeedParameterId)
+            {
+                updatePlayerSpeedFag = true;
+            }
         }
 
         public float GetFloat(string key)
@@ -331,7 +388,8 @@ namespace PartsKit
         public void SetFloat(int id, float value)
         {
             floatParameterPool[id] = value;
-            updateFag = true;
+            updateFlag = true;
+            CheckPlayerSpeed(id);
         }
 
         public bool GetBool(string key)
@@ -355,7 +413,7 @@ namespace PartsKit
         public void SetBool(int id, bool value)
         {
             boolParameterPool[id] = value;
-            updateFag = true;
+            updateFlag = true;
         }
 
         public int GetInteger(string key)
@@ -379,7 +437,8 @@ namespace PartsKit
         public void SetInteger(int id, int value)
         {
             intParameterPool[id] = value;
-            updateFag = true;
+            updateFlag = true;
+            CheckPlayerSpeed(id);
         }
 
         public void SetTrigger(string key)
@@ -391,7 +450,7 @@ namespace PartsKit
         public void SetTrigger(int id)
         {
             triggerParameterPool[id] = true;
-            updateFag = true;
+            updateFlag = true;
         }
 
         public bool GetTrigger(string key)
@@ -415,13 +474,13 @@ namespace PartsKit
         public void ResetTrigger(int id)
         {
             triggerParameterPool[id] = false;
-            updateFag = true;
+            updateFlag = true;
         }
 
         public void ResetTriggerAll()
         {
             triggerParameterPool.Clear(); //清除全部设置为false，不需要设置为default
-            updateFag = true;
+            updateFlag = true;
         }
     }
 }

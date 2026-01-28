@@ -4,12 +4,13 @@ using UnityEngine;
 namespace PartsKit
 {
     [Serializable]
-    public class SpineMachineParameter
+    public class SpineAnimMachineParameter
     {
-        public static SpineMachineParameter Create(AnimatorControllerParameterType parameterType, string parameterName,
+        public static SpineAnimMachineParameter Create(AnimatorControllerParameterType parameterType,
+            string parameterName,
             float defaultValueFloat, bool defaultValueBool, int defaultValueInteger, bool defaultValueTrigger)
         {
-            var parameter = new SpineMachineParameter()
+            var parameter = new SpineAnimMachineParameter()
             {
                 parameterType = parameterType,
                 parameterName = parameterName,
@@ -34,5 +35,16 @@ namespace PartsKit
         public bool DefaultValueBool => defaultValueBool;
         public int DefaultValueInteger => defaultValueInteger;
         public bool DefaultValueTrigger => defaultValueTrigger;
+
+        #region Runtime
+
+        public int ParameterId { get; private set; }
+
+        public void InitRuntime()
+        {
+            ParameterId = Animator.StringToHash(parameterName);
+        }
+
+        #endregion
     }
 }

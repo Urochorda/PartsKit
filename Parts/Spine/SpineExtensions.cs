@@ -13,12 +13,10 @@ namespace PartsKit
 
             foreach (var stateTrack in state.Tracks)
             {
-                if (stateTrack.Loop)
+                if (stateTrack.Loop || !stateTrack.IsComplete)
                 {
                     return true;
                 }
-
-                return !stateTrack.IsComplete;
             }
 
             return false;

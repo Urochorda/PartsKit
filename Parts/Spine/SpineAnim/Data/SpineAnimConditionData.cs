@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace PartsKit
 {
-    public enum SpineIntConditionMode
+    public enum SpineAnimIntConditionMode
     {
         Greater = 1,
         Less = 2,
@@ -11,35 +11,35 @@ namespace PartsKit
         NotEqual = 4,
     }
 
-    public enum SpineFloatConditionMode
+    public enum SpineAnimFloatConditionMode
     {
         Greater = 1,
         Less = 2,
     }
 
-    public enum SpineBoolConditionMode
+    public enum SpineAnimBoolConditionMode
     {
         True = 1,
         False = 2,
     }
 
     [Serializable]
-    public class SpineConditionData
+    public class SpineAnimConditionData
     {
         [SerializeField] private AnimatorControllerParameterType parameterType;
         [SerializeField] private string parameterName;
-        [Header("Float")] [SerializeField] private SpineFloatConditionMode floatConditionMode;
+        [Header("Float")] [SerializeField] private SpineAnimFloatConditionMode floatConditionMode;
         [SerializeField] private float parameterValueFloat;
-        [Header("Bool")] [SerializeField] private SpineBoolConditionMode boolConditionMode;
-        [Header("Integer")] [SerializeField] private SpineIntConditionMode intConditionMode;
+        [Header("Bool")] [SerializeField] private SpineAnimBoolConditionMode boolConditionMode;
+        [Header("Integer")] [SerializeField] private SpineAnimIntConditionMode intConditionMode;
         [SerializeField] private int parameterValueInteger;
 
         public AnimatorControllerParameterType ParameterType => parameterType;
         public string ParameterName => parameterName;
-        public SpineFloatConditionMode FloatConditionMode => floatConditionMode;
+        public SpineAnimFloatConditionMode FloatConditionMode => floatConditionMode;
         public float ParameterValueFloat => parameterValueFloat;
-        public SpineBoolConditionMode BoolConditionMode => boolConditionMode;
-        public SpineIntConditionMode IntConditionMode => intConditionMode;
+        public SpineAnimBoolConditionMode AnimBoolConditionMode => boolConditionMode;
+        public SpineAnimIntConditionMode IntConditionMode => intConditionMode;
         public int ParameterValueInteger => parameterValueInteger;
     }
 }

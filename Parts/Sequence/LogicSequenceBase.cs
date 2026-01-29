@@ -7,7 +7,7 @@ namespace PartsKit
         public bool IsValid { get; private set; }
         public bool IsPlaying { get; private set; } //是否正在播放，暂停：false
         public bool IsRunning { get; private set; } //是否正在运行，未播放或者已结束：false，暂停：true
-        public Action KillCallback { get; set; }
+        public event Action KillCallback;
         public bool IgnoreTimeScale { get; set; }
 
         public void Get()
@@ -45,6 +45,7 @@ namespace PartsKit
             IsValid = false;
             OnKill();
             KillCallback?.Invoke();
+            KillCallback = null;
         }
 
         public void Reset()

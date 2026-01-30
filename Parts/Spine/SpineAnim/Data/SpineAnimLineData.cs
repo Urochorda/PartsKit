@@ -5,14 +5,38 @@ using UnityEngine;
 namespace PartsKit
 {
     [Serializable]
-    public class SpineAnimLineData
+    public class SpineAnimLineDataBase
     {
         [SerializeField] private SpineAnimStateData nextState;
-        [SerializeField] private bool hasExitTime;
         [SerializeField] private SpineAnimConditionData[] conditions;
 
-        public SpineAnimStateData NextState => nextState;
-        public bool HasExitTime => hasExitTime;
-        public IReadOnlyList<SpineAnimConditionData> Conditions => conditions;
+        public SpineAnimStateData NextState
+        {
+            get => nextState;
+            set => nextState = value;
+        }
+
+        public SpineAnimConditionData[] Conditions
+        {
+            get => conditions;
+            set => conditions = value;
+        }
+    }
+
+    [Serializable]
+    public class SpineAnimLineData : SpineAnimLineDataBase
+    {
+    }
+
+    [Serializable]
+    public class SpineAnimStateLineData : SpineAnimLineDataBase
+    {
+        [SerializeField] private bool hasExitTime;
+
+        public bool HasExitTime
+        {
+            get => hasExitTime;
+            set => hasExitTime = value;
+        }
     }
 }

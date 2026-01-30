@@ -55,8 +55,10 @@ namespace PartsKit
             isPlaying = true;
             animMachineData.InitRuntime();
             InitParameter();
-            curActivateState = animMachineData.EnterState;
+            curActivateState = null;
             curPlayingState = null;
+            curPlayingAnimClip = null;
+            UpdateStateEntry();
         }
 
         private void Stop()
@@ -119,31 +121,28 @@ namespace PartsKit
             updateFlag = false;
         }
 
+        private void UpdateStateEntry()
+        {
+            //成功进入
+            if (TryEntryState(animMachineData.EnterLine))
+            {
+                return;
+            }
+
+            //进入默认的
+            curActivateState = animMachineData.DefaultState;
+        }
+
         private void UpdateStateLine()
         {
-            var anyState = animMachineData.AnyState;
-            var activateState = curActivateState;
-
             //从Any状态切换到下一个状态，切换成功则不在同一帧检测下一个状态
-            if (TryNext(anyState))
+            if (TryNextState(animMachineData.AnyLine))
             {
                 return;
             }
 
             //检测当前激活的状态切换
-            TryNext(activateState.LinePool);
-
-            bool TryNext(IEnumerable<SpineAnimLineData> lineList)
-            {
-                bool isSwitch = CheckLine(lineList, out SpineAnimLineData targetLine);
-                if (isSwitch)
-                {
-                    curActivateState = targetLine.NextState;
-                    return true;
-                }
-
-                return false;
-            }
+            TryNextState(curActivateState.LinePool);
         }
 
         private void UpdatePlayingState()
@@ -194,7 +193,52 @@ namespace PartsKit
             }
         }
 
+        private bool TryEntryState(IEnumerable<SpineAnimLineData> lineList)
+        {
+            bool isSwitch = CheckLine(lineList, out var targetLine);
+            if (isSwitch)
+            {
+                curActivateState = targetLine.NextState;
+                return true;
+            }
+
+            return false;
+        }
+
+        private bool TryNextState(IEnumerable<SpineAnimStateLineData> lineList)
+        {
+            bool isSwitch = CheckStateLine(lineList, out var targetLine);
+            if (isSwitch)
+            {
+                curActivateState = targetLine.NextState;
+                return true;
+            }
+
+            return false;
+        }
+
         private bool CheckLine(IEnumerable<SpineAnimLineData> lineList, out SpineAnimLineData targetLine)
+        {
+            foreach (var line in lineList)
+            {
+                if (line.NextState == null)
+                {
+                    break;
+                }
+
+                var trigger = CheckCondition(line.Conditions);
+                if (trigger)
+                {
+                    targetLine = line;
+                    return true;
+                }
+            }
+
+            targetLine = null;
+            return false;
+        }
+
+        private bool CheckStateLine(IEnumerable<SpineAnimStateLineData> lineList, out SpineAnimStateLineData targetLine)
         {
             foreach (var line in lineList)
             {
@@ -231,8 +275,8 @@ namespace PartsKit
 
             foreach (var condition in conditionList)
             {
-                var parameterType = condition.ParameterType;
                 var parameterName = condition.ParameterName;
+                var parameterType = GetParameterType(parameterName);
                 switch (parameterType)
                 {
                     case AnimatorControllerParameterType.Float:

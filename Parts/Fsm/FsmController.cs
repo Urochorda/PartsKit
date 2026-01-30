@@ -17,15 +17,18 @@ namespace PartsKit
         private readonly Dictionary<T, FsmState<T>> mFsmPool = new Dictionary<T, FsmState<T>>();
         private FsmState<T> mCurState;
         public event Action<T> onStateChange;
+        private bool isSwitchingState;
 
         public FsmController(T defaultStateId, FsmCallBack callBack)
         {
+            isSwitchingState = false;
             AddState(defaultStateId, callBack);
             SetState(defaultStateId, false);
         }
 
         public FsmController(FsmState<T> defaultState)
         {
+            isSwitchingState = false;
             AddState(defaultState);
             SetState(defaultState.StateId, false);
         }
@@ -57,6 +60,12 @@ namespace PartsKit
 
         public void SetState(T stateId, bool isReset)
         {
+            if (isSwitchingState)
+            {
+                CustomLog.LogError("设置状态时，正在切换状态，可能导致堆栈溢出或者逻辑混乱，请检车问题");
+                return;
+            }
+
             if (!isReset && mCurState != null && stateId.Equals(mCurState.StateId))
             {
                 return;
@@ -67,9 +76,12 @@ namespace PartsKit
                 return;
             }
 
+            isSwitchingState = true;
             mCurState?.Exit();
             mCurState = state;
             state.Entry();
+            isSwitchingState = false;
+
             onStateChange?.Invoke(stateId);
         }
 

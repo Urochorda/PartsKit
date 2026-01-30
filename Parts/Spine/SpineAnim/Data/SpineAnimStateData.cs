@@ -33,7 +33,7 @@ namespace PartsKit
 
         [SerializeField] private ClipRefDefault defaultClip;
         [SerializeField] private ClipRef[] clipPool;
-        [SerializeField] private SpineAnimLineData[] linePool;
+        [SerializeField] private SpineAnimStateLineData[] linePool;
         [SerializeField] private float speed = 1;
         [SerializeField] private string speedParameter;
         [SerializeField] private bool speedParameterActive;
@@ -50,7 +50,7 @@ namespace PartsKit
             set => clipPool = value;
         }
 
-        public SpineAnimLineData[] LinePool
+        public SpineAnimStateLineData[] LinePool
         {
             get => linePool;
             set => linePool = value;

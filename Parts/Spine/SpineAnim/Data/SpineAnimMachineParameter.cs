@@ -29,12 +29,36 @@ namespace PartsKit
         [Header("Integer")] [SerializeField] private int defaultValueInteger;
         [Header("Trigger")] [SerializeField] private bool defaultValueTrigger;
 
-        public AnimatorControllerParameterType ParameterType => parameterType;
-        public string ParameterName => parameterName;
-        public float DefaultValueFloat => defaultValueFloat;
-        public bool DefaultValueBool => defaultValueBool;
-        public int DefaultValueInteger => defaultValueInteger;
-        public bool DefaultValueTrigger => defaultValueTrigger;
+        public AnimatorControllerParameterType ParameterType
+        {
+            get => parameterType;
+            set => parameterType = value;
+        }
+        public string ParameterName
+        {
+            get => parameterName;
+            set => parameterName = value;
+        }
+        public float DefaultValueFloat
+        {
+            get => defaultValueFloat;
+            set => defaultValueFloat = value;
+        }
+        public bool DefaultValueBool
+        {
+            get => defaultValueBool;
+            set => defaultValueBool = value;
+        }
+        public int DefaultValueInteger
+        {
+            get => defaultValueInteger;
+            set => defaultValueInteger = value;
+        }
+        public bool DefaultValueTrigger
+        {
+            get => defaultValueTrigger;
+            set => defaultValueTrigger = value;
+        }
 
         #region Runtime
 

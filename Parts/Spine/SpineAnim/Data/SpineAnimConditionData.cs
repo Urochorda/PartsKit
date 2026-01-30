@@ -26,7 +26,6 @@ namespace PartsKit
     [Serializable]
     public class SpineAnimConditionData
     {
-        [SerializeField] private AnimatorControllerParameterType parameterType;
         [SerializeField] private string parameterName;
         [Header("Float")] [SerializeField] private SpineAnimFloatConditionMode floatConditionMode;
         [SerializeField] private float parameterValueFloat;
@@ -34,12 +33,40 @@ namespace PartsKit
         [Header("Integer")] [SerializeField] private SpineAnimIntConditionMode intConditionMode;
         [SerializeField] private int parameterValueInteger;
 
-        public AnimatorControllerParameterType ParameterType => parameterType;
-        public string ParameterName => parameterName;
-        public SpineAnimFloatConditionMode FloatConditionMode => floatConditionMode;
-        public float ParameterValueFloat => parameterValueFloat;
-        public SpineAnimBoolConditionMode AnimBoolConditionMode => boolConditionMode;
-        public SpineAnimIntConditionMode IntConditionMode => intConditionMode;
-        public int ParameterValueInteger => parameterValueInteger;
+        public string ParameterName
+        {
+            get => parameterName;
+            set => parameterName = value;
+        }
+
+        public SpineAnimFloatConditionMode FloatConditionMode
+        {
+            get => floatConditionMode;
+            set => floatConditionMode = value;
+        }
+
+        public float ParameterValueFloat
+        {
+            get => parameterValueFloat;
+            set => parameterValueFloat = value;
+        }
+
+        public SpineAnimBoolConditionMode AnimBoolConditionMode
+        {
+            get => boolConditionMode;
+            set => boolConditionMode = value;
+        }
+
+        public SpineAnimIntConditionMode IntConditionMode
+        {
+            get => intConditionMode;
+            set => intConditionMode = value;
+        }
+
+        public int ParameterValueInteger
+        {
+            get => parameterValueInteger;
+            set => parameterValueInteger = value;
+        }
     }
 }
